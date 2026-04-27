@@ -119,13 +119,13 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Rattachement Lieu</label>
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Rattachement Entité</label>
               <select 
                 value={formData.location_id || ''}
                 onChange={e => setFormData({ ...formData, location_id: e.target.value ? parseInt(e.target.value) : null })}
                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value="">Sélectionner un bureau</option>
+                <option value="">Sélectionner une entité</option>
                 {locations.map(loc => (
                   <option key={loc.id} value={loc.id}>{loc.name}</option>
                 ))}

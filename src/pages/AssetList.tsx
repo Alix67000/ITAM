@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset } from '../services/api';
-import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AssetModal } from '../components/AssetModal';
 
-export const AssetList: React.FC = () => {
+export const AssetList: React.FC<{ initialType?: string }> = ({ initialType }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(initialType || null);
   
+  // Update filter when initialType changes
+  useEffect(() => {
+    setSelectedTypeFilter(initialType || null);
+  }, [initialType]);
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -62,11 +68,38 @@ export const AssetList: React.FC = () => {
     }
   };
 
-  const filtered = assets.filter(a => 
-    a.label.toLowerCase().includes(search.toLowerCase()) || 
-    a.serial?.toLowerCase().includes(search.toLowerCase()) ||
-    a.user_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = assets.filter(a => {
+    const matchesSearch = 
+      a.label.toLowerCase().includes(search.toLowerCase()) || 
+      a.serial?.toLowerCase().includes(search.toLowerCase()) ||
+      a.user_name?.toLowerCase().includes(search.toLowerCase());
+    
+    if (selectedTypeFilter) {
+      // Mapping user-friendly names to database types if necessary
+      // For now we assume the filter matches the type exactly or we normalize
+      const normalizedType = a.type.toLowerCase();
+      const filter = selectedTypeFilter.toLowerCase();
+      
+      // Some mappings if the values from the menu don't match the DB exactly
+      const typeMap: Record<string, string[]> = {
+        'ordinateurs': ['pc', 'ordinateur'],
+        'moniteurs': ['écran', 'moniteur'],
+        'logiciels': ['logiciel', 'software'],
+        'matériels réseau': ['réseau', 'network'],
+        'péripheriques': ['périphérique', 'accessoire'],
+        'imprimante': ['imprimante'],
+        'telephones': ['téléphone']
+      };
+
+      if (typeMap[filter]) {
+        return matchesSearch && typeMap[filter].includes(normalizedType);
+      }
+      
+      return matchesSearch && normalizedType === filter;
+    }
+    
+    return matchesSearch;
+  });
 
   if (loading && assets.length === 0) return <div className="text-sm font-sans text-slate-400 p-12 text-center animate-pulse italic">Synchronisation de la base de données...</div>;
 
@@ -101,10 +134,26 @@ export const AssetList: React.FC = () => {
 
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-lg font-bold text-slate-900">Inventaire Global</h2>
-          <p className="text-xs text-slate-500">Gestion et suivi des {assets.length} matériels répertoriés.</p>
+          <h2 className="text-lg font-bold text-slate-900">
+            {selectedTypeFilter 
+              ? `Inventaire : ${selectedTypeFilter.charAt(0).toUpperCase() + selectedTypeFilter.slice(1)}` 
+              : 'Inventaire Global'}
+          </h2>
+          <p className="text-xs text-slate-500">
+            {selectedTypeFilter 
+              ? `Affichage des matériels de type ${selectedTypeFilter}.` 
+              : `Gestion et suivi des ${assets.length} matériels répertoriés.`}
+          </p>
         </div>
         <div className="flex gap-3">
+          {selectedTypeFilter && (
+            <button 
+              onClick={() => setSelectedTypeFilter(null)}
+              className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-all hover:border-slate-300"
+            >
+              <X className="w-3.5 h-3.5" /> Effacer le filtre
+            </button>
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -130,7 +179,7 @@ export const AssetList: React.FC = () => {
             <tr className="border-b border-slate-100">
               <th className="px-8 py-4 font-semibold">Matériel</th>
               <th className="px-8 py-4 font-semibold">Identifiant</th>
-              <th className="px-8 py-4 font-semibold">Lieu</th>
+              <th className="px-8 py-4 font-semibold">Entité</th>
               <th className="px-8 py-4 font-semibold">Affecté à</th>
               <th className="px-8 py-4 font-semibold text-center">État</th>
               <th className="px-8 py-4 font-semibold text-right">Actions</th>
@@ -152,7 +201,15 @@ export const AssetList: React.FC = () => {
                     </div>
                     <div>
                       <div className="font-bold text-slate-900">{asset.label}</div>
-                      <div className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.type} {asset.subtype ? `• ${asset.subtype}` : ''}</div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.type} {asset.subtype ? `• ${asset.subtype}` : ''}</div>
+                        {asset.contract_count ? asset.contract_count > 0 && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-bold border border-blue-100">
+                            <FileText className="w-2.5 h-2.5" />
+                            {asset.contract_count}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -183,16 +240,18 @@ export const AssetList: React.FC = () => {
                   </span>
                 </td>
                 <td className="px-8 py-4 text-right">
-                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => handleEdit(asset)}
                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        title="Modifier"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(asset.id)}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Supprimer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

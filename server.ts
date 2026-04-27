@@ -11,7 +11,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS locations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    address TEXT
+    address TEXT,
+    parent_id INTEGER,
+    FOREIGN KEY(parent_id) REFERENCES locations(id)
   );
 
   CREATE TABLE IF NOT EXISTS suppliers (
@@ -148,16 +150,36 @@ async function startServer() {
 
   // API Routes
   app.get('/api/stats', (req, res) => {
-    const assetCount = db.prepare('SELECT COUNT(*) as count FROM assets').get();
-    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
-    const locationCount = db.prepare('SELECT COUNT(*) as count FROM locations').get();
-    const brokenAssets = db.prepare("SELECT COUNT(*) as count FROM assets WHERE status = 'Panne'").get();
+    const assetCount = db.prepare('SELECT COUNT(*) as count FROM assets').get() as { count: number };
+    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+    const locationCount = db.prepare('SELECT COUNT(*) as count FROM locations').get() as { count: number };
+    const brokenAssets = db.prepare("SELECT COUNT(*) as count FROM assets WHERE status = 'Panne'").get() as { count: number };
     
     const recentEvents = db.prepare(`
       SELECT e.*, a.label as asset_label 
       FROM events e 
       LEFT JOIN assets a ON e.asset_id = a.id 
       ORDER BY e.created_at DESC LIMIT 5
+    `).all();
+
+    const categories = db.prepare(`
+      SELECT type as name, COUNT(*) as value 
+      FROM assets 
+      GROUP BY type
+    `).all();
+
+    const statuses = db.prepare(`
+      SELECT status as name, COUNT(*) as value 
+      FROM assets 
+      GROUP BY status
+    `).all();
+
+    const trends = db.prepare(`
+      SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as count
+      FROM assets
+      WHERE created_at >= date('now', '-6 months')
+      GROUP BY month
+      ORDER BY month ASC
     `).all();
 
     res.json({
@@ -167,14 +189,20 @@ async function startServer() {
         locations: locationCount.count,
         broken: brokenAssets.count
       },
-      recentEvents
+      recentEvents,
+      charts: {
+        categories,
+        statuses,
+        trends
+      }
     });
   });
 
   // Assets CRUD
   app.get('/api/assets', (req, res) => {
     const assets = db.prepare(`
-      SELECT a.*, u.name as user_name, l.name as location_name 
+      SELECT a.*, u.name as user_name, l.name as location_name,
+      (SELECT COUNT(*) FROM asset_contracts ac WHERE ac.asset_id = a.id) as contract_count
       FROM assets a 
       LEFT JOIN users u ON a.assigned_user_id = u.id 
       LEFT JOIN locations l ON a.location_id = l.id
@@ -220,6 +248,36 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Asset-Contract Associations
+  app.get('/api/assets/:id/contracts', (req, res) => {
+    const { id } = req.params;
+    const contracts = db.prepare(`
+      SELECT c.*, s.name as supplier_name 
+      FROM contracts c 
+      JOIN asset_contracts ac ON c.id = ac.contract_id 
+      LEFT JOIN suppliers s ON c.supplier_id = s.id
+      WHERE ac.asset_id = ?
+    `).all(id);
+    res.json(contracts);
+  });
+
+  app.post('/api/assets/:id/contracts', (req, res) => {
+    const { id } = req.params;
+    const { contract_id } = req.body;
+    try {
+      db.prepare('INSERT INTO asset_contracts (asset_id, contract_id) VALUES (?, ?)').run(id, contract_id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: 'Déjà associé ou erreur serveur' });
+    }
+  });
+
+  app.delete('/api/assets/:id/contracts/:contract_id', (req, res) => {
+    const { id, contract_id } = req.params;
+    db.prepare('DELETE FROM asset_contracts WHERE asset_id = ? AND contract_id = ?').run(id, contract_id);
+    res.json({ success: true });
+  });
+
   // Users CRUD
   app.get('/api/users', (req, res) => {
     const users = db.prepare(`
@@ -250,37 +308,202 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS contracts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      label TEXT NOT NULL,
+      type TEXT NOT NULL,
+      supplier_id INTEGER,
+      start_date TEXT,
+      end_date TEXT,
+      price REAL,
+      status TEXT DEFAULT 'Actif',
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+    )
+  `);
+
+  // Migration for description column if table already exists without it
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info(contracts)").all() as any[];
+    const hasDescription = tableInfo.some(col => col.name === 'description');
+    if (!hasDescription) {
+      db.exec("ALTER TABLE contracts ADD COLUMN description TEXT");
+    }
+  } catch (err) {
+    console.error("Migration error (contracts):", err);
+  }
+
+  // Migration for parent_id in locations
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info(locations)").all() as any[];
+    const hasParentId = tableInfo.some(col => col.name === 'parent_id');
+    if (!hasParentId) {
+      db.exec("ALTER TABLE locations ADD COLUMN parent_id INTEGER REFERENCES locations(id)");
+    }
+  } catch (err) {
+    console.error("Migration error (locations):", err);
+  }
+
   app.delete('/api/users/:id', (req, res) => {
     const { id } = req.params;
-    // Check if user is assigned to any assets first? Or just allow delete?
-    // For V1, we'll allow it but ideally we should block if assets are assigned.
     db.prepare(`UPDATE assets SET assigned_user_id = NULL WHERE assigned_user_id = ?`).run(id);
     db.prepare(`DELETE FROM users WHERE id = ?`).run(id);
     res.json({ success: true });
   });
 
+  // Contracts CRUD
+  app.get('/api/contracts', (req, res) => {
+    const contracts = db.prepare(`
+      SELECT c.*, s.name as supplier_name,
+      (SELECT COUNT(*) FROM asset_contracts ac WHERE ac.contract_id = c.id) as assets_count
+      FROM contracts c 
+      LEFT JOIN suppliers s ON c.supplier_id = s.id
+      ORDER BY c.end_date ASC
+    `).all();
+    res.json(contracts);
+  });
+
+  app.post('/api/contracts', (req, res) => {
+    const { label, type, supplier_id, start_date, end_date, price, status, description } = req.body;
+    const info = db.prepare(`
+      INSERT INTO contracts (label, type, supplier_id, start_date, end_date, price, status, description)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(label, type, supplier_id, start_date, end_date, price, status, description);
+    res.json({ id: info.lastInsertRowid });
+  });
+
+  app.put('/api/contracts/:id', (req, res) => {
+    const { id } = req.params;
+    const { label, type, supplier_id, start_date, end_date, price, status, description } = req.body;
+    db.prepare(`
+      UPDATE contracts 
+      SET label = ?, type = ?, supplier_id = ?, start_date = ?, end_date = ?, price = ?, status = ?, description = ?
+      WHERE id = ?
+    `).run(label, type, supplier_id, start_date, end_date, price, status, description, id);
+    res.json({ success: true });
+  });
+
+  app.delete('/api/contracts/:id', (req, res) => {
+    const { id } = req.params;
+    db.prepare(`DELETE FROM contracts WHERE id = ?`).run(id);
+    res.json({ success: true });
+  });
+
+  app.get('/api/contracts/:id/assets', (req, res) => {
+    const { id } = req.params;
+    const assets = db.prepare(`
+      SELECT a.*, u.name as user_name, l.name as location_name
+      FROM assets a
+      JOIN asset_contracts ac ON a.id = ac.asset_id
+      LEFT JOIN users u ON a.assigned_user_id = u.id
+      LEFT JOIN locations l ON a.location_id = l.id
+      WHERE ac.contract_id = ?
+    `).all(id);
+    res.json(assets);
+  });
+
+  // Licenses CRUD
+  app.get('/api/licenses', (req, res) => {
+    const licenses = db.prepare(`
+      SELECT l.*,
+      (SELECT COUNT(*) FROM asset_licenses al WHERE al.license_id = l.id) as used_seats
+      FROM licenses l
+      ORDER BY l.label ASC
+    `).all();
+    res.json(licenses);
+  });
+
+  app.post('/api/licenses', (req, res) => {
+    const { label, software, license_key, total_seats, type, status, end_date } = req.body;
+    const info = db.prepare(`
+      INSERT INTO licenses (label, software, license_key, total_seats, type, status, end_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(label, software, license_key, total_seats || 1, type, status || 'Actif', end_date);
+    res.json({ id: info.lastInsertRowid });
+  });
+
+  app.put('/api/licenses/:id', (req, res) => {
+    const { id } = req.params;
+    const { label, software, license_key, total_seats, type, status, end_date } = req.body;
+    db.prepare(`
+      UPDATE licenses 
+      SET label = ?, software = ?, license_key = ?, total_seats = ?, type = ?, status = ?, end_date = ?
+      WHERE id = ?
+    `).run(label, software, license_key, total_seats, type, status, end_date, id);
+    res.json({ success: true });
+  });
+
+  app.delete('/api/licenses/:id', (req, res) => {
+    const { id } = req.params;
+    db.prepare('DELETE FROM asset_licenses WHERE license_id = ?').run(id);
+    db.prepare('DELETE FROM licenses WHERE id = ?').run(id);
+    res.json({ success: true });
+  });
+
+  app.get('/api/licenses/:id/assets', (req, res) => {
+    const { id } = req.params;
+    const assets = db.prepare(`
+      SELECT a.*, u.name as user_name, l.name as location_name
+      FROM assets a
+      JOIN asset_licenses al ON a.id = al.asset_id
+      LEFT JOIN users u ON a.assigned_user_id = u.id
+      LEFT JOIN locations l ON a.location_id = l.id
+      WHERE al.license_id = ?
+    `).all(id);
+    res.json(assets);
+  });
+
   // Locations CRUD
-  app.get('/api/locations', (req, res) => res.json(db.prepare('SELECT * FROM locations').all()));
+  app.get('/api/locations', (req, res) => {
+    const locations = db.prepare(`
+      SELECT l1.*, l2.name as parent_name 
+      FROM locations l1 
+      LEFT JOIN locations l2 ON l1.parent_id = l2.id
+    `).all();
+    res.json(locations);
+  });
   app.post('/api/locations', (req, res) => {
-    const { name, address } = req.body;
-    const info = db.prepare('INSERT INTO locations (name, address) VALUES (?, ?)').run(name, address);
+    const { name, address, parent_id } = req.body;
+    const info = db.prepare('INSERT INTO locations (name, address, parent_id) VALUES (?, ?, ?)').run(name, address, parent_id);
     res.json({ id: info.lastInsertRowid });
   });
   app.put('/api/locations/:id', (req, res) => {
     const { id } = req.params;
-    const { name, address } = req.body;
-    db.prepare('UPDATE locations SET name = ?, address = ? WHERE id = ?').run(name, address, id);
+    const { name, address, parent_id } = req.body;
+    db.prepare('UPDATE locations SET name = ?, address = ?, parent_id = ? WHERE id = ?').run(name, address, parent_id, id);
     res.json({ success: true });
   });
   app.delete('/api/locations/:id', (req, res) => {
     const { id } = req.params;
     db.prepare('UPDATE users SET location_id = NULL WHERE location_id = ?').run(id);
     db.prepare('UPDATE assets SET location_id = NULL WHERE location_id = ?').run(id);
+    db.prepare('UPDATE locations SET parent_id = NULL WHERE parent_id = ?').run(id);
     db.prepare('DELETE FROM locations WHERE id = ?').run(id);
     res.json({ success: true });
   });
 
   app.get('/api/suppliers', (req, res) => res.json(db.prepare('SELECT * FROM suppliers').all()));
+  app.post('/api/suppliers', (req, res) => {
+    const { name, contact, phone } = req.body;
+    const info = db.prepare('INSERT INTO suppliers (name, contact, phone) VALUES (?, ?, ?)').run(name, contact, phone);
+    res.json({ id: info.lastInsertRowid });
+  });
+  app.put('/api/suppliers/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, contact, phone } = req.body;
+    db.prepare('UPDATE suppliers SET name = ?, contact = ?, phone = ? WHERE id = ?').run(name, contact, phone, id);
+    res.json({ success: true });
+  });
+  app.delete('/api/suppliers/:id', (req, res) => {
+    const { id } = req.params;
+    // Set supplier_id to NULL in related tables
+    db.prepare('UPDATE assets SET supplier_id = NULL WHERE supplier_id = ?').run(id);
+    db.prepare('UPDATE contracts SET supplier_id = NULL WHERE supplier_id = ?').run(id);
+    db.prepare('DELETE FROM suppliers WHERE id = ?').run(id);
+    res.json({ success: true });
+  });
 
   // Vite setup
   if (process.env.NODE_ENV !== 'production') {

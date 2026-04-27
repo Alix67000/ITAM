@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api, User } from '../services/api';
-import { Plus, Search, User as UserIcon, Mail, Building, MapPin, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, User as UserIcon, Mail, Building, Network, Edit2, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { UserModal } from '../components/UserModal';
 
@@ -103,11 +103,11 @@ export const UserList: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button onClick={() => handleEdit(user)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+              <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                 <button onClick={() => handleEdit(user)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Modifier">
                     <Edit2 className="w-3.5 h-3.5" />
                  </button>
-                 <button onClick={() => handleDelete(user.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                 <button onClick={() => handleDelete(user.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Supprimer">
                     <Trash2 className="w-3.5 h-3.5" />
                  </button>
               </div>
@@ -122,9 +122,9 @@ export const UserList: React.FC = () => {
                </div>
                <div className="flex items-center gap-3 text-sm text-slate-600">
                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-4 h-4 text-slate-400" />
+                    <Network className="w-4 h-4 text-slate-400" />
                  </div>
-                 <span>{(user as any).location_name || 'Non rattaché'}</span>
+                 <span>{(user as any).location_name || 'Aucune entité'}</span>
                </div>
             </div>
 

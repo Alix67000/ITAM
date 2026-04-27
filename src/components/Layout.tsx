@@ -1,8 +1,9 @@
 import React from 'react';
-import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity } from 'lucide-react';
+import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { api } from '../services/api';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -18,13 +19,28 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   const [searchQuery, setSearchQuery] = React.useState('');
   const [results, setResults] = React.useState<{ type: string; id: number; label: string }[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
+  const [isAssetsOpen, setIsAssetsOpen] = React.useState(true);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'assets', label: 'Assets', icon: Laptop },
+    { 
+      id: 'assets', 
+      label: 'Assets', 
+      icon: Laptop,
+      subItems: [
+        { id: 'ordinateurs', label: 'Ordinateurs', icon: Cpu },
+        { id: 'moniteurs', label: 'Moniteurs', icon: Monitor },
+        { id: 'logiciels', label: 'Logiciels', icon: Box },
+        { id: 'matériels réseau', label: 'Réseau', icon: Share2 },
+        { id: 'péripheriques', label: 'Périphériques', icon: MousePointer2 },
+        { id: 'imprimante', label: 'Imprimantes', icon: Printer },
+        { id: 'telephones', label: 'Téléphones', icon: Smartphone },
+      ]
+    },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'contracts', label: 'Contrats & Licences', icon: FileText },
-    { id: 'locations', label: 'Lieux', icon: MapPin },
+    { id: 'suppliers', label: 'Fournisseurs', icon: Building2 },
+    { id: 'locations', label: 'Entités', icon: Network },
   ];
 
   const handleSearch = async (query: string) => {
@@ -36,10 +52,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
     setIsSearching(true);
     try {
-      const [assets, users, locations] = await Promise.all([
+      const [assets, users, locations, suppliers] = await Promise.all([
         api.getAssets(),
         api.getUsers(),
         api.getLocations(),
+        api.getSuppliers(),
       ]);
 
       const filteredAssets = assets
@@ -54,7 +71,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         .filter(l => l.name.toLowerCase().includes(query.toLowerCase()))
         .map(l => ({ type: 'location', id: l.id, label: l.name, tab: 'locations' }));
 
-      setResults([...filteredAssets, ...filteredUsers, ...filteredLocations].slice(0, 8) as any);
+      const filteredSuppliers = suppliers
+        .filter(s => s.name.toLowerCase().includes(query.toLowerCase()))
+        .map(s => ({ type: 'fournisseur', id: s.id, label: s.name, tab: 'suppliers' }));
+
+      setResults([...filteredAssets, ...filteredUsers, ...filteredLocations, ...filteredSuppliers].slice(0, 8) as any);
     } catch (err) {
       console.error(err);
     } finally {
@@ -73,19 +94,61 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-colors",
-                activeTab === item.id 
-                  ? "bg-blue-50 text-blue-700" 
-                  : "text-slate-600 hover:bg-slate-50"
+            <div key={item.id} className="space-y-1">
+              <button
+                onClick={() => {
+                  if (item.subItems) {
+                    setIsAssetsOpen(!isAssetsOpen);
+                    setActiveTab(item.id);
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                }}
+                className={cn(
+                  "w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition-colors",
+                  activeTab === item.id || (item.id === 'assets' && activeTab.startsWith('assets:'))
+                    ? "bg-blue-50 text-blue-700" 
+                    : "text-slate-600 hover:bg-slate-50"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className={cn("w-5 h-5", (activeTab === item.id || (item.id === 'assets' && activeTab.startsWith('assets:'))) ? "text-blue-700" : "text-slate-400")} />
+                  {item.label}
+                </div>
+                {item.subItems && (
+                  <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isAssetsOpen ? "rotate-180" : "")} />
+                )}
+              </button>
+
+              {item.subItems && (
+                <AnimatePresence>
+                  {isAssetsOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden space-y-1 ml-4 border-l border-slate-100 pl-4"
+                    >
+                      {item.subItems.map((sub) => (
+                        <button
+                          key={sub.id}
+                          onClick={() => setActiveTab(`assets:${sub.id}`)}
+                          className={cn(
+                            "w-full flex items-center gap-3 p-2 rounded-lg text-xs font-medium transition-colors",
+                            activeTab === `assets:${sub.id}`
+                              ? "bg-blue-50/50 text-blue-600" 
+                              : "text-slate-500 hover:bg-slate-50"
+                          )}
+                        >
+                          <sub.icon className={cn("w-3.5 h-3.5", activeTab === `assets:${sub.id}` ? "text-blue-600" : "text-slate-400")} />
+                          {sub.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               )}
-            >
-              <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-blue-700" : "text-slate-400")} />
-              {item.label}
-            </button>
+            </div>
           ))}
         </nav>
 

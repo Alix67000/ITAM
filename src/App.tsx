@@ -9,11 +9,18 @@ import { Dashboard } from './pages/Dashboard';
 import { AssetList } from './pages/AssetList';
 import { UserList } from './pages/UserList';
 import { LocationList } from './pages/LocationList';
+import { ContractList } from './pages/ContractList';
+import { SupplierList } from './pages/SupplierList';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const renderContent = () => {
+    if (activeTab.startsWith('assets:')) {
+      const type = activeTab.split(':')[1];
+      return <AssetList initialType={type} />;
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
@@ -23,13 +30,10 @@ export default function App() {
         return <UserList />;
       case 'locations':
         return <LocationList />;
+      case 'suppliers':
+        return <SupplierList />;
       case 'contracts':
-        return (
-          <div className="p-12 text-center border-2 border-dashed border-[#141414]/20 rounded-xl">
-             <h3 className="text-xl font-serif italic mb-2">Contrats & Licences</h3>
-             <p className="text-sm opacity-40">Section disponible sous peu (Gestion structurelle OK).</p>
-          </div>
-        );
+        return <ContractList />;
       case 'history':
         return (
           <div className="p-12 text-center border-2 border-dashed border-[#141414]/20 rounded-xl">
