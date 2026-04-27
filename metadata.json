@@ -1,0 +1,6 @@
+{
+  "name": "Mini GLPI V1",
+  "description": "Système de gestion de parc informatique (ITSM) simplifié pour la gestion des assets, utilisateurs, contrats et licences.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
