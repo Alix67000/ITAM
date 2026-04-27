@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset } from '../services/api';
 import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { AssetModal } from '../components/AssetModal';
 
 export const AssetList: React.FC = () => {
@@ -12,6 +12,9 @@ export const AssetList: React.FC = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [assetToDelete, setAssetToDelete] = useState<number | null>(null);
 
   const fetchAssets = () => {
     setLoading(true);
@@ -35,11 +38,18 @@ export const AssetList: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet asset ?')) {
-      await api.deleteAsset(id);
+  const confirmDelete = async () => {
+    if (assetToDelete) {
+      await api.deleteAsset(assetToDelete);
+      setAssetToDelete(null);
+      setIsConfirmOpen(false);
       fetchAssets();
     }
+  };
+
+  const handleDelete = (id: number) => {
+    setAssetToDelete(id);
+    setIsConfirmOpen(true);
   };
 
   const getTypeIcon = (type: string) => {
@@ -68,6 +78,26 @@ export const AssetList: React.FC = () => {
         onRefresh={fetchAssets}
         asset={selectedAsset}
       />
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {isConfirmOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsConfirmOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 border border-slate-200">
+               <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-4">
+                 <Trash2 className="w-6 h-6" />
+               </div>
+               <h3 className="font-bold text-slate-900 text-lg mb-2">Confirmer la suppression</h3>
+               <p className="text-sm text-slate-500 mb-6">Cette action est irréversible. L'historique lié à cet asset sera également supprimé.</p>
+               <div className="flex gap-3">
+                  <button onClick={() => setIsConfirmOpen(false)} className="flex-1 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Annuler</button>
+                  <button onClick={confirmDelete} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition shadow-lg shadow-red-100">Supprimer</button>
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">

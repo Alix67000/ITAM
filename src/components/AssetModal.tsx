@@ -119,7 +119,13 @@ export const AssetModal: React.FC<AssetModalProps> = ({ isOpen, onClose, onRefre
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Type d'Asset</label>
                 <select 
                   value={formData.type}
-                  onChange={e => setFormData({ ...formData, type: e.target.value })}
+                  onChange={e => {
+                    const newType = e.target.value;
+                    let newSubtype = '';
+                    if (newType === 'PC') newSubtype = 'Laptop';
+                    if (newType === 'Téléphone') newSubtype = 'Smartphone';
+                    setFormData({ ...formData, type: newType, subtype: newSubtype });
+                  }}
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="PC">Ordinateur (PC)</option>
@@ -130,16 +136,32 @@ export const AssetModal: React.FC<AssetModalProps> = ({ isOpen, onClose, onRefre
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Sous-type / Modèle</label>
-                <input 
-                  type="text" 
-                  value={formData.subtype || ''}
-                  onChange={e => setFormData({ ...formData, subtype: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="Laptop, Fixe, Tablette..."
-                />
-              </div>
+              {['PC', 'Téléphone'].includes(formData.type || '') ? (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Sous-type</label>
+                  <select 
+                    value={formData.subtype || ''}
+                    onChange={e => setFormData({ ...formData, subtype: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    {formData.type === 'PC' && (
+                      <>
+                        <option value="Laptop">PC Portable</option>
+                        <option value="Desktop">PC Fixe</option>
+                        <option value="Tablette">Tablette</option>
+                      </>
+                    )}
+                    {formData.type === 'Téléphone' && (
+                      <>
+                        <option value="Smartphone">Smartphone</option>
+                        <option value="Feature Phone">Mobile simple</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              ) : (
+                <div className="hidden"></div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Localisation</label>
