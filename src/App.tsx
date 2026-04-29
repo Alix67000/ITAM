@@ -10,15 +10,29 @@ import { AssetList } from './pages/AssetList';
 import { UserList } from './pages/UserList';
 import { LocationList } from './pages/LocationList';
 import { ContractList } from './pages/ContractList';
+import { LicenseList } from './pages/LicenseList';
 import { SupplierList } from './pages/SupplierList';
+import { PhoneLineList } from './pages/PhoneLineList';
+import { AuthProvider } from './services/authContext';
+import { ToastProvider } from './services/toastContext';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const renderContent = () => {
     if (activeTab.startsWith('assets:')) {
-      const type = activeTab.split(':')[1];
+      const parts = activeTab.split(':');
+      if (parts[1] === 'user') {
+        return <AssetList initialUserId={parseInt(parts[2])} />;
+      }
+      const type = parts[1];
       return <AssetList initialType={type} />;
+    }
+
+    if (activeTab.startsWith('gestion:')) {
+      const subTab = activeTab.split(':')[1];
+      if (subTab === 'phone-lines') return <PhoneLineList />;
+      return <LicenseList mode={subTab as 'softwares' | 'licenses'} />;
     }
 
     switch (activeTab) {
@@ -27,7 +41,7 @@ export default function App() {
       case 'assets':
         return <AssetList />;
       case 'users':
-        return <UserList />;
+        return <UserList onNavigate={setActiveTab} />;
       case 'locations':
         return <LocationList />;
       case 'suppliers':
@@ -47,9 +61,13 @@ export default function App() {
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderContent()}
-    </Layout>
+    <ToastProvider>
+      <AuthProvider>
+        <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+          {renderContent()}
+        </Layout>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

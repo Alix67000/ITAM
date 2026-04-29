@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { api, User, Location } from '../services/api';
-import { X, Save } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Save } from 'lucide-react';
+import { Modal } from './ui/Modal';
+import { useToast } from '../services/toastContext';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface UserModalProps {
 }
 
 export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh, user }) => {
+  const { showToast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<User>>({
@@ -18,6 +20,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
     email: '',
     department: '',
     location_id: null,
+    role: 'User',
   });
 
   useEffect(() => {
@@ -31,6 +34,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
           email: '',
           department: '',
           location_id: null,
+          role: 'User',
         });
       }
     }
@@ -42,88 +46,72 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
     try {
       if (user?.id) {
         await api.updateUser(user.id, formData);
+        showToast('Collaborateur mis à jour avec succès', 'success');
       } else {
         await api.createUser(formData);
+        showToast('Collaborateur créé avec succès', 'success');
       }
       onRefresh();
       onClose();
     } catch (err) {
-      console.error(err);
+      showToast('Une erreur est survenue lors de l\'enregistrement', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        />
-        
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-200"
-        >
-          <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <h3 className="font-bold text-slate-900">
-              {user ? 'Modifier l\'Utilisateur' : 'Nouvel Utilisateur'}
-            </h3>
-            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-              <X className="w-5 h-5 text-slate-500" />
-            </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={user ? 'Modifier l\'Utilisateur' : 'Nouvel Utilisateur'}
+      subtitle={user ? `Édition de ${user.name}` : 'Création d\'une fiche utilisateur'}
+      maxWidth="md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom complet</label>
+            <input 
+              required
+              type="text" 
+              value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+              placeholder="ex: Jean Dupont"
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Nom complet</label>
-              <input 
-                required
-                type="text" 
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="ex: Jean Dupont"
-              />
-            </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Email PROFESSIONNEL</label>
+            <input 
+              required
+              type="email" 
+              value={formData.email}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+              placeholder="j.dupont@company.com"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Email PROFESSIONNEL</label>
-              <input 
-                required
-                type="email" 
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="j.dupont@company.com"
-              />
-            </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Département / Service</label>
+            <input 
+              type="text" 
+              value={formData.department || ''}
+              onChange={e => setFormData({ ...formData, department: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+              placeholder="ex: Marketing, IT, RH..."
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Département / Service</label>
-              <input 
-                type="text" 
-                value={formData.department || ''}
-                onChange={e => setFormData({ ...formData, department: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="ex: Marketing, IT, RH..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Rattachement Entité</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Rattachement Entité</label>
               <select 
                 value={formData.location_id || ''}
                 onChange={e => setFormData({ ...formData, location_id: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
               >
                 <option value="">Sélectionner une entité</option>
                 {locations.map(loc => (
@@ -132,25 +120,38 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
               </select>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
-              <button 
-                type="button" 
-                onClick={onClose}
-                className="px-6 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Rôle / Accès</label>
+              <select 
+                value={formData.role || 'User'}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
               >
-                Annuler
-              </button>
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
-              >
-                {loading ? 'Enregistrement...' : <><Save className="w-4 h-4" /> {user ? 'Enregistrer' : 'Créer'}</>}
-              </button>
+                <option value="Admin">Administrateur</option>
+                <option value="User">Utilisateur</option>
+                <option value="Viewer">Observateur</option>
+              </select>
             </div>
-          </form>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-6 py-3 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            disabled={loading || !formData.name || !formData.email}
+            className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black shadow-xl shadow-blue-100 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:grayscale"
+          >
+            {loading ? '...' : <><Save className="w-4 h-4" /> {user ? 'Mettre à jour' : 'Créer l\'utilisateur'}</>}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };

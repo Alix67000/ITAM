@@ -3,8 +3,10 @@ import { api, Supplier } from '../services/api';
 import { Plus, Search, Building2, User, Phone, Edit2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SupplierModal } from '../components/SupplierModal';
+import { useAuth } from '../services/authContext';
 
 export const SupplierList: React.FC = () => {
+  const { canEdit, canDelete, isViewer } = useAuth();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -27,16 +29,19 @@ export const SupplierList: React.FC = () => {
   }, []);
 
   const handleEdit = (supplier: Supplier) => {
+    if (!canEdit) return;
     setSelectedSupplier(supplier);
     setIsModalOpen(true);
   };
 
   const handleCreate = () => {
+    if (isViewer) return;
     setSelectedSupplier(null);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
+    if (!canDelete) return;
     setSupplierToDelete(id);
     setIsConfirmOpen(true);
   };
@@ -105,7 +110,11 @@ export const SupplierList: React.FC = () => {
               onChange={(e) => setSearch(e.target.value)} 
             />
           </div>
-          <button onClick={handleCreate} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-100">
+          <button 
+            disabled={isViewer}
+            onClick={handleCreate} 
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+          >
             <Plus className="w-4 h-4" /> Nouveau Fournisseur
           </button>
         </div>
@@ -152,8 +161,14 @@ export const SupplierList: React.FC = () => {
                 </td>
                 <td className="px-8 py-4 text-right">
                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(s)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Modifier"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(s.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Supprimer"><Trash2 className="w-4 h-4" /></button>
+                      <button 
+                        disabled={!canDelete}
+                        onClick={() => handleDelete(s.id)} 
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                    </div>
                 </td>
               </motion.tr>

@@ -1,13 +1,9 @@
 import React from 'react';
-import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2, Shield, ShieldCheck, ShieldAlert, Key, Phone, X, Plus } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'motion/react';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { useAuth, Role } from '../services/authContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,10 +12,19 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
+  const { role, setRole, isAdmin, isViewer } = useAuth();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [results, setResults] = React.useState<{ type: string; id: number; label: string }[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
-  const [isAssetsOpen, setIsAssetsOpen] = React.useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
+    assets: true,
+    gestion: true
+  });
+
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -30,7 +35,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       subItems: [
         { id: 'ordinateurs', label: 'Ordinateurs', icon: Cpu },
         { id: 'moniteurs', label: 'Moniteurs', icon: Monitor },
-        { id: 'logiciels', label: 'Logiciels', icon: Box },
         { id: 'matériels réseau', label: 'Réseau', icon: Share2 },
         { id: 'péripheriques', label: 'Périphériques', icon: MousePointer2 },
         { id: 'imprimante', label: 'Imprimantes', icon: Printer },
@@ -38,7 +42,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       ]
     },
     { id: 'users', label: 'Utilisateurs', icon: Users },
-    { id: 'contracts', label: 'Contrats & Licences', icon: FileText },
+    { 
+      id: 'gestion', 
+      label: 'Gestion', 
+      icon: Settings,
+      subItems: [
+        { id: 'softwares', label: 'Logiciels', icon: Box },
+        { id: 'licenses', label: 'Licences', icon: Key },
+        { id: 'phone-lines', label: 'Lignes', icon: Phone },
+      ]
+    },
+    { id: 'contracts', label: 'Contrats', icon: FileText },
     { id: 'suppliers', label: 'Fournisseurs', icon: Building2 },
     { id: 'locations', label: 'Entités', icon: Network },
   ];
@@ -83,13 +97,42 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     }
   };
 
+  // Mobile Nav Items (Simplified for bottom bar)
+  const mobileNavItems = [
+    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'assets', label: 'Assets', icon: Laptop },
+    { id: 'users', label: 'Users', icon: Users },
+    { id: 'gestion:phone-lines', label: 'Lignes', icon: Phone },
+  ];
+
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
-          <span className="font-bold text-lg tracking-tight">MiniGLPI <span className="text-blue-600">v1</span></span>
+    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[150] md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar - Drawer on mobile, Fixed on Desktop */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-[160] w-72 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-300 md:relative md:translate-x-0 hidden md:flex",
+        isSidebarOpen ? "translate-x-0 !flex" : "-translate-x-full"
+      )}>
+        <div className="p-6 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
+            <span className="font-bold text-lg tracking-tight">MiniGLPI <span className="text-blue-600">v1</span></span>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 text-slate-400">
+            <X className="w-6 h-6" />
+          </button>
         </div>
         
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -98,31 +141,33 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
               <button
                 onClick={() => {
                   if (item.subItems) {
-                    setIsAssetsOpen(!isAssetsOpen);
-                    setActiveTab(item.id);
+                    toggleSection(item.id);
+                    if (!activeTab.startsWith(`${item.id}:`)) {
+                      setActiveTab(`${item.id}:${item.subItems[0].id}`);
+                    }
                   } else {
                     setActiveTab(item.id);
                   }
                 }}
                 className={cn(
                   "w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition-colors",
-                  activeTab === item.id || (item.id === 'assets' && activeTab.startsWith('assets:'))
+                  activeTab === item.id || activeTab.startsWith(`${item.id}:`)
                     ? "bg-blue-50 text-blue-700" 
                     : "text-slate-600 hover:bg-slate-50"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon className={cn("w-5 h-5", (activeTab === item.id || (item.id === 'assets' && activeTab.startsWith('assets:'))) ? "text-blue-700" : "text-slate-400")} />
+                  <item.icon className={cn("w-5 h-5", (activeTab === item.id || activeTab.startsWith(`${item.id}:`)) ? "text-blue-700" : "text-slate-400")} />
                   {item.label}
                 </div>
                 {item.subItems && (
-                  <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isAssetsOpen ? "rotate-180" : "")} />
+                  <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", openSections[item.id] ? "rotate-180" : "")} />
                 )}
               </button>
 
               {item.subItems && (
                 <AnimatePresence>
-                  {isAssetsOpen && (
+                  {openSections[item.id] && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
@@ -132,15 +177,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                       {item.subItems.map((sub) => (
                         <button
                           key={sub.id}
-                          onClick={() => setActiveTab(`assets:${sub.id}`)}
+                          onClick={() => setActiveTab(`${item.id}:${sub.id}`)}
                           className={cn(
                             "w-full flex items-center gap-3 p-2 rounded-lg text-xs font-medium transition-colors",
-                            activeTab === `assets:${sub.id}`
+                            activeTab === `${item.id}:${sub.id}`
                               ? "bg-blue-50/50 text-blue-600" 
                               : "text-slate-500 hover:bg-slate-50"
                           )}
                         >
-                          <sub.icon className={cn("w-3.5 h-3.5", activeTab === `assets:${sub.id}` ? "text-blue-600" : "text-slate-400")} />
+                          <sub.icon className={cn("w-3.5 h-3.5", activeTab === `${item.id}:${sub.id}` ? "text-blue-600" : "text-slate-400")} />
                           {sub.label}
                         </button>
                       ))}
@@ -152,8 +197,29 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-100 mt-auto">
-          <div className="bg-slate-900 rounded-xl p-4 text-white text-[10px]">
+        <div className="p-4 border-t border-slate-100 mt-auto space-y-3">
+          <div className="bg-slate-900 rounded-xl p-4 text-white text-[10px] space-y-2">
+             <div className="flex justify-between items-center opacity-70 uppercase tracking-wider font-sans mb-2">
+                <span>Rôle Actuel</span>
+                {isAdmin ? <ShieldCheck className="w-3 h-3 text-green-400" /> : isViewer ? <ShieldAlert className="w-3 h-3 text-orange-400" /> : <Shield className="w-3 h-3 text-blue-400" />}
+             </div>
+             <div className="flex gap-1 flex-wrap">
+                {(['Admin', 'User', 'Viewer'] as Role[]).map(r => (
+                   <button 
+                    key={r}
+                    onClick={() => setRole(r)}
+                    className={cn(
+                      "px-2 py-1 rounded transition-all font-bold",
+                      role === r ? "bg-white text-slate-900" : "bg-white/10 text-white/50 hover:bg-white/20"
+                    )}
+                   >
+                    {r}
+                   </button>
+                ))}
+             </div>
+             <p className="opacity-40 italic mt-2 border-t border-white/5 pt-2">{isAdmin ? "Accès Complet" : isViewer ? "Lecture Seule" : "Édition Limitée"}</p>
+          </div>
+          <div className="bg-slate-100 rounded-xl p-4 text-slate-400 text-[10px]">
              <p className="opacity-70 mb-1 font-sans uppercase tracking-wider">Database Version</p>
              <p className="font-mono">SQLite v3.x • Core v1</p>
           </div>
@@ -161,22 +227,37 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between flex-shrink-0 relative">
-          <div className="flex flex-col">
-            <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 w-96 relative">
+      <main className="flex-1 flex flex-col overflow-hidden pb-20 md:pb-0">
+        <header className="h-16 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between flex-shrink-0 relative">
+          <div className="flex items-center gap-3 flex-1">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 -ml-2 text-slate-500 md:hidden"
+            >
+              <Network className="w-6 h-6" />
+            </button>
+
+            <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 w-full max-w-md relative sm:flex hidden">
               <Database className="w-4 h-4 text-slate-400 mr-2" />
               <input 
                 type="text" 
-                placeholder="Rechercher un asset, SN, utilisateur..." 
+                placeholder="Rechercher..." 
                 className="bg-transparent border-none text-sm w-full focus:ring-0 outline-none" 
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
-            {/* Search Results Dropdown */}
-            {(searchQuery.length > 1) && (
-              <div className="absolute top-14 left-8 w-96 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-4">
+             <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-500 font-bold uppercase overflow-hidden text-xs">
+              {role.substring(0, 2)}
+            </div>
+          </div>
+
+          {/* Search Results Dropdown - Full width on mobile if open */}
+          {(searchQuery.length > 1) && (
+            <div className="absolute top-14 left-0 right-0 md:left-20 md:right-auto md:w-96 bg-white border border-slate-200 md:rounded-2xl shadow-xl z-[200] overflow-hidden">
                 <div className="p-2 border-b border-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50/50 px-4">
                   Résultats de recherche
                 </div>
@@ -209,22 +290,35 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                 )}
               </div>
             )}
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-              + Nouvel Asset
-            </button>
-            <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-500 font-bold">
-              IT
-            </div>
-          </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-8 h-full max-w-[1400px] mx-auto">
+        <div className="flex-1 overflow-y-auto w-full relative">
+          <div className="p-4 md:p-8 h-full w-full max-w-[1400px] mx-auto">
             {children}
           </div>
         </div>
+
+        {/* Bottom Navigation for Mobile */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-100 flex items-center justify-around px-2 z-[140] pb-safe">
+          {mobileNavItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-all",
+                (activeTab === item.id || activeTab.startsWith(`${item.id}:`))
+                  ? "text-blue-600"
+                  : "text-slate-400"
+              )}
+            >
+              <item.icon className={cn("w-5 h-5", (activeTab === item.id || activeTab.startsWith(`${item.id}:`)) ? "text-blue-600" : "text-slate-400")} />
+              <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
+              {(activeTab === item.id || activeTab.startsWith(`${item.id}:`)) && (
+                <motion.div layoutId="mobileNavUnderline" className="w-1 h-1 bg-blue-600 rounded-full mt-0.5" />
+              )}
+            </button>
+          ))}
+        </nav>
       </main>
     </div>
   );
