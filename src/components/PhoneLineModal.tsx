@@ -88,7 +88,7 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 <input 
                   required
                   type="text" 
-                  value={formData.label}
+                  value={formData.label || ''}
                   onChange={e => setFormData({ ...formData, label: e.target.value })}
                   placeholder="ex: Mobile Alex Dev"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
@@ -100,7 +100,7 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 <input 
                   required
                   type="text" 
-                  value={formData.number}
+                  value={formData.number || ''}
                   onChange={e => setFormData({ ...formData, number: e.target.value })}
                   placeholder="ex: 06 00 00 00 00"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
@@ -172,7 +172,7 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Commentaires libres</label>
           <textarea 
-            value={formData.comments}
+            value={formData.comments || ''}
             onChange={e => setFormData({ ...formData, comments: e.target.value })}
             rows={3}
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white resize-none"

@@ -23,6 +23,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
     supplier_id: null,
     assigned_user_id: null,
     specs: '',
+    condition: 'neuf',
+    value_euros: 0,
+    manufacture_date: '',
+    commissioning_date: '',
+    has_warranty: false,
+    warranty_end: '',
     ...initialData
   });
 
@@ -55,6 +61,22 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
     fetchData();
   }, []);
 
+  // Inventory Auto-generation logic
+  const isCreate = !initialData?.id;
+  useEffect(() => {
+    if (isCreate && formData.type) {
+      const fetchNextNum = async () => {
+        try {
+          const { nextNumber } = await api.getNextInventoryNumber(formData.type);
+          setFormData(prev => ({ ...prev, inventory_number: nextNumber }));
+        } catch (e) {
+          console.error("Error generating inventory number", e);
+        }
+      };
+      fetchNextNum();
+    }
+  }, [formData.type, isCreate]);
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'PC': return <Cpu className="w-4 h-4" />;
@@ -86,7 +108,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               <input 
                 required
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                value={formData.label}
+                value={formData.label || ''}
                 onChange={e => setFormData({ ...formData, label: e.target.value })}
                 placeholder="Ex: PC-042"
               />
@@ -97,7 +119,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">N° Série</label>
                 <input 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:bg-white focus:border-blue-500 outline-none transition-all"
-                  value={formData.serial}
+                  value={formData.serial || ''}
                   onChange={e => setFormData({ ...formData, serial: e.target.value })}
                   placeholder="SN..."
                 />
@@ -105,10 +127,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">N° Inventaire</label>
                 <input 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:bg-white focus:border-blue-500 outline-none transition-all"
-                  value={formData.inventory_number}
-                  onChange={e => setFormData({ ...formData, inventory_number: e.target.value })}
-                  placeholder="INV..."
+                  readOnly={isCreate}
+                  className={cn(
+                    "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono outline-none transition-all",
+                    isCreate ? "text-blue-600 bg-blue-50/50 border-blue-100 cursor-not-allowed" : "focus:bg-white focus:border-blue-500"
+                  )}
+                  value={formData.inventory_number || ''}
+                  onChange={e => !isCreate && setFormData({ ...formData, inventory_number: e.target.value })}
+                  placeholder="AUTO-GENERATED"
                 />
               </div>
             </div>
@@ -134,6 +160,109 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                  ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Cycle de Vie Section */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 text-slate-900 border-b border-slate-50 pb-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Cycle de Vie</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">État à l'acquisition</label>
+              <select 
+                required
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
+                value={formData.condition || 'neuf'}
+                onChange={e => setFormData({ ...formData, condition: e.target.value })}
+              >
+                <option value="neuf">Neuf</option>
+                <option value="occasion">Occasion</option>
+                <option value="reconditionné">Reconditionné</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Date de fabrication</label>
+                <input 
+                  type="date"
+                  required
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  value={formData.manufacture_date || ''}
+                  onChange={e => setFormData({ ...formData, manufacture_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Mise en service</label>
+                <input 
+                  type="date"
+                  required
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  value={formData.commissioning_date || ''}
+                  onChange={e => setFormData({ ...formData, commissioning_date: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Financier & Garantie Section */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 text-slate-100 border-b border-indigo-50/10 pb-3">
+             <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+             <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Finance & Garantie</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Valeur d'achat (€)</label>
+              <input 
+                type="number"
+                step="0.01"
+                required
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                value={formData.value_euros || ''}
+                onChange={e => setFormData({ ...formData, value_euros: Number(e.target.value) })}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex-1">
+                <p className="text-xs font-bold text-slate-900">Sous garantie ?</p>
+                <p className="text-[10px] text-slate-400 font-medium">Activer pour définir une date de fin</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, has_warranty: !formData.has_warranty })}
+                className={cn(
+                  "w-12 h-6 rounded-full transition-all relative",
+                  formData.has_warranty ? "bg-blue-600" : "bg-slate-300"
+                )}
+              >
+                <div className={cn(
+                  "absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm",
+                  formData.has_warranty ? "left-7" : "left-1"
+                )} />
+              </button>
+            </div>
+
+            {formData.has_warranty && (
+              <div className="space-y-1 animate-in zoom-in-95 duration-200">
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fin de garantie</label>
+                <input 
+                  type="date"
+                  required={formData.has_warranty}
+                  className="w-full bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm font-bold text-blue-700 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  value={formData.warranty_end || ''}
+                  onChange={e => setFormData({ ...formData, warranty_end: e.target.value })}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -256,7 +385,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
           </div>
           <textarea 
             className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-medium focus:bg-white focus:border-indigo-500 outline-none transition-all min-h-[150px] resize-none"
-            value={formData.specs}
+            value={formData.specs || ''}
             onChange={e => setFormData({ ...formData, specs: e.target.value })}
             placeholder="Détails techniques (CPU, RAM, OS, Modèle précis...) ou description libre de l'asset"
           />
@@ -272,8 +401,25 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
           Annuler
         </button>
         <button 
-          onClick={() => onSubmit(formData, extraData)}
-          disabled={isSaving || !formData.label}
+          onClick={() => {
+            // Validations
+            if (formData.value_euros !== undefined && formData.value_euros < 0) {
+              alert("La valeur d'achat doit être positive");
+              return;
+            }
+            if (formData.manufacture_date && formData.commissioning_date) {
+              if (new Date(formData.manufacture_date) > new Date(formData.commissioning_date)) {
+                alert("La date de fabrication ne peut pas être après la date de mise en service");
+                return;
+              }
+            }
+            if (formData.has_warranty && !formData.warranty_end) {
+              alert("Veuillez renseigner la date de fin de garantie");
+              return;
+            }
+            onSubmit(formData, extraData);
+          }}
+          disabled={isSaving || !formData.label || !formData.manufacture_date || !formData.commissioning_date || (formData.value_euros === undefined || formData.value_euros === 0)}
           className="flex items-center gap-2 bg-indigo-600 text-white px-10 py-4 rounded-2xl text-sm font-black shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:grayscale disabled:translate-y-0"
         >
           {isSaving ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}

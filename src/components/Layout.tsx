@@ -36,9 +36,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         { id: 'ordinateurs', label: 'Ordinateurs', icon: Cpu },
         { id: 'moniteurs', label: 'Moniteurs', icon: Monitor },
         { id: 'matériels réseau', label: 'Réseau', icon: Share2 },
-        { id: 'péripheriques', label: 'Périphériques', icon: MousePointer2 },
-        { id: 'imprimante', label: 'Imprimantes', icon: Printer },
-        { id: 'telephones', label: 'Téléphones', icon: Smartphone },
+        { id: 'périphériques', label: 'Périphériques', icon: MousePointer2 },
+        { id: 'imprimantes', label: 'Imprimantes', icon: Printer },
+        { id: 'téléphones', label: 'Téléphones', icon: Smartphone },
       ]
     },
     { id: 'users', label: 'Utilisateurs', icon: Users },
@@ -127,8 +127,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       )}>
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
-            <span className="font-bold text-lg tracking-tight">MiniGLPI <span className="text-blue-600">v1</span></span>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">E</div>
+            <span className="font-bold text-lg tracking-tight">ITAM EMMAÜS <span className="text-blue-600">v.1</span></span>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 text-slate-400">
             <X className="w-6 h-6" />
@@ -222,6 +222,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <div className="bg-slate-100 rounded-xl p-4 text-slate-400 text-[10px]">
              <p className="opacity-70 mb-1 font-sans uppercase tracking-wider">Database Version</p>
              <p className="font-mono">SQLite v3.x • Core v1</p>
+             <div className="mt-3 pt-3 border-t border-slate-200">
+               <p className="opacity-70 font-sans uppercase tracking-wider">Copywrite 2026</p>
+               <p className="font-bold text-slate-500 mt-1 uppercase">Developed by Ali AHMADI</p>
+             </div>
           </div>
         </div>
       </aside>

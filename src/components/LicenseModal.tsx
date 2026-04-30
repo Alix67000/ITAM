@@ -186,7 +186,7 @@ export const LicenseModal: React.FC<LicenseModalProps> = ({ isOpen, onClose, onR
                 <input
                   required
                   type="text"
-                  value={formData.label}
+                  value={formData.label || ''}
                   onChange={e => setFormData({ ...formData, label: e.target.value })}
                   placeholder="ex: Office 365 Bus."
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"

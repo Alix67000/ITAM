@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { api, Asset, PhoneLine } from '../services/api';
+import { api, Asset, PhoneLine, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
-import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box } from 'lucide-react';
+import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhoneLineModal } from '../components/PhoneLineModal';
 import { AssetDetailView } from '../components/AssetDetailView';
@@ -16,6 +16,13 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
   const [search, setSearch] = useState('');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(initialType || null);
   const [selectedUserFilter, setSelectedUserFilter] = useState<number | null>(initialUserId || null);
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<number | null>(null);
+  const [dateFilter, setDateFilter] = useState<string>('all'); // all, month, year
+  
+  const [users, setUsers] = useState<User[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   // View mode state
   const [viewingAssetId, setViewingAssetId] = useState<number | null>(null);
@@ -40,12 +47,16 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [assetsData, phoneLinesData] = await Promise.all([
+      const [assetsData, phoneLinesData, usersData, locationsData] = await Promise.all([
         api.getAssets(),
-        api.getPhoneLines()
+        api.getPhoneLines(),
+        api.getUsers(),
+        api.getLocations()
       ]);
       setAssets(assetsData);
       setPhoneLines(phoneLinesData);
+      setUsers(usersData);
+      setLocations(locationsData);
     } catch (error) {
       console.error('Error fetching inventory data:', error);
     } finally {
@@ -102,26 +113,46 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
     const matchesSearch = 
       a.label.toLowerCase().includes(search.toLowerCase()) || 
       a.serial?.toLowerCase().includes(search.toLowerCase()) ||
+      a.inventory_number?.toLowerCase().includes(search.toLowerCase()) ||
       a.user_name?.toLowerCase().includes(search.toLowerCase());
     
     if (selectedUserFilter && a.assigned_user_id !== selectedUserFilter) {
       return false;
     }
+
+    if (selectedStatusFilter && a.status !== selectedStatusFilter) {
+      return false;
+    }
+
+    if (selectedLocationFilter && a.location_id !== selectedLocationFilter) {
+      return false;
+    }
+
+    if (dateFilter !== 'all') {
+      const addedDate = new Date(a.created_at);
+      const now = new Date();
+      if (dateFilter === 'month') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(now.getMonth() - 1);
+        if (addedDate < monthAgo) return false;
+      } else if (dateFilter === 'year') {
+        const yearAgo = new Date();
+        yearAgo.setFullYear(now.getFullYear() - 1);
+        if (addedDate < yearAgo) return false;
+      }
+    }
     
     if (selectedTypeFilter) {
-      // Mapping user-friendly names to database types if necessary
-      // For now we assume the filter matches the type exactly or we normalize
       const normalizedType = a.type.toLowerCase();
       const filter = selectedTypeFilter.toLowerCase();
       
-      // Some mappings if the values from the menu don't match the DB exactly
       const typeMap: Record<string, string[]> = {
         'ordinateurs': ['pc', 'ordinateur'],
         'moniteurs': ['écran', 'moniteur'],
         'matériels réseau': ['réseau', 'network'],
-        'péripheriques': ['périphérique', 'accessoire'],
-        'imprimante': ['imprimante'],
-        'telephones': ['téléphone']
+        'périphériques': ['périphérique', 'accessoire', 'souris', 'clavier', 'casque'],
+        'imprimantes': ['imprimante'],
+        'téléphones': ['téléphone']
       };
 
       if (typeMap[filter]) {
@@ -132,7 +163,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
     }
     
     return matchesSearch;
-  });
+  }).sort((a, b) => (a.inventory_number || '').localeCompare(b.inventory_number || ''));
 
   const filteredPhoneLines = phoneLines.filter(p => {
     const matchesSearch = 
@@ -144,8 +175,12 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
       return false;
     }
 
-    if (selectedTypeFilter && selectedTypeFilter.toLowerCase() !== 'téléphones') {
-      return false; // Phone lines only show in global or when 'telephones' is selected or when user filter is active
+    if (selectedLocationFilter && p.location_id !== selectedLocationFilter) {
+      return false;
+    }
+
+    if (selectedTypeFilter) {
+      return false; // Hide phone lines if any specific asset type filter is active (especially 'Téléphones')
     }
 
     return matchesSearch;
@@ -223,15 +258,18 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
           </p>
         </div>
         <div className="flex gap-3">
-          {(selectedTypeFilter || selectedUserFilter) && (
+          {(selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all') && (
             <button 
               onClick={() => {
                 setSelectedTypeFilter(null);
                 setSelectedUserFilter(null);
+                setSelectedStatusFilter(null);
+                setSelectedLocationFilter(null);
+                setDateFilter('all');
               }}
-              className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-all hover:border-slate-300"
+              className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-all hover:border-slate-300 whitespace-nowrap"
             >
-              <X className="w-3.5 h-3.5" /> Effacer le filtre
+              <X className="w-3.5 h-3.5" /> Effacer
             </button>
           )}
           <div className="relative">
@@ -239,35 +277,115 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
             <input 
               type="text" 
               placeholder="Série, Label, User..." 
-              className="bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-48 md:w-64 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <button 
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className={cn(
+              "p-2 rounded-lg border transition-all",
+              showAdvancedFilters ? "bg-slate-900 border-slate-900 text-white" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+            )}
+            title="Filtres avancés"
+          >
+            <Filter className="w-5 h-5" />
+          </button>
+          <button 
             disabled={isViewer}
             onClick={handleCreate}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed whitespace-nowrap"
           >
             <Plus className="w-4 h-4" /> Nouvel Asset
           </button>
         </div>
       </div>
 
+      <AnimatePresence>
+        {showAdvancedFilters && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Statut</label>
+                <select 
+                  value={selectedStatusFilter || ''} 
+                  onChange={(e) => setSelectedStatusFilter(e.target.value || null)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold focus:bg-white outline-none"
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="Stock">En Stock</option>
+                  <option value="En service">En Service</option>
+                  <option value="Panne">En Panne</option>
+                  <option value="Réforme">Réformé</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Utilisateur</label>
+                <select 
+                  value={selectedUserFilter || ''} 
+                  onChange={(e) => setSelectedUserFilter(Number(e.target.value) || null)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold focus:bg-white outline-none"
+                >
+                  <option value="">Tous les utilisateurs</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Entité</label>
+                <select 
+                  value={selectedLocationFilter || ''} 
+                  onChange={(e) => setSelectedLocationFilter(Number(e.target.value) || null)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold focus:bg-white outline-none"
+                >
+                  <option value="">Toutes les entités</option>
+                  {locations.map(l => (
+                    <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Date d'ajout</label>
+                <select 
+                  value={dateFilter} 
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold focus:bg-white outline-none"
+                >
+                  <option value="all">Toutes dates</option>
+                  <option value="month">Dernier mois</option>
+                  <option value="year">Dernière année</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
         <table className="w-full text-left border-collapse">
           <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
             <tr className="border-b border-slate-100">
-              <th className="px-8 py-4 font-semibold">Matériel</th>
-              <th className="px-8 py-4 font-semibold">Identifiant</th>
-              <th className="px-8 py-4 font-semibold">Entité</th>
-              <th className="px-8 py-4 font-semibold">Affecté à</th>
+              <th className="px-8 py-4 font-semibold text-left">N° Inventaire</th>
+              <th className="px-8 py-4 font-semibold">Asset / Cycle de vie</th>
+              <th className="px-8 py-4 font-semibold">Affectation</th>
+              <th className="px-8 py-4 font-semibold">Acquisition</th>
+              <th className="px-8 py-4 font-semibold">Finance & Garantie</th>
               <th className="px-8 py-4 font-semibold text-center">État</th>
               <th className="px-8 py-4 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {filtered.map((asset, idx) => (
+            {[...filtered].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => (
               <motion.tr 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -281,53 +399,67 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
                 className="hover:bg-slate-50 transition-colors group cursor-pointer"
               >
                 <td className="px-8 py-4">
+                  <div className="flex flex-col">
+                    <span className="font-mono font-black text-blue-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
+                    <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-0.5">{asset.type}</span>
+                  </div>
+                </td>
+                <td className="px-8 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 group-hover:bg-white transition-colors border border-transparent group-hover:border-slate-200">
-                      {getTypeIcon(asset.type)}
-                    </div>
                     <div>
                       <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-all">{asset.label}</div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <div className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.type} {asset.subtype ? `• ${asset.subtype}` : ''}</div>
-                        {asset.contract_count ? asset.contract_count > 0 && (
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-bold border border-blue-100" title="Contrats">
-                            <FileText className="w-2.5 h-2.5" />
-                            {asset.contract_count}
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.subtype}</span>
+                        </div>
+                        {asset.manufacture_date && (
+                          <div className="text-[9px] text-slate-400">
+                             Fab: {new Date(asset.manufacture_date).toLocaleDateString('fr-FR')} 
+                             {asset.commissioning_date && ` • MES: ${new Date(asset.commissioning_date).toLocaleDateString('fr-FR')}`}
                           </div>
-                        ) : null}
-                        {asset.software_count ? asset.software_count > 0 && (
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-bold border border-emerald-100" title="Logiciels">
-                            <FileText className="w-2.5 h-2.5" />
-                            {asset.software_count}
-                          </div>
-                        ) : null}
-                        {asset.license_count ? asset.license_count > 0 && (
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-bold border border-indigo-100" title="Licences">
-                            <Key className="w-2.5 h-2.5" />
-                            {asset.license_count}
-                          </div>
-                        ) : null}
+                        )}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-8 py-4 font-mono text-[11px] text-slate-500">
-                  {asset.serial || 'N/A'}
-                </td>
-                <td className="px-8 py-4 text-slate-600">
-                  {asset.location_name || <span className="opacity-30">---</span>}
-                </td>
                 <td className="px-8 py-4">
                   {asset.user_name ? (
-                    <div className="flex items-center gap-2">
-                       <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
-                         {asset.user_name.charAt(0)}
-                       </div>
-                       <span className="font-medium text-slate-900">{asset.user_name}</span>
+                    <div className="flex flex-col">
+                       <span className="font-bold text-slate-900 text-xs">{asset.user_name}</span>
+                       <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                         <MapPin className="w-2.5 h-2.5" /> {asset.location_name || 'Stock'}
+                       </span>
                     </div>
                   ) : (
-                    <span className="text-slate-300 italic text-xs">Non affecté</span>
+                    <div className="flex flex-col">
+                       <span className="text-slate-300 italic text-[10px]">Non affecté</span>
+                       <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                         <MapPin className="w-2.5 h-2.5" /> {asset.location_name || 'Stock'}
+                       </span>
+                    </div>
                   )}
+                </td>
+                <td className="px-8 py-4">
+                  <div className="flex flex-col">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block w-fit mb-1",
+                      asset.condition === 'neuf' ? 'bg-emerald-50 text-emerald-600' :
+                      asset.condition === 'occasion' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                    )}>
+                      {asset.condition || 'neuf'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono italic">{asset.serial || 'S/N: ---'}</span>
+                  </div>
+                </td>
+                <td className="px-8 py-4">
+                  <div className="flex flex-col">
+                    <span className="font-mono font-bold text-slate-900">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+                    {asset.has_warranty ? (
+                       <span className="text-[9px] text-blue-600 font-bold">Garantie au {new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}</span>
+                    ) : (
+                       <span className="text-[9px] text-slate-300">Sans garantie</span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-8 py-4 text-center">
                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase inline-block min-w-[80px] ${
@@ -455,9 +587,11 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
                    ) : (
                      <span className="text-[10px] italic text-slate-300">Non affecté</span>
                    )}
-                   <div className="flex gap-1">
-                      {asset.contract_count ? asset.contract_count > 0 && <FileText className="w-3 h-3 text-blue-400" /> : null}
-                      {asset.software_count ? asset.software_count > 0 && <Box className="w-3 h-3 text-emerald-400" /> : null}
+                   <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                         {asset.contract_count ? asset.contract_count > 0 && <FileText className="w-3 h-3 text-blue-400" /> : null}
+                         {asset.software_count ? asset.software_count > 0 && <Box className="w-3 h-3 text-emerald-400" /> : null}
+                      </div>
                    </div>
                 </div>
               </div>

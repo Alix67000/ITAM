@@ -75,7 +75,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
             <input 
               required
               type="text" 
-              value={formData.name}
+              value={formData.name || ''}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
               placeholder="ex: Jean Dupont"
@@ -87,7 +87,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
             <input 
               required
               type="email" 
-              value={formData.email}
+              value={formData.email || ''}
               onChange={e => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
               placeholder="j.dupont@company.com"

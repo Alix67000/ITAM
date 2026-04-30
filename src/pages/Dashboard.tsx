@@ -9,7 +9,11 @@ import {
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -38,7 +42,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Top Row: Summary Stats (KPIs) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Parc Matériel</p>
@@ -89,6 +93,42 @@ export const Dashboard: React.FC = () => {
           <p className="text-[10px] text-emerald-600 font-bold mt-6 uppercase tracking-tighter">Engagements actifs</p>
         </motion.div>
 
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Valeur du Parc</p>
+          <div className="flex items-end justify-between mt-4 relative">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{stats.counts.totalValue.toLocaleString('fr-FR')} €</h3>
+            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+               <TrendingUp className="w-6 h-6" />
+            </div>
+          </div>
+          <p className="text-[10px] text-blue-600 font-bold mt-6 uppercase tracking-tighter">Investissement total</p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden relative">
+           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Taux Garantie</p>
+          <div className="flex items-end justify-between mt-4 relative">
+            <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{Math.round(stats.counts.warrantyPercent)} %</h3>
+            <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+          </div>
+          <p className="text-[10px] text-emerald-600 font-bold mt-6 uppercase tracking-tighter">Matériel converti</p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-100 transition-all group overflow-hidden relative">
+           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Âge Moyen</p>
+          <div className="flex items-end justify-between mt-4 relative">
+            <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.counts.averageAgeYears.toFixed(1)} <span className="text-xl">Ans</span></h3>
+            <div className="w-12 h-12 bg-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200">
+              <Clock className="w-6 h-6" />
+            </div>
+          </div>
+          <p className="text-[10px] text-amber-600 font-bold mt-6 uppercase tracking-tighter">Obsolescence moyenne</p>
+        </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-red-50 p-6 rounded-3xl border border-red-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-red-100/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-red-500 uppercase tracking-widest relative">État Critique</p>
@@ -119,8 +159,8 @@ export const Dashboard: React.FC = () => {
                </div>
             </div>
           </div>
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="flex-1 min-h-[300px] relative">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={stats.charts.trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
@@ -150,8 +190,8 @@ export const Dashboard: React.FC = () => {
             </h4>
             <p className="text-xs text-slate-500 font-medium">Répartition par typologie</p>
           </div>
-          <div className="flex-1 relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="flex-1 relative min-h-[250px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={stats.charts.categories}
@@ -248,45 +288,62 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Maintenance / Warnings */}
         <div className="space-y-8">
-          <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-2xl overflow-hidden relative group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/30 transition-all duration-500" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -ml-12 -mb-12" />
+          <div className="bg-white p-8 rounded-3xl shadow-sm border-2 border-amber-100 overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full blur-3xl -mr-16 -mt-16" />
             
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2 relative">
-              <ShieldAlert className="w-4 h-4 text-blue-400" /> Veille préventive
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-6 flex items-center gap-2 relative">
+              <ShieldAlert className="w-4 h-4" /> Veille préventive
             </h4>
             
             <div className="space-y-4 relative">
-              <p className="text-[11px] text-slate-400 font-medium mb-2 uppercase tracking-widest border-b border-white/5 pb-2">Échéances Proches</p>
+              <p className="text-[11px] text-slate-400 font-black mb-2 uppercase tracking-widest border-b border-slate-50 pb-2">Échéances Proches</p>
               
-              {stats.upcomingExpirations.map((exp, i) => (
-                <div key={i} className="group/item flex items-start gap-4 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all cursor-pointer">
-                  <div className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
-                    exp.type === 'License' ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+              {stats.upcomingExpirations.map((exp, i) => {
+                const diffDays = Math.ceil((new Date(exp.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                const isUrgent = diffDays < 30;
+
+                return (
+                  <div key={i} className={cn(
+                    "group/item flex items-start gap-4 p-4 rounded-2xl transition-all cursor-pointer border",
+                    isUrgent ? "bg-red-50 border-red-100" : "bg-slate-50 border-slate-100 hover:border-amber-200"
                   )}>
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-black text-white group-hover/item:text-blue-400 transition-colors truncate">{exp.name}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
-                      <span className="font-bold">{exp.type}</span>
-                      <div className="w-1 h-1 bg-slate-600 rounded-full" />
-                      <span className="italic">{new Date(exp.date).toLocaleDateString('fr-FR')}</span>
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                      exp.type === 'License' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
+                    )}>
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="text-[11px] font-black text-slate-900 truncate pr-2 tracking-tight uppercase">{exp.name}</div>
+                        <div className={cn(
+                          "text-[9px] font-black whitespace-nowrap px-1.5 py-0.5 rounded ml-auto uppercase",
+                          isUrgent ? "text-red-600 bg-red-100/50" : "text-amber-600 bg-amber-100/50"
+                        )}>
+                          J-{diffDays}
+                        </div>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2 font-medium">
+                        <span className="font-bold">{exp.type}</span>
+                        <div className="w-1 h-1 bg-slate-200 rounded-full" />
+                        <span className="italic">{new Date(exp.date).toLocaleDateString('fr-FR')}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {stats.upcomingExpirations.length === 0 && (
-                <div className="text-[10px] text-slate-500 italic py-4">
-                  Aucune expiration prévue dans les 3 prochains mois.
+                <div className="text-[10px] text-slate-400 font-bold italic py-8 text-center uppercase tracking-widest">
+                  Parc conforme aux échéances.
                 </div>
               )}
               
-              <button className="w-full mt-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">
+              <button 
+                onClick={() => onNavigate?.('contracts')}
+                className="w-full mt-4 py-4 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-200 transition-all active:scale-95"
+              >
                 Gérer les abonnements
               </button>
             </div>

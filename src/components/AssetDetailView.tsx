@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { 
   X, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, 
   FileText, Key, MapPin, Calendar, Plus, 
-  MousePointer2, Keyboard, Headphones, Speaker, Settings, Network
+  MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AssetForm } from './forms/AssetForm';
@@ -23,6 +23,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [softwares, setSoftwares] = useState<any[]>([]);
   const [licenses, setLicenses] = useState<License[]>([]);
   const [linkedAssets, setLinkedAssets] = useState<Asset[]>([]);
+  const [allAssets, setAllAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -34,11 +35,13 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [showSoftwareAdd, setShowSoftwareAdd] = useState(false);
   const [showLicenseAdd, setShowLicenseAdd] = useState(false);
   const [showContractAdd, setShowContractAdd] = useState(false);
+  const [showAssetLink, setShowAssetLink] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const assets = await api.getAssets();
+      setAllAssets(assets);
       const foundAsset = assets.find(a => a.id === assetId);
       if (foundAsset) {
         setAsset(foundAsset);
@@ -115,15 +118,46 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     } catch (e) { console.error(e); }
   };
 
-  const getAssetIcon = (type: string) => {
+  const handleLinkAsset = async (childId: number) => {
+    try {
+      await api.linkAsset(assetId, childId);
+      const updated = await api.getAssetChildren(assetId);
+      setLinkedAssets(updated);
+      setShowAssetLink(false);
+      showToast('Matériel rattaché', 'success');
+    } catch (e) { 
+      showToast('Échec du rattachage', 'error');
+    }
+  };
+
+  const handleUnlinkAsset = async (childId: number) => {
+    if (!confirm('Voulez-vous vraiment détacher ce matériel ?')) return;
+    try {
+      await api.unlinkAsset(assetId, childId);
+      const updated = await api.getAssetChildren(assetId);
+      setLinkedAssets(updated);
+      showToast('Matériel détaché', 'success');
+    } catch (e) {
+      showToast('Échec du détachage', 'error');
+    }
+  };
+
+  const getAssetIcon = (type: string, size = "w-8 h-8") => {
     switch (type?.toLowerCase()) {
-      case 'pc': return <Cpu className="w-8 h-8" />;
-      case 'téléphone': return <Smartphone className="w-8 h-8" />;
-      case 'écran': return <Monitor className="w-8 h-8" />;
-      case 'imprimante': return <Printer className="w-8 h-8" />;
-      case 'périphérique': return <MousePointer2 className="w-8 h-8" />;
-      case 'réseau': return <Network className="w-8 h-8" />;
-      default: return <HardDrive className="w-8 h-8" />;
+      case 'pc': 
+      case 'ordinateur': return <Cpu className={size} />;
+      case 'téléphone': 
+      case 'mobile': return <Smartphone className={size} />;
+      case 'écran': 
+      case 'moniteur': return <Monitor className={size} />;
+      case 'imprimante': return <Printer className={size} />;
+      case 'périphérique': return <MousePointer2 className={size} />;
+      case 'réseau': return <Network className={size} />;
+      case 'clavier': return <Keyboard className={size} />;
+      case 'souris': return <MousePointer2 className={size} />;
+      case 'casque': return <Headphones className={size} />;
+      case 'haut-parleur': return <Speaker className={size} />;
+      default: return <Box className={size} />;
     }
   };
 
@@ -164,7 +198,19 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     );
   }
 
-  const specs = asset?.specs ? JSON.parse(asset.specs) : {};
+  let specs: any = {};
+  let specsIsJson = false;
+  try {
+    if (asset?.specs) {
+      const parsed = JSON.parse(asset.specs);
+      if (typeof parsed === 'object' && parsed !== null) {
+        specs = parsed;
+        specsIsJson = true;
+      }
+    }
+  } catch (e) {
+    specsIsJson = false;
+  }
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20 md:pb-0 font-sans">
@@ -221,16 +267,77 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           {/* Main Column */}
           <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
             
+            {/* Life Cycle & Finance Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+                <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Cycle de Vie</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">État</label>
+                    <p className="font-bold text-slate-900 capitalize">{asset.condition || 'neuf'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Âge</label>
+                    <p className="font-bold text-slate-900">
+                      {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fabrication</label>
+                    <p className="font-bold text-slate-900 text-sm">{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Mise en service</label>
+                    <p className="font-bold text-slate-900 text-sm">{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+                <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Finance & Garantie</h2>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end border-b border-slate-50 pb-4">
+                    <div>
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Valeur d'acquisition</label>
+                      <p className="text-2xl font-black text-slate-900 font-mono">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                    </div>
+                  </div>
+                  <div className={cn(
+                    "p-4 rounded-2xl flex items-center justify-between",
+                    asset.has_warranty ? "bg-blue-50 text-blue-700 border border-blue-100" : "bg-slate-50 text-slate-400 border border-slate-100"
+                  )}>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest">Garantie</p>
+                      <p className="text-xs font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
+                    </div>
+                    <Key className={cn("w-5 h-5", asset.has_warranty ? "opacity-100" : "opacity-20")} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Tech Specs Summary */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-8">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-4">Détails Techniques</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8">
-                {Object.entries(specs).map(([key, value]) => (
-                  <div key={key} className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{key}</label>
-                    <p className="font-bold text-slate-900 text-sm md:text-base">{String(value) || '---'}</p>
+                {specsIsJson ? (
+                  Object.entries(specs).map(([key, value]) => (
+                    <div key={key} className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{key}</label>
+                      <p className="font-bold text-slate-900 text-sm md:text-base">{String(value) || '---'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full">
+                    <p className="text-sm font-medium text-slate-600 whitespace-pre-wrap">{asset.specs || 'Aucune spécification technique détaillée'}</p>
                   </div>
-                ))}
+                )}
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Type précis</label>
                   <p className="font-bold text-slate-900 text-sm md:text-base">{asset.subtype || '---'}</p>
@@ -294,22 +401,82 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
 
             {/* Peripherals */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                 <Monitor className="w-3 h-3" /> Matériels rattachés ({linkedAssets.length})
-               </h3>
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {linkedAssets.map(child => (
-                    <div key={child.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm">
-                        <Box className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-slate-900">{child.label}</div>
-                        <div className="text-[9px] font-black text-slate-400 uppercase">{child.type}</div>
-                      </div>
-                    </div>
-                  ))}
+               <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                   <Monitor className="w-4 h-4 text-blue-500" /> Matériels rattachés ({linkedAssets.length})
+                 </h3>
+                 <button 
+                   onClick={() => setShowAssetLink(!showAssetLink)}
+                   className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 group transition-all"
+                 >
+                   <Plus className={cn("w-4 h-4 transition-transform", showAssetLink && "rotate-45")} />
+                 </button>
                </div>
+
+               {showAssetLink && (
+                 <motion.div 
+                   initial={{ opacity: 0, height: 0 }}
+                   animate={{ opacity: 1, height: 'auto' }}
+                   className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-100"
+                 >
+                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Lier un matériel existant</label>
+                   <select 
+                     onChange={(e) => e.target.value && handleLinkAsset(Number(e.target.value))}
+                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500"
+                   >
+                     <option value="">Sélectionner un asset...</option>
+                     {allAssets
+                       .filter(a => a.id !== assetId && !linkedAssets.some(la => la.id === a.id) && (a.type === 'Écran' || a.type === 'Périphérique'))
+                       .map(a => (
+                         <option key={a.id} value={a.id}>{a.label} ({a.type} - {a.serial})</option>
+                       ))
+                     }
+                   </select>
+                 </motion.div>
+               )}
+               
+               {linkedAssets.length > 0 ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   {linkedAssets.map(child => (
+                     <div key={child.id} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4 hover:border-blue-200 hover:bg-blue-50/10 transition-all group">
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm border border-slate-50 transition-colors">
+                         {getAssetIcon(child.type, "w-6 h-6")}
+                       </div>
+                       <div className="min-w-0 flex-1 space-y-1">
+                         <div className="flex items-center justify-between gap-2">
+                           <div className="text-sm font-bold text-slate-900 truncate">{child.label}</div>
+                           <span className={cn(
+                             "px-2 py-0.5 rounded-full text-[8px] font-black uppercase",
+                             child.status === 'En service' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                           )}>
+                             {child.status}
+                           </span>
+                         </div>
+                         <div className="flex flex-col gap-0.5">
+                           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{child.subtype || child.type}</div>
+                           {child.serial && (
+                             <div className="text-[9px] font-mono text-slate-400">S/N: {child.serial}</div>
+                           )}
+                         </div>
+                       </div>
+                       <button 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleUnlinkAsset(child.id);
+                         }}
+                         className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                     </div>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-100 rounded-3xl">
+                    <Settings className="w-10 h-10 text-slate-100 mb-2" />
+                    <p className="text-[11px] font-bold text-slate-300 uppercase tracking-[0.2em]">Aucun matériel lié</p>
+                 </div>
+               )}
             </div>
           </div>
 

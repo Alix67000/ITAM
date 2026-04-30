@@ -75,7 +75,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
             <input 
               required 
               type="text" 
-              value={formData.name} 
+              value={formData.name || ''} 
               onChange={e => setFormData({...formData, name: e.target.value})} 
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white" 
               placeholder="ex: Emmaüs Scherwiller" 
@@ -103,7 +103,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Adresse / Détails</label>
             <textarea 
-              value={formData.address} 
+              value={formData.address || ''} 
               onChange={e => setFormData({...formData, address: e.target.value})} 
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white resize-none" 
               placeholder="Adresse physique, étage..."

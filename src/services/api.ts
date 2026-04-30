@@ -13,6 +13,12 @@ export interface Asset {
   assigned_user_id: number | null;
   parent_asset_id?: number | null;
   specs: string;
+  condition: string;
+  value_euros: number;
+  manufacture_date: string;
+  commissioning_date: string;
+  has_warranty: boolean;
+  warranty_end?: string;
   created_at: string;
   updated_at: string;
   user_name?: string;
@@ -20,6 +26,7 @@ export interface Asset {
   contract_count?: number;
   software_count?: number;
   license_count?: number;
+  total_contract_price?: number;
 }
 
 export interface User {
@@ -84,6 +91,9 @@ export interface Stats {
     locations: number;
     broken: number;
     contracts: number;
+    totalValue: number;
+    warrantyPercent: number;
+    averageAgeYears: number;
   };
   recentEvents: Array<{
     id: number;
@@ -144,6 +154,7 @@ export const api = {
   deleteAsset: (id: number) => fetch(`${API_URL}/assets/${id}`, {
     method: 'DELETE'
   }).then(handleResponse),
+  getNextInventoryNumber: (assetType: string): Promise<{ nextNumber: string }> => fetch(`${API_URL}/assets/next-inventory-number/${encodeURIComponent(assetType)}`).then(handleResponse),
   getUsers: (): Promise<User[]> => fetch(`${API_URL}/users`).then(handleResponse),
   createUser: (data: Partial<User>) => fetch(`${API_URL}/users`, {
     method: 'POST',

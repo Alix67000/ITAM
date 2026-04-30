@@ -186,7 +186,7 @@ export const SoftwareModal: React.FC<SoftwareModalProps> = ({ isOpen, onClose, o
               <input
                 type="text"
                 required
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Adobe Photoshop, Office 365..."
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
@@ -196,7 +196,7 @@ export const SoftwareModal: React.FC<SoftwareModalProps> = ({ isOpen, onClose, o
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Éditeur</label>
               <input
                 type="text"
-                value={formData.publisher}
+                value={formData.publisher || ''}
                 onChange={e => setFormData({ ...formData, publisher: e.target.value })}
                 placeholder="Adobe, Microsoft..."
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
@@ -309,7 +309,7 @@ export const SoftwareModal: React.FC<SoftwareModalProps> = ({ isOpen, onClose, o
           <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Notes / Description</label>
           <textarea
             rows={2}
-            value={formData.description}
+            value={formData.description || ''}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white resize-none"
           />
