@@ -58,41 +58,41 @@ export const LocationList: React.FC = () => {
   const LocationItem: React.FC<{ loc: any; depth: number; index: number }> = ({ loc, depth, index }) => {
     return (
       <div className="space-y-1">
-        <motion.div 
+          <motion.div 
           initial={{ opacity: 0, x: -10 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: index * 0.01 }}
-          className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center group hover:border-blue-200 hover:shadow-md transition-all cursor-pointer"
+          className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center group hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer"
           style={{ marginLeft: `${depth * 2}rem` }}
           onClick={() => handleOpenModal(loc)}
         >
           <div className="flex items-center gap-4 flex-1">
-            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 relative flex-shrink-0">
-              <MapPin className="w-4 h-4" />
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 relative flex-shrink-0">
+              <MapPin className="w-5 h-5" />
               {depth > 0 && (
                 <div className="absolute top-1/2 -left-4 w-4 h-px bg-slate-200" />
               )}
             </div>
             
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-900 truncate">{loc.name}</h3>
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{loc.name}</h3>
                 {loc.children && loc.children.length > 0 && (
-                  <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">
+                  <span className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-md text-[10px] font-black uppercase tracking-widest border border-slate-100">
                     {loc.children.length} {loc.children.length > 1 ? 'sites' : 'site'}
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                <Navigation className="w-3 h-3" />
+                <Navigation className="w-3 h-3 text-slate-300" />
                 <span className="truncate">{loc.address || 'Aucune adresse enregistrée'}</span>
               </div>
             </div>
 
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                <button 
                  onClick={(e) => { e.stopPropagation(); handleOpenModal(loc); }}
-                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                 className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                >
                   <Edit2 className="w-4 h-4" />
                </button>
@@ -161,48 +161,56 @@ export const LocationList: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-lg font-bold text-slate-900 leading-tight">Entités & Sites</h2>
-          <p className="text-xs text-slate-500">Gestion hiérarchique de l'organisation.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <MapPin className="w-6 h-6 text-indigo-600" /> Entités & Sites
+          </h2>
+          <p className="text-sm font-medium text-slate-500">Gestion hiérarchique de l'organisation et des sites.</p>
         </div>
-        <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input type="text" placeholder="Filtrer..." className="bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-full md:w-64 focus:ring-2 focus:ring-blue-500 outline-none font-medium" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="relative group flex-1 sm:flex-initial">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Filtrer..." 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 min-w-[240px]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <button 
             disabled={isViewer}
             onClick={() => handleOpenModal()} 
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg shadow-blue-100 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:grayscale group whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" /> Nouveau
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Nouveau Site
           </button>
         </div>
       </div>
 
       <div className="space-y-2">
         {search ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((loc, idx) => (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} 
                 transition={{ delay: idx * 0.05 }} 
                 key={loc.id} 
                 onClick={() => handleOpenModal(loc)}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col group hover:border-blue-200 transition-all cursor-pointer"
+                className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col group hover:border-indigo-100 hover:shadow-xl transition-all cursor-pointer"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 relative">
-                    <MapPin className="w-5 h-5" />
+                <div className="flex justify-between items-start mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-[1.25rem] flex items-center justify-center text-white relative shadow-lg shadow-indigo-100 group-hover:scale-105 transition-transform">
+                    <MapPin className="w-6 h-6" />
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={(e) => { e.stopPropagation(); handleOpenModal(loc); }} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                     <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="p-2 text-slate-400 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                     <button onClick={(e) => { e.stopPropagation(); handleOpenModal(loc); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
+                     <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
-                <h3 className="font-black text-slate-900 mb-1 tracking-tight">{loc.name}</h3>
-                <div className="text-[10px] text-slate-500 font-medium italic mb-4">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors mb-2">{loc.name}</h3>
+                <div className="text-[10px] text-slate-500 font-medium italic mt-auto uppercase tracking-widest truncate">
                   {loc.address || 'Pas d\'adresse'}
                 </div>
               </motion.div>

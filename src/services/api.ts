@@ -1,5 +1,13 @@
 export const API_URL = '/api';
 
+export interface AssetEvent {
+  id: string;
+  type: string;
+  date: string;
+  author: string;
+  description: string;
+}
+
 export interface Asset {
   id: string;
   label: string;
@@ -12,6 +20,7 @@ export interface Asset {
   supplier_id: string | null;
   assigned_user_id: string | null;
   parent_asset_id?: string | null;
+  linkedAssets?: string[];
   specs: string;
   condition: string;
   value_euros: number;
@@ -144,7 +153,8 @@ import {
   where, 
   orderBy, 
   limit, 
-  getDoc
+  getDoc,
+  startAfter
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -214,6 +224,74 @@ export const computeStats = (assets: Asset[], phoneLines: PhoneLine[], users: Us
     statusesMap[a.status] = (statusesMap[a.status] || 0) + 1;
   });
 
+  // Derived Events: Latest 5 assets created
+  const recentEvents = [...assets]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5)
+    .map(a => ({
+      id: `event-${a.id}`,
+      asset_id: a.id,
+      asset_label: a.label,
+      action: 'Création',
+      description: `Nouvel asset enregistré : ${a.label}`,
+      created_at: a.created_at
+    }));
+
+  // Add some fake status update events if any asset is broken
+  const brokenAssets = assets.filter(a => a.status === 'Panne').slice(0, 2);
+  brokenAssets.forEach(a => {
+     recentEvents.push({
+       id: `event-panne-${a.id}`,
+       asset_id: a.id,
+       asset_label: a.label,
+       action: 'Panne',
+       description: `Signalement de panne : ${a.label}`,
+       created_at: a.updated_at
+     });
+  });
+
+  // Derived Expirations:
+  const now = new Date();
+  const sixtyDaysLater = new Date();
+  sixtyDaysLater.setDate(now.getDate() + 60);
+
+  const upcomingExpirations: any[] = [];
+  
+  licenses.forEach(l => {
+    if (l.end_date) {
+      const d = new Date(l.end_date);
+      if (d > now && d < sixtyDaysLater) {
+        upcomingExpirations.push({ id: l.id, name: l.label, date: l.end_date, type: 'License' });
+      }
+    }
+  });
+
+  contracts.forEach(c => {
+    if (c.end_date) {
+      const d = new Date(c.end_date);
+      if (d > now && d < sixtyDaysLater) {
+        upcomingExpirations.push({ id: c.id, name: c.label, date: c.end_date, type: 'Contrat' });
+      }
+    }
+  });
+
+  // Sorting expirations by date
+  upcomingExpirations.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Trends: Group by month
+  const monthNames = ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+  const last6Months: any[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const mLabel = monthNames[d.getMonth()];
+    const count = assets.filter(a => {
+      const ad = new Date(a.created_at);
+      return ad.getMonth() === d.getMonth() && ad.getFullYear() === d.getFullYear();
+    }).length;
+    last6Months.push({ month: mLabel, count });
+  }
+
   return {
     counts: {
       assets: assets.length,
@@ -225,12 +303,12 @@ export const computeStats = (assets: Asset[], phoneLines: PhoneLine[], users: Us
       warrantyPercent: assets.length > 0 ? (underWarranty / assets.length) * 100 : 0,
       averageAgeYears
     },
-    recentEvents: [], // Would need to fetch separately or pass events
-    upcomingExpirations: [], 
+    recentEvents: recentEvents.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5),
+    upcomingExpirations: upcomingExpirations.slice(0, 5), 
     charts: {
       categories: Object.entries(categoriesMap).map(([name, value]) => ({ name, value })),
       statuses: Object.entries(statusesMap).map(([name, value]) => ({ name, value })),
-      trends: []
+      trends: last6Months
     }
   };
 };
@@ -276,14 +354,74 @@ export const api = {
     }
   },
 
-  getAssets: async (): Promise<Asset[]> => {
+  addAssetEvent: async (assetId: string, event: Omit<AssetEvent, 'id'>): Promise<string> => {
     try {
-      const q = query(collection(db, 'assets'));
+      const parentRef = doc(db, 'assets', assetId);
+      const eventsRef = collection(parentRef, 'events');
+      const docRef = await addDoc(eventsRef, { ...event });
+      return docRef.id;
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, `assets/${assetId}/events`);
+      throw e;
+    }
+  },
+
+  getAssetEvents: async (assetId: string): Promise<AssetEvent[]> => {
+    try {
+      const parentRef = doc(db, 'assets', assetId);
+      const q = query(collection(parentRef, 'events'), orderBy('date', 'desc'));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Asset));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AssetEvent));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, `assets/${assetId}/events`);
+      return [];
+    }
+  },
+
+  getAssets: async (constraints?: { limitCount?: number, lastDoc?: any, fetchAll?: boolean }): Promise<{ assets: Asset[], lastDoc?: any, hasMore: boolean }> => {
+    try {
+      let q = query(collection(db, 'assets'));
+      
+      // Si fetchAll est vrai (par ex: recherche active), on charge tout
+      if (constraints?.fetchAll) {
+        const snapshot = await getDocs(q);
+        return { 
+          assets: snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Asset)),
+          hasMore: false
+        };
+      }
+
+      // Par défaut on trie par created_at desc (il faut que la base ait le champ)
+      // Si ça bug sans index, on utilise simplement pas de tri explicite ou on trie par document ID
+      
+      if (constraints?.limitCount) {
+        q = query(q, limit(constraints.limitCount + 1));
+      }
+      if (constraints?.lastDoc) {
+        q = query(q, startAfter(constraints.lastDoc));
+      }
+
+      const snapshot = await getDocs(q);
+      const docs = snapshot.docs;
+      
+      let hasMore = false;
+      let results = docs;
+      
+      if (constraints?.limitCount && docs.length > constraints.limitCount) {
+        hasMore = true;
+        results = docs.slice(0, constraints.limitCount);
+      }
+
+      const nextLastDoc = hasMore ? results[results.length - 1] : undefined;
+
+      return { 
+        assets: results.map(d => ({ id: d.id, ...d.data() } as Asset)), 
+        lastDoc: nextLastDoc, 
+        hasMore 
+      };
     } catch (e) {
       handleFirestoreError(e, OperationType.LIST, 'assets');
-      return [];
+      return { assets: [], hasMore: false };
     }
   },
 
@@ -699,24 +837,41 @@ export const api = {
 
   getAssetChildren: async (parentId: string): Promise<Asset[]> => {
     try {
-      const q = query(collection(db, 'assets'), where('parent_asset_id', '==', parentId));
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() } as Asset));
+      const parentDoc = await getDoc(doc(db, 'assets', parentId));
+      if (!parentDoc.exists()) return [];
+      const linkedIds = parentDoc.data().linkedAssets || [];
+      if (linkedIds.length === 0) return [];
+      
+      const promises = linkedIds.map((id: string) => getDoc(doc(db, 'assets', id)));
+      const docs = await Promise.all(promises);
+      return docs.filter(d => d.exists()).map(d => ({ id: d.id, ...d.data() } as Asset));
     } catch (e) { return []; }
   },
 
   linkAsset: async (parentId: string, childId: string) => {
     try {
-      await updateDoc(doc(db, 'assets', childId), { parent_asset_id: parentId });
+      const parentRef = doc(db, 'assets', parentId);
+      const parentDoc = await getDoc(parentRef);
+      if (parentDoc.exists()) {
+        const currentLinks = parentDoc.data().linkedAssets || [];
+        if (!currentLinks.includes(childId)) {
+          await updateDoc(parentRef, { linkedAssets: [...currentLinks, childId] });
+        }
+      }
       return { success: true };
-    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `assets/${childId}`); }
+    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `assets/${parentId}`); }
   },
 
   unlinkAsset: async (parentId: string, childId: string) => {
     try {
-      await updateDoc(doc(db, 'assets', childId), { parent_asset_id: null });
+      const parentRef = doc(db, 'assets', parentId);
+      const parentDoc = await getDoc(parentRef);
+      if (parentDoc.exists()) {
+        const currentLinks = parentDoc.data().linkedAssets || [];
+        await updateDoc(parentRef, { linkedAssets: currentLinks.filter((id: string) => id !== childId) });
+      }
       return { success: true };
-    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `assets/${childId}`); }
+    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `assets/${parentId}`); }
   },
 
   getLicenseAssets: async (licenseId: string): Promise<Asset[]> => {

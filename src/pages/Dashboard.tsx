@@ -6,6 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, AreaChart, Area, Legend 
  } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
@@ -14,12 +15,13 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     const load = async () => {
       const [assets, phoneLines, users, locations, contracts, licenses] = await Promise.all([
-        api.getAssets(),
+        api.getAssets({ fetchAll: true }).then(res => res.assets),
         api.getPhoneLines(),
         api.getUsers(),
         api.getLocations(),
@@ -54,7 +56,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       {/* Top Row: Summary Stats (KPIs) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} 
+          onClick={() => navigate('/assets')}
+          className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative cursor-pointer"
+        >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Parc Matériel</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -68,7 +74,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all group overflow-hidden relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} 
+          onClick={() => navigate('/users')}
+          className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all group overflow-hidden relative cursor-pointer"
+        >
           <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Utilisateurs</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -80,7 +90,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-[10px] text-slate-500 font-bold mt-6 uppercase tracking-tighter">Profils collaborateur</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all group overflow-hidden relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} 
+          onClick={() => navigate('/locations')}
+          className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all group overflow-hidden relative cursor-pointer"
+        >
            <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Entités</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -92,7 +106,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-[10px] text-slate-500 font-bold mt-6 uppercase tracking-tighter">Sites & Services</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} 
+          onClick={() => navigate('/contracts')}
+          className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden relative cursor-pointer"
+        >
            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Contrats</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -104,7 +122,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-[10px] text-emerald-600 font-bold mt-6 uppercase tracking-tighter">Engagements actifs</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Valeur du Parc</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -116,7 +134,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-[10px] text-blue-600 font-bold mt-6 uppercase tracking-tighter">Investissement total</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden relative">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all group overflow-hidden relative">
            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Taux Garantie</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -128,7 +146,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-[10px] text-emerald-600 font-bold mt-6 uppercase tracking-tighter">Matériel converti</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-100 transition-all group overflow-hidden relative">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-100 transition-all group overflow-hidden relative">
            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Âge Moyen</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -140,7 +158,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-[10px] text-amber-600 font-bold mt-6 uppercase tracking-tighter">Obsolescence moyenne</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-red-50 p-6 rounded-3xl border border-red-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-red-50 p-6 rounded-[2rem] border border-red-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-red-100/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-red-500 uppercase tracking-widest relative">État Critique</p>
           <div className="flex items-end justify-between mt-4 relative">
@@ -156,7 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       {/* Middle Row: Detailed Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Trend Area Chart */}
-        <div className="lg:col-span-8 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col min-h-[400px]">
+        <div className="lg:col-span-8 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col min-h-[400px]">
           <div className="flex items-center justify-between mb-8">
             <div className="space-y-1">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -194,7 +212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         {/* Categories Pie Chart */}
-        <div className="lg:col-span-4 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col min-h-[400px]">
+        <div className="lg:col-span-4 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col min-h-[400px]">
           <div className="space-y-1 mb-8">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <PieIcon className="w-3 h-3 text-indigo-600" /> Mix Matériel
@@ -243,7 +261,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Activities */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
             <div className="space-y-1">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
@@ -261,6 +279,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <motion.div 
                   initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
                   key={event.id} 
+                  onClick={() => navigate('/assets/' + event.asset_id)}
                   className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-all cursor-pointer group"
                 >
                   <div className={cn(
@@ -300,7 +319,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         <div className="space-y-8">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border-2 border-amber-100 overflow-hidden relative group">
+          <div className="bg-white p-8 rounded-[2rem] shadow-sm border-2 border-amber-100 overflow-hidden relative group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full blur-3xl -mr-16 -mt-16" />
             
             <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-6 flex items-center gap-2 relative">
@@ -315,7 +334,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 const isUrgent = diffDays < 30;
 
                 return (
-                  <div key={i} className={cn(
+                  <div key={i} 
+                    onClick={() => {
+                       if (exp.type === 'License') navigate('/licenses/' + (exp as any).id);
+                       else navigate('/contracts/' + (exp as any).id);
+                    }}
+                    className={cn(
                     "group/item flex items-start gap-4 p-4 rounded-2xl transition-all cursor-pointer border",
                     isUrgent ? "bg-red-50 border-red-100" : "bg-slate-50 border-slate-100 hover:border-amber-200"
                   )}>
@@ -361,7 +385,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </div>
 
           {/* Quick Support Card */}
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-3xl shadow-xl shadow-blue-200 text-white group relative overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-[2rem] shadow-xl shadow-blue-200 text-white group relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-1000" />
             <h4 className="text-[11px] font-black uppercase tracking-widest opacity-80 mb-2">Besoin d'aide ?</h4>
             <h3 className="text-xl font-black mb-4 tracking-tight">Support IT Interne</h3>

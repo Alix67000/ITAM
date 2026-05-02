@@ -7,7 +7,10 @@ import { ContractModal } from '../components/ContractModal';
 import { ContractDetailView } from '../components/ContractDetailView';
 import { useAuth } from '../services/authContext';
 
+import { useNavigate } from 'react-router-dom';
+
 export const ContractList: React.FC = () => {
+  const navigate = useNavigate();
   const { canEdit, canDelete, isViewer } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -16,7 +19,6 @@ export const ContractList: React.FC = () => {
   
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
-  const [viewingContractId, setViewingContractId] = useState<string | null>(null);
   
   const fetchData = async () => {
     setLoading(true);
@@ -45,7 +47,7 @@ export const ContractList: React.FC = () => {
   };
 
   const handleShowContractDetails = (contract: Contract) => {
-    setViewingContractId(contract.id);
+    navigate('/contracts/' + contract.id);
   };
 
   const handleCreate = () => {
@@ -55,6 +57,7 @@ export const ContractList: React.FC = () => {
   };
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'actif' | 'expire' | 'bientot_expire'>('all');
 
   const handleDeleteContract = async (id: string) => {
     if (!canDelete) return;
@@ -63,80 +66,92 @@ export const ContractList: React.FC = () => {
     fetchData();
   };
 
-  const filteredContracts = contracts.filter(c => {
-    const supplier = suppliers.find(s => s.id === c.supplier_id);
-    return (
-      c.label.toLowerCase().includes(search.toLowerCase()) || 
-      c.type.toLowerCase().includes(search.toLowerCase()) ||
-      supplier?.name.toLowerCase().includes(search.toLowerCase())
-    );
-  });
-
-  const isExpiringSoon = (dateStr: string) => {
-    if (!dateStr) return false;
+  const getContractStatus = (dateStr: string) => {
+    if (!dateStr) return 'actif';
     const endDate = new Date(dateStr);
     const today = new Date();
-    const diff = endDate.getTime() - today.getTime();
-    const days = diff / (1000 * 3600 * 24);
-    return days >= 0 && days <= 30;
+    const days = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    
+    if (days < 0) return 'expire';
+    if (days >= 0 && days <= 30) return 'bientot_expire';
+    return 'actif';
   };
 
-  if (loading && contracts.length === 0) return <div className="text-sm font-sans text-slate-400 p-12 text-center animate-pulse italic">Chargement des contrats...</div>;
+  const isExpiringSoon = (dateStr: string) => getContractStatus(dateStr) === 'bientot_expire';
 
-  if (viewingContractId) {
-    return (
-      <ContractDetailView 
-        contractId={viewingContractId}
-        onClose={() => setViewingContractId(null)}
-        onRefresh={fetchData}
-      />
-    );
-  }
+  const filteredContracts = contracts.filter(c => {
+    const supplier = suppliers.find(s => s.id === c.supplier_id);
+    const matchesSearch = c.label.toLowerCase().includes(search.toLowerCase()) || 
+      c.type.toLowerCase().includes(search.toLowerCase()) ||
+      supplier?.name.toLowerCase().includes(search.toLowerCase());
+      
+    const cStatus = getContractStatus(c.end_date);
+    const matchesStatus = statusFilter === 'all' || cStatus === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading && contracts.length === 0) return <div className="text-sm font-sans text-slate-400 p-12 text-center animate-pulse italic">Chargement des contrats...</div>;
 
   return (
     <div className="space-y-6">
       <ContractModal isOpen={isContractModalOpen} onClose={() => setIsContractModalOpen(false)} onRefresh={fetchData} contract={selectedContract} />
 
-      <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-lg font-bold text-slate-900 leading-tight">Gestion des Contrats</h2>
-          <p className="text-[11px] md:text-xs text-slate-500">Suivi des contrats de maintenance, leasing et prestations.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+        <div className="space-y-1.5 flex-1">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                 <FileText className="w-5 h-5" />
+             </div>
+             Gestion des Contrats
+          </h2>
+          <p className="text-sm font-medium text-slate-500 pl-13">Suivi des contrats de maintenance, leasing et prestations.</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1 md:flex-none">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="relative group flex-1 sm:flex-initial">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
             <input 
               type="text" 
               placeholder="Rechercher..." 
-              className="bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-full md:w-64 focus:ring-2 focus:ring-blue-500 outline-none" 
-              value={search} 
-              onChange={(e) => setSearch(e.target.value)} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 min-w-[240px]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 transition-all text-slate-600 outline-none"
+          >
+            <option value="all">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="bientot_expire">Expire &lt; 30 jours</option>
+            <option value="expire">Expiré</option>
+          </select>
           <button 
             disabled={isViewer}
             onClick={handleCreate} 
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 md:py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-100"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:grayscale group whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" /> <span className="md:inline">Nouveau</span>
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Nouveau Contrat
           </button>
         </div>
       </div>
 
-      <div className="bg-white md:rounded-2xl border border-slate-200 md:shadow-sm overflow-hidden min-h-[400px]">
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         {/* Table View - Desktop Only */}
         <table className="hidden md:table w-full text-left border-collapse">
-          <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+          <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
             <tr className="border-b border-slate-100">
-              <th className="px-8 py-4">Libellé / Type</th>
-              <th className="px-8 py-4">Fournisseur</th>
-              <th className="px-8 py-4">Période</th>
-              <th className="px-8 py-4 text-center">Assets liés</th>
-              <th className="px-8 py-4">Statut</th>
-              <th className="px-8 py-4 text-right">Actions</th>
+              <th className="px-8 py-5">Libellé / Type</th>
+              <th className="px-8 py-5">Fournisseur</th>
+              <th className="px-8 py-5">Période</th>
+              <th className="px-8 py-5 text-center">Assets liés</th>
+              <th className="px-8 py-5">Statut</th>
+              <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-slate-50/50 text-sm">
             {filteredContracts.map((c, idx) => {
               const supplier = suppliers.find(s => s.id === c.supplier_id);
               
@@ -146,35 +161,44 @@ export const ContractList: React.FC = () => {
                   key={c.id} onClick={() => handleShowContractDetails(c)}
                   className="hover:bg-slate-50 transition-colors group cursor-pointer"
                 >
-                  <td className="px-8 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500"><FileText className="w-5 h-5" /></div>
-                      <div>
-                        <div className="font-bold text-slate-900">{c.label}</div>
-                        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">{c.type}</div>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{c.label}</div>
+                        <div className="text-[10px] uppercase font-black tracking-[0.1em] text-slate-400">{c.type}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-4 text-slate-600 font-medium">{supplier ? supplier.name : '---'}</td>
-                  <td className="px-8 py-4">
-                    <div className="flex flex-col text-xs">
-                      <span className="text-slate-500">Dès: {c.start_date || 'N/A'}</span>
-                      <span className={`font-medium ${isExpiringSoon(c.end_date) ? 'text-orange-600' : 'text-slate-500'}`}>
-                        Vient à: {c.end_date || 'N/A'}
-                      </span>
+                  <td className="px-8 py-6 text-slate-600 font-bold text-sm tracking-tight">{supplier ? supplier.name : '---'}</td>
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col text-sm space-y-0.5">
+                      <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-slate-400" /><span className="text-slate-500 font-medium">Début: {c.start_date || 'N/A'}</span></div>
+                      <div className={`flex items-center gap-1.5 font-medium ${isExpiringSoon(c.end_date) ? 'text-orange-600 blur-[0.3px] brightness-150 animate-pulse' : 'text-slate-500'}`}>
+                        <Calendar className="w-3.5 h-3.5" />Fin: {c.end_date || 'N/A'}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-8 py-4 text-center">
-                    <span className="inline-flex items-center px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-500">{c.assets_count || 0}</span>
+                  <td className="px-8 py-6 text-center">
+                    <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black text-slate-600">{c.assets_count || 0}</span>
                   </td>
-                  <td className="px-8 py-4">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${c.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>{c.status}</span>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center justify-start">
+                       <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] text-center ${
+                         c.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                       }`}>
+                         {c.status}
+                       </span>
+                    </div>
                   </td>
-                  <td className="px-8 py-4 text-right">
-                    <div className="flex justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleEditContract(c); }} 
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        title="Modifier"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -182,6 +206,7 @@ export const ContractList: React.FC = () => {
                         disabled={!canDelete}
                         onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(c.id); }} 
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        title="Supprimer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

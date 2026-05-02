@@ -10,6 +10,8 @@ import { motion } from 'motion/react';
 import { AssetForm } from './forms/AssetForm';
 import { useToast } from '../services/toastContext';
 
+import { useNavigate } from 'react-router-dom';
+
 interface AssetDetailViewProps {
   assetId: string;
   onClose: () => void;
@@ -18,6 +20,7 @@ interface AssetDetailViewProps {
 }
 
 export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClose, onRefresh }) => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [asset, setAsset] = useState<Asset | null>(null);
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -41,22 +44,26 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [showContractAdd, setShowContractAdd] = useState(false);
   const [showAssetLink, setShowAssetLink] = useState(false);
 
+  const [events, setEvents] = useState<any[]>([]);
+  const [showEventAdd, setShowEventAdd] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
       const foundAsset = await api.getAsset(assetId);
       if (foundAsset) {
-        const [assetContracts, assetSoftwares, assetLicenses, assetChildren, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
+        const [assetContracts, assetSoftwares, assetLicenses, assetChildren, assetEvents, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
           api.getAssetContracts(assetId),
           api.getAssetSoftwares(assetId),
           api.getAssetLicenses(assetId),
           api.getAssetChildren(assetId),
+          api.getAssetEvents(assetId),
           api.getSoftwares(),
           api.getLicenses(),
           api.getContracts(),
           api.getUsers(),
           api.getLocations(),
-          api.getAssets()
+          api.getAssets({ fetchAll: true }).then(res => res.assets)
         ]);
         
         // Update all states at once for consistent rendering
@@ -64,6 +71,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         setSoftwares(assetSoftwares);
         setLicenses(assetLicenses);
         setLinkedAssets(assetChildren);
+        setEvents(assetEvents);
         setAllSoftwares(softwaresList);
         setAllLicenses(licensesList);
         setAllContracts(contractsList);
@@ -237,31 +245,31 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all"
+            className="p-2 md:p-3 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all font-medium flex items-center justify-center"
           >
             <X className="w-5 h-5 md:w-6 md:h-6" />
           </button>
           <div className="h-6 md:h-8 w-[1px] bg-slate-200" />
-          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+          <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
              <div className={cn(
-               "p-2 md:p-3 rounded-xl md:rounded-2xl flex-shrink-0",
-               asset.status === 'En service' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600'
+               "w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-sm border",
+               asset.status === 'En service' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'
              )}>
-                {getAssetIcon(asset.type)}
+                {getAssetIcon(asset.type, "w-6 h-6")}
              </div>
-             <div className="min-w-0 flex-1">
-                <h1 className="text-base md:text-2xl font-black text-slate-900 tracking-tight truncate">{asset.label}</h1>
-                <div className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1 md:gap-2">
-                  <span className="truncate">S/N: {asset.serial}</span>
+             <div className="min-w-0 flex-1 space-y-0.5">
+                <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight truncate">{asset.label}</h1>
+                <div className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] flex items-center flex-wrap gap-2">
+                  <span className="truncate">S/N: {asset.serial || '---'}</span>
                   {asset.inventory_number && (
                     <>
-                      <span className="hidden sm:inline">•</span>
-                      <span className="text-indigo-600 font-black">INV: {asset.inventory_number}</span>
+                      <span className="hidden sm:inline opacity-30">•</span>
+                      <span className="text-blue-600 font-black tracking-widest">{asset.inventory_number}</span>
                     </>
                   )}
-                  <span className="hidden sm:inline">•</span>
+                  <span className="hidden sm:inline opacity-30">•</span>
                   <span className={cn(
-                    "px-2 py-0.5 rounded-full text-[8px] md:text-[10px]",
+                    "px-2 py-0.5 rounded-md font-black tracking-widest",
                     asset.status === 'En service' ? 'bg-emerald-50 text-emerald-600' : 
                     asset.status === 'Panne' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
                   )}>
@@ -273,9 +281,9 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         </div>
         <button 
           onClick={() => setIsEditing(true)}
-          className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
+          className="px-4 py-2 md:px-6 md:py-3 bg-white border border-slate-200 shadow-sm text-slate-700 rounded-xl text-xs md:text-sm font-bold tracking-wide hover:bg-slate-50 transition-all flex items-center gap-2"
         >
-          <Edit2 className="w-3 h-3" /> Modifier
+          <Edit2 className="w-4 h-4" /> Modifier
         </button>
       </div>
 
@@ -286,68 +294,68 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
             
             {/* Life Cycle & Finance Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-                <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Cycle de Vie</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.15em]">Cycle de Vie</h2>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">État</label>
-                    <p className="font-bold text-slate-900 capitalize">{asset.condition || 'neuf'}</p>
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">État</label>
+                    <p className="font-bold text-slate-900 capitalize text-sm">{asset.condition || 'neuf'}</p>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Âge</label>
-                    <p className="font-bold text-slate-900">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Âge estimé</label>
+                    <p className="font-bold text-slate-900 text-sm">
                       {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
                     </p>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fabrication</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Fabrication</label>
                     <p className="font-bold text-slate-900 text-sm">{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Mise en service</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Mise en service</label>
                     <p className="font-bold text-slate-900 text-sm">{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-                <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Finance & Garantie</h2>
+              <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.15em]">Finance & Garantie</h2>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="flex justify-between items-end border-b border-slate-50 pb-4">
-                    <div>
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Valeur d'acquisition</label>
-                      <p className="text-2xl font-black text-slate-900 font-mono">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Valeur d'acquisition</label>
+                      <p className="text-3xl font-black text-slate-900 font-mono tracking-tight">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
                     </div>
                   </div>
                   <div className={cn(
-                    "p-4 rounded-2xl flex items-center justify-between",
-                    asset.has_warranty ? "bg-blue-50 text-blue-700 border border-blue-100" : "bg-slate-50 text-slate-400 border border-slate-100"
+                    "p-5 rounded-2xl flex items-center justify-between border",
+                    asset.has_warranty ? "bg-emerald-50/50 text-emerald-700 border-emerald-100" : "bg-slate-50/50 text-slate-500 border-slate-100"
                   )}>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest">Garantie</p>
-                      <p className="text-xs font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em]">Couverture Garantie</p>
+                      <p className="text-sm font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
                     </div>
-                    <Key className={cn("w-5 h-5", asset.has_warranty ? "opacity-100" : "opacity-20")} />
+                    <Key className={cn("w-6 h-6", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Tech Specs Summary */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-8">
-              <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-4">Détails Techniques</h2>
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-8">
+              <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.15em] border-b border-slate-50 pb-4">Détails Techniques</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8">
                 {specsIsJson ? (
                   Object.entries(specs).map(([key, value]) => (
-                    <div key={key} className="space-y-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{key}</label>
+                    <div key={key} className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">{key}</label>
                       <p className="font-bold text-slate-900 text-sm md:text-base">{String(value) || '---'}</p>
                     </div>
                   ))
@@ -356,8 +364,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     <p className="text-sm font-medium text-slate-600 whitespace-pre-wrap">{asset.specs || 'Aucune spécification technique détaillée'}</p>
                   </div>
                 )}
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Type précis</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Type précis</label>
                   <p className="font-bold text-slate-900 text-sm md:text-base">{asset.subtype || '---'}</p>
                 </div>
               </div>
@@ -404,15 +412,36 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                   </select>
                 )}
                 <div className="space-y-2">
-                  {contracts.map(c => (
-                    <div key={c.id} className="p-3 bg-indigo-800/50 rounded-xl text-xs font-bold border border-indigo-700 flex flex-col gap-1">
-                      <span>{c.label}</span>
-                      <div className="flex justify-between text-[8px] opacity-60">
-                        <span>{c.reference}</span>
-                        <span>{c.end_date}</span>
+                  {contracts.map(c => {
+                    const diffDays = Math.ceil((new Date(c.end_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                    const isExpiring = diffDays > 0 && diffDays <= 30;
+                    const isExpired = diffDays <= 0;
+                    
+                    return (
+                      <div key={c.id} className={cn(
+                        "p-3 rounded-xl border flex flex-col gap-1",
+                        isExpired ? "bg-red-900/50 border-red-700/50 text-red-200" : 
+                        isExpiring ? "bg-amber-900/50 border-amber-700/50 text-amber-200" : 
+                        "bg-indigo-800/50 border-indigo-700 text-white font-bold"
+                      )}>
+                        <div className="flex justify-between items-start">
+                          <span className="text-xs font-bold">{c.label}</span>
+                          {(isExpiring || isExpired) && (
+                            <span className={cn(
+                               "text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase",
+                               isExpired ? "bg-red-800/50" : "bg-amber-800/50"
+                            )}>
+                              {isExpired ? 'Expiré' : `Expire dans ${diffDays}j`}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex justify-between text-[10px] opacity-70">
+                          <span>{c.reference || c.type}</span>
+                          <span>{new Date(c.end_date).toLocaleDateString('fr-FR')}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -444,7 +473,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                    >
                      <option value="">Sélectionner un asset...</option>
                      {allAssets
-                       .filter(a => a.id !== assetId && !linkedAssets.some(la => la.id === a.id) && (a.type === 'Écran' || a.type === 'Périphérique'))
+                       .filter(a => a.id !== assetId && !linkedAssets.some(la => la.id === a.id))
                        .map(a => (
                          <option key={a.id} value={a.id}>{a.label} ({a.type} - {a.serial})</option>
                        ))
@@ -456,7 +485,13 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                {linkedAssets.length > 0 ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                    {linkedAssets.map(child => (
-                     <div key={child.id} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4 hover:border-blue-200 hover:bg-blue-50/10 transition-all group">
+                     <div 
+                        key={child.id} 
+                        className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4 hover:border-blue-200 hover:bg-blue-50/10 transition-all group cursor-pointer"
+                        onClick={() => {
+                          navigate(`/assets/${child.id}`);
+                        }}
+                      >
                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm border border-slate-50 transition-colors">
                          {getAssetIcon(child.type, "w-6 h-6")}
                        </div>
@@ -496,24 +531,138 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                  </div>
                )}
             </div>
+
+            {/* Events Section */}
+            <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-100 shadow-sm relative overflow-hidden group mt-6">
+               <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity">
+                 <Calendar className="w-48 h-48 text-indigo-500" />
+               </div>
+               
+               <div className="flex items-center justify-between mb-8 relative">
+                 <div className="flex items-center gap-4">
+                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
+                     <Calendar className="w-6 h-6" />
+                   </div>
+                   <div>
+                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">Journal d'événements</h2>
+                     <p className="text-xs text-slate-400 font-medium">Historique des modifications</p>
+                   </div>
+                 </div>
+                 <button 
+                   onClick={() => setShowEventAdd(true)}
+                   className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-200"
+                 >
+                   <Plus className="w-4 h-4" />
+                   <span className="hidden sm:inline">Ajouter</span>
+                 </button>
+               </div>
+
+               {showEventAdd && (
+                 <motion.form 
+                   initial={{ opacity: 0, height: 0 }} 
+                   animate={{ opacity: 1, height: 'auto' }}
+                   className="mb-8 p-6 bg-slate-50 border border-slate-100 rounded-2xl relative"
+                   onSubmit={async (e) => {
+                     e.preventDefault();
+                     const formData = new FormData(e.currentTarget);
+                     const type = formData.get('type') as string;
+                     const author = formData.get('author') as string;
+                     const description = formData.get('description') as string;
+                     if (!type || !author || !description) return;
+                     
+                     try {
+                       await api.addAssetEvent(assetId, {
+                         type,
+                         author,
+                         description,
+                         date: new Date().toISOString()
+                       });
+                       const updated = await api.getAssetEvents(assetId);
+                       setEvents(updated);
+                       setShowEventAdd(false);
+                       showToast('Événement ajouté', 'success');
+                     } catch (err) {
+                       showToast("Erreur lors de l'ajout", 'error');
+                     }
+                   }}
+                 >
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Opération</label>
+                       <select name="type" required className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                         <option value="">Sélectionner...</option>
+                         <option value="Affectation">Affectation</option>
+                         <option value="Modification">Modification</option>
+                         <option value="Déplacement">Déplacement</option>
+                         <option value="Retour">Retour</option>
+                         <option value="Mise en panne">Signalisation de panne</option>
+                         <option value="Mise au rebut">Mise au rebut</option>
+                       </select>
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auteur</label>
+                       <input name="author" required placeholder="Votre nom" className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                     </div>
+                     <div className="space-y-2 sm:col-span-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</label>
+                       <input name="description" required placeholder="Description détaillée..." className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                     </div>
+                   </div>
+                   <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/60 mt-4">
+                     <button type="button" onClick={() => setShowEventAdd(false)} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-white rounded-lg transition-colors">Annuler</button>
+                     <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">Ajouter l'événement</button>
+                   </div>
+                 </motion.form>
+               )}
+
+               {events.length > 0 ? (
+                 <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+                   {events.map((evt) => (
+                     <div key={evt.id} className="relative">
+                       <div className="absolute -left-[30px] w-4 h-4 bg-white border-2 border-indigo-200 rounded-full flex items-center justify-center top-1">
+                         <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                       </div>
+                       <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-1">
+                         <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-600">
+                           {evt.type}
+                         </span>
+                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                           {new Date(evt.date).toLocaleDateString('fr-FR', {
+                             day: '2-digit', month: 'short', year: 'numeric',
+                             hour: '2-digit', minute: '2-digit'
+                           })}
+                         </span>
+                       </div>
+                       <p className="text-sm font-medium text-slate-700 mb-1">{evt.description}</p>
+                       <p className="text-[10px] font-black text-slate-400 tracking-wide uppercase">Par {evt.author}</p>
+                     </div>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                   <p className="text-sm font-bold text-slate-400">Aucun événement enregistré.</p>
+                 </div>
+               )}
+            </div>
           </div>
 
           {/* Sidebar Column */}
-          <div className="lg:col-span-4 space-y-8 order-1 lg:order-2">
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col items-center gap-6">
-              <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-slate-200">
+          <div className="lg:col-span-4 space-y-6 order-1 lg:order-2">
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center gap-6 text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-[2rem] flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-indigo-200">
                 {assignedUser ? assignedUser.name.charAt(0) : '?'}
               </div>
-              <div className="text-center space-y-1">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Utilisateur Assigné</p>
-                <h4 className="text-xl font-bold text-slate-900">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
+              <div className="space-y-1.5 w-full">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Utilisateur Assigné</p>
+                <h4 className="text-xl font-bold text-slate-900 tracking-tight">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
               </div>
-              <div className="w-full pt-6 border-t border-slate-50 space-y-4">
-                 <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-5 h-5" /></div>
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase">Emplacement</p>
-                      <p className="text-xs font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
+              
+              <div className="w-full pt-6 border-t border-slate-50">
+                 <div className="flex items-center gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-6 h-6 text-slate-500" /></div>
+                    <div className="text-left space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Emplacement</p>
+                      <p className="text-sm font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
                     </div>
                  </div>
               </div>

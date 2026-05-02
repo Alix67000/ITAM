@@ -8,14 +8,22 @@ import { AssetDetailView } from '../components/AssetDetailView';
 import { AssetCreateView } from '../components/AssetCreateView';
 import { useAuth } from '../services/authContext';
 
+import { useLocation, useNavigate } from 'react-router-dom';
+
 export const AssetList: React.FC<{ initialType?: string; initialUserId?: string }> = ({ initialType, initialUserId }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const queryType = queryParams.get('type') || initialType;
+  const queryUserId = queryParams.get('user') || initialUserId;
+  
   const { canEdit, canDelete, isViewer } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [phoneLines, setPhoneLines] = useState<PhoneLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(initialType || null);
-  const [selectedUserFilter, setSelectedUserFilter] = useState<string | null>(initialUserId || null);
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(queryType || null);
+  const [selectedUserFilter, setSelectedUserFilter] = useState<string | null>(queryUserId || null);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<string>('all'); // all, month, year
@@ -25,15 +33,13 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   // View mode state
-  const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Update filter when initialType or initialUserId changes
+  // Update filter when URL params or initial props change
   useEffect(() => {
-    setSelectedTypeFilter(initialType || null);
-    setSelectedUserFilter(initialUserId || null);
-    setViewingAssetId(null); // Close view when changing filters
-  }, [initialType, initialUserId]);
+    setSelectedTypeFilter(queryType || null);
+    setSelectedUserFilter(queryUserId || null);
+  }, [queryType, queryUserId]);
 
   // Modal state
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -44,19 +50,41 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [assetToDelete, setAssetToDelete] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const PAGE_SIZE = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [historyDocs, setHistoryDocs] = useState<any[]>([]); // To store prev pages
+  const [currentLastDoc, setCurrentLastDoc] = useState<any>(undefined);
+  const [hasMore, setHasMore] = useState(false);
+
+  const fetchData = async (page = 1, lastVisible?: any) => {
     setLoading(true);
     try {
-      const [assetsData, phoneLinesData, usersData, locationsData] = await Promise.all([
-        api.getAssets(),
+      const isFiltering = search || selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all';
+
+      // Always load related data
+      const [phoneLinesData, usersData, locationsData] = await Promise.all([
         api.getPhoneLines(),
         api.getUsers(),
         api.getLocations()
       ]);
-      setAssets(assetsData);
       setPhoneLines(phoneLinesData);
       setUsers(usersData);
       setLocations(locationsData);
+
+      // Load assets
+      // If filtering, load all and paginate on client side
+      // Otherwise use Firestore pagination
+      const assetsResponse = await api.getAssets({
+        fetchAll: Boolean(isFiltering),
+        limitCount: isFiltering ? undefined : PAGE_SIZE,
+        lastDoc: lastVisible
+      });
+
+      setAssets(assetsResponse.assets);
+      setHasMore(assetsResponse.hasMore);
+      setCurrentLastDoc(assetsResponse.lastDoc);
+      setCurrentPage(page);
+
     } catch (error) {
       console.error('Error fetching inventory data:', error);
     } finally {
@@ -65,12 +93,37 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // Reset pagination when filter changes
+    setHistoryDocs([]);
+    fetchData(1);
+  }, [search, selectedTypeFilter, selectedUserFilter, selectedStatusFilter, selectedLocationFilter, dateFilter]);
+
+  const handleNextPage = () => {
+    const isFiltering = search || selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all';
+    if (isFiltering) {
+      setCurrentPage(prev => prev + 1);
+    } else if (hasMore) {
+      setHistoryDocs(prev => [...prev, currentLastDoc]);
+      fetchData(currentPage + 1, currentLastDoc);
+    }
+  };
+
+  const handlePrevPage = () => {
+    const isFiltering = search || selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all';
+    if (isFiltering) {
+      if (currentPage > 1) setCurrentPage(prev => prev - 1);
+    } else if (currentPage > 1) {
+      const newHistory = [...historyDocs];
+      newHistory.pop(); // remove current last
+      const prevLast = newHistory.length > 0 ? newHistory[newHistory.length - 1] : undefined;
+      setHistoryDocs(newHistory);
+      fetchData(currentPage - 1, prevLast);
+    }
+  };
 
   const handleEdit = (asset: Asset) => {
     if (!canEdit) return;
-    setViewingAssetId(asset.id);
+    navigate('/assets/' + asset.id);
   };
 
   const handleEditPhone = (line: PhoneLine) => {
@@ -150,23 +203,41 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
       const filter = selectedTypeFilter.toLowerCase();
       
       const typeMap: Record<string, string[]> = {
-        'ordinateurs': ['pc', 'ordinateur'],
-        'moniteurs': ['écran', 'moniteur'],
-        'matériels réseau': ['réseau', 'network'],
-        'périphériques': ['périphérique', 'accessoire', 'souris', 'clavier', 'casque'],
-        'imprimantes': ['imprimante'],
-        'téléphones': ['téléphone']
+        'ordinateurs': ['pc', 'ordinateur', 'laptop', 'desktop', 'serveur'],
+        'moniteurs': ['écran', 'moniteur', 'monitor', 'display'],
+        'matériels réseau': ['réseau', 'network', 'switch', 'routeur', 'borne'],
+        'périphériques': ['périphérique', 'accessoire', 'souris', 'clavier', 'casque', 'webcam', 'dock'],
+        'imprimantes': ['imprimante', 'printer', 'scanner', 'copieur'],
+        'téléphones': ['téléphone', 'mobile', 'smartphone', 'fixe']
       };
 
       if (typeMap[filter]) {
-        return matchesSearch && typeMap[filter].includes(normalizedType);
+        // Return true if any of the mapped types are found as a substring in the asset type
+        return matchesSearch && typeMap[filter].some(t => normalizedType.includes(t));
       }
       
-      return matchesSearch && normalizedType === filter;
+      return matchesSearch && (normalizedType === filter || normalizedType.includes(filter));
     }
     
     return matchesSearch;
-  }).sort((a, b) => (a.inventory_number || '').localeCompare(b.inventory_number || ''));
+  }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); // Maintain stable sort
+
+  const isFiltering = search || selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all';
+  
+  // Calculate displayed items:
+  let displayedAssets = filtered;
+  let clientHasMore = false;
+  
+  if (isFiltering) {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    displayedAssets = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+    clientHasMore = startIndex + PAGE_SIZE < filtered.length;
+  } else {
+    // We rely on Firestore pagination which returned exact page
+    displayedAssets = filtered;
+  }
+
+  const finalHasMore = isFiltering ? clientHasMore : hasMore;
 
   const filteredPhoneLines = phoneLines.filter(p => {
     const matchesSearch = 
@@ -191,20 +262,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
 
   if (loading && assets.length === 0 && phoneLines.length === 0) return <div className="text-sm font-sans text-slate-400 p-12 text-center animate-pulse italic">Synchronisation de la base de données...</div>;
 
-  if (viewingAssetId) {
-    return (
-      <AssetDetailView 
-        assetId={viewingAssetId} 
-        onClose={() => setViewingAssetId(null)} 
-        onEdit={(asset) => {
-          setViewingAssetId(null);
-          handleEdit(asset);
-        }}
-        onRefresh={fetchData}
-      />
-    );
-  }
-
+  // Removed viewing asset logic since route handles it
   if (isCreating) {
     return (
       <AssetCreateView 
@@ -243,16 +301,16 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         )}
       </AnimatePresence>
 
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-lg font-bold text-slate-900">
+      <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             {selectedTypeFilter 
               ? `Inventaire : ${selectedTypeFilter.charAt(0).toUpperCase() + selectedTypeFilter.slice(1)}` 
               : selectedUserFilter
                 ? `Matériel & Lignes assignés`
                 : 'Inventaire Global'}
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-medium text-slate-500">
             {selectedTypeFilter 
               ? `Affichage des matériels de type ${selectedTypeFilter}.` 
               : selectedUserFilter
@@ -260,7 +318,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                 : `Gestion et suivi des ${assets.length + phoneLines.length} éléments répertoriés.`}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {(selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all') && (
             <button 
               onClick={() => {
@@ -275,12 +333,12 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
               <X className="w-3.5 h-3.5" /> Effacer
             </button>
           )}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <div className="relative flex-1 md:flex-none">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
               type="text" 
               placeholder="Série, Label, User..." 
-              className="bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-48 md:w-64 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium w-full md:w-64 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -288,8 +346,8 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
           <button 
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className={cn(
-              "p-2 rounded-lg border transition-all",
-              showAdvancedFilters ? "bg-slate-900 border-slate-900 text-white" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+              "p-3 rounded-xl border transition-all flex items-center justify-center",
+              showAdvancedFilters ? "bg-slate-900 border-slate-900 text-white shadow-lg" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
             )}
             title="Filtres avancés"
           >
@@ -298,9 +356,9 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
           <button 
             disabled={isViewer}
             onClick={handleCreate}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed whitespace-nowrap"
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" /> Nouvel Asset
+            <Plus className="w-5 h-5" /> Nouvel Asset
           </button>
         </div>
       </div>
@@ -374,21 +432,21 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         )}
       </AnimatePresence>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+          <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
             <tr className="border-b border-slate-100">
-              <th className="px-8 py-4 font-semibold text-left">N° Inventaire</th>
-              <th className="px-8 py-4 font-semibold">Asset / Cycle de vie</th>
-              <th className="px-8 py-4 font-semibold">Affectation</th>
-              <th className="px-8 py-4 font-semibold">Acquisition</th>
-              <th className="px-8 py-4 font-semibold">Finance & Garantie</th>
-              <th className="px-8 py-4 font-semibold text-center">État</th>
-              <th className="px-8 py-4 font-semibold text-right">Actions</th>
+              <th className="px-8 py-5 text-left">N° Inventaire</th>
+              <th className="px-8 py-5">Asset / Cycle de vie</th>
+              <th className="px-8 py-5">Affectation</th>
+              <th className="px-8 py-5">Acquisition</th>
+              <th className="px-8 py-5">Finance & Garantie</th>
+              <th className="px-8 py-5 text-center">État</th>
+              <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
-            {[...filtered].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => {
+          <tbody className="divide-y divide-slate-50/50 text-sm">
+            {[...displayedAssets].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => {
               const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
               const location = locations.find(l => String(l.id) === String(asset.location_id));
               
@@ -401,82 +459,90 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                   onClick={(e) => {
                     const target = e.target as HTMLElement;
                     if (target.closest('button')) return;
-                    setViewingAssetId(asset.id);
+                    navigate('/assets/' + asset.id);
                   }}
                   className="hover:bg-slate-50 transition-colors group cursor-pointer"
                 >
-                  <td className="px-8 py-4">
+                  <td className="px-8 py-6">
                     <div className="flex flex-col">
                       <span className="font-mono font-black text-blue-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
-                      <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-0.5">{asset.type}</span>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold tracking-[0.2em] mt-1">{asset.type}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-4">
-                    <div className="flex items-center gap-3">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-slate-50 text-slate-500 rounded-xl flex items-center justify-center font-bold">
+                        {getTypeIcon(asset.type)}
+                      </div>
                       <div>
-                        <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-all">{asset.label}</div>
-                        <div className="flex flex-col gap-0.5">
+                        <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-base">{asset.label}</div>
+                        <div className="flex flex-col gap-1 mt-0.5">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.subtype}</span>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{asset.subtype}</span>
                           </div>
                           {asset.manufacture_date && (
-                            <div className="text-[9px] text-slate-400">
+                            <div className="text-[10px] font-medium text-slate-400 flex items-center gap-2">
                                Fab: {new Date(asset.manufacture_date).toLocaleDateString('fr-FR')} 
-                               {asset.commissioning_date && ` • MES: ${new Date(asset.commissioning_date).toLocaleDateString('fr-FR')}`}
+                               {asset.commissioning_date && <><span className="w-1 h-1 rounded-full bg-slate-300"></span> MES: {new Date(asset.commissioning_date).toLocaleDateString('fr-FR')}</>}
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-4">
+                  <td className="px-8 py-6">
                     {assignedUser ? (
-                      <div className="flex flex-col">
-                         <span className="font-bold text-slate-900 text-xs">{assignedUser.name}</span>
-                         <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                           <MapPin className="w-2.5 h-2.5" /> {location ? location.name : 'Stock'}
-                         </span>
+                      <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                           {assignedUser.name.charAt(0)}
+                         </div>
+                         <div className="flex flex-col">
+                           <span className="font-bold text-slate-900 text-sm">{assignedUser.name}</span>
+                           <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                             <MapPin className="w-3 h-3 text-slate-400" /> {location ? location.name : 'Stock'}
+                           </span>
+                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-col">
-                         <span className="text-slate-300 italic text-[10px]">Non affecté</span>
-                         <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                           <MapPin className="w-2.5 h-2.5" /> {location ? location.name : 'Stock'}
+                         <span className="text-slate-400 italic text-xs font-medium">Non affecté</span>
+                         <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                           <MapPin className="w-3 h-3 text-slate-400" /> {location ? location.name : 'Stock'}
                          </span>
                       </div>
                     )}
                   </td>
-                <td className="px-8 py-4">
-                  <div className="flex flex-col">
+                <td className="px-8 py-6">
+                  <div className="flex flex-col items-start gap-1.5">
                     <span className={cn(
-                      "px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block w-fit mb-1",
+                      "px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest",
                       asset.condition === 'neuf' ? 'bg-emerald-50 text-emerald-600' :
                       asset.condition === 'occasion' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
                     )}>
                       {asset.condition || 'neuf'}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono italic">{asset.serial || 'S/N: ---'}</span>
+                    <span className="text-[10px] text-slate-500 font-mono font-medium">{asset.serial || 'S/N: ---'}</span>
                   </div>
                 </td>
-                <td className="px-8 py-4">
+                <td className="px-8 py-6">
                   <div className="flex flex-col">
-                    <span className="font-mono font-bold text-slate-900">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+                    <span className="font-mono font-black text-slate-900 text-sm">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
                     {asset.has_warranty ? (
-                       <span className="text-[9px] text-blue-600 font-bold">Garantie au {new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}</span>
+                       <span className="text-[10px] text-emerald-600 font-bold mt-0.5">Garantie au {new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}</span>
                     ) : (
-                       <span className="text-[9px] text-slate-300">Sans garantie</span>
+                       <span className="text-[10px] text-slate-400 font-medium mt-0.5">Sans garantie</span>
                     )}
                   </div>
                 </td>
-                <td className="px-8 py-4 text-center">
-                  <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase inline-block min-w-[80px] ${
-                    asset.status === 'Stock' ? 'bg-blue-100 text-blue-700' : 
-                    asset.status === 'Panne' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                <td className="px-8 py-6 text-center">
+                  <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] ${
+                    asset.status === 'Stock' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 
+                    asset.status === 'Panne' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                   }`}>
                     {asset.status}
                   </span>
                 </td>
-                <td className="px-8 py-4 text-right">
+                <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                        <button 
                          disabled={!canDelete}
@@ -505,41 +571,41 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                   key={`phone-${line.id}`} 
                   className="hover:bg-slate-50 transition-colors group border-l-4 border-l-indigo-400"
                 >
-                  <td className="px-8 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 group-hover:bg-white transition-colors border border-transparent group-hover:border-indigo-200">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                         <Phone className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-all">{line.label}</div>
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{line.label}</div>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <div className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">Ligne Téléphonique</div>
+                          <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Ligne Téléphonique</div>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-4 font-mono text-[11px] text-slate-500">
+                  <td className="px-8 py-6 font-mono text-sm font-bold text-slate-600">
                     {line.number}
                   </td>
-                  <td className="px-8 py-4 text-slate-600">
-                    {location?.name || <span className="opacity-30">---</span>}
+                  <td className="px-8 py-6 text-slate-500 font-medium text-sm">
+                    {location?.name || <span className="opacity-40">---</span>}
                   </td>
-                  <td className="px-8 py-4">
+                  <td className="px-8 py-6">
                     {assignedUser ? (
-                      <div className="flex items-center gap-2">
-                         <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                      <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
                            {assignedUser.name.charAt(0)}
                          </div>
-                         <span className="font-medium text-slate-900">{assignedUser.name}</span>
+                         <span className="font-bold text-slate-900 text-sm">{assignedUser.name}</span>
                       </div>
                     ) : (
-                      <span className="text-slate-300 italic text-xs">Non affecté</span>
+                      <span className="text-slate-400 italic text-xs font-medium">Non affecté</span>
                     )}
                   </td>
-                <td className="px-8 py-4 text-center">
-                  <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase inline-block min-w-[80px] ${
-                    line.status === 'Actif' ? 'bg-emerald-100 text-emerald-700' : 
-                    'bg-slate-100 text-slate-700'
+                <td className="px-8 py-6 text-center">
+                  <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] ${
+                    line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 
+                    'bg-slate-50 text-slate-600 border border-slate-200'
                   }`}>
                     {line.status}
                   </span>
@@ -553,7 +619,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
             );
           })}
 
-            {filtered.length === 0 && filteredPhoneLines.length === 0 && !loading && (
+            {displayedAssets.length === 0 && filteredPhoneLines.length === 0 && !loading && (
                <tr>
                  <td colSpan={6} className="px-8 py-20 text-center text-slate-400 italic text-sm">
                    Aucun matériel ou ligne ne correspond à votre recherche.
@@ -565,13 +631,13 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
 
         {/* Mobile Card List - Mobile Only */}
         <div className="md:hidden divide-y divide-slate-100 h-full">
-          {filtered.map((asset) => {
+          {displayedAssets.map((asset) => {
             const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
             
             return (
               <div 
                 key={`asset-card-${asset.id}`}
-                onClick={() => setViewingAssetId(asset.id)}
+                onClick={() => navigate('/assets/' + asset.id)}
                 className="p-4 active:bg-slate-50 transition-colors flex gap-4"
               >
                 <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 flex-shrink-0">
@@ -659,6 +725,29 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                Aucun résultat trouvé.
              </div>
           )}
+        </div>
+        
+        {/* Pagination Controls */}
+        <div className="bg-slate-50 border-t border-slate-100 p-4 md:px-8 py-4 flex items-center justify-between mt-auto">
+          <span className="text-xs font-bold text-slate-400">
+            Page {currentPage}
+          </span>
+          <div className="flex gap-2">
+            <button 
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            >
+              Précédent
+            </button>
+            <button 
+              onClick={handleNextPage}
+              disabled={!finalHasMore}
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            >
+              Suivant
+            </button>
+          </div>
         </div>
       </div>
     </div>

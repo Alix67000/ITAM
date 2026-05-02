@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth, Role } from '../services/authContext';
+import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
+  const navigate = useNavigate();
   const { user, logout, role, setRole, isAdmin, isViewer } = useAuth();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [results, setResults] = React.useState<{ type: string; id: string; label: string }[]>([]);
@@ -54,6 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       ]
     },
     { id: 'contracts', label: 'Contrats', icon: FileText },
+    { id: 'cmdb', label: 'CMDB', icon: Share2 },
     { id: 'suppliers', label: 'Fournisseurs', icon: Building2 },
     { id: 'locations', label: 'Entités', icon: Network },
   ];
@@ -68,7 +71,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     setIsSearching(true);
     try {
       const [assets, users, locations, suppliers] = await Promise.all([
-        api.getAssets(),
+        api.getAssets({ fetchAll: true }).then(res => res.assets),
         api.getUsers(),
         api.getLocations(),
         api.getSuppliers(),
@@ -284,7 +287,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                       <button
                         key={`${res.type}-${res.id}`}
                         onClick={() => {
-                          setActiveTab(res.tab);
+                          const pathMap: Record<string, string> = {
+                            'asset': 'assets',
+                            'user': 'users',
+                            'location': 'locations',
+                            'suppliers': 'suppliers'
+                          };
+                          
+                          if (res.type === 'asset') {
+                            navigate(`/assets/${res.id}`);
+                          } else {
+                            setActiveTab(res.tab);
+                          }
                           setSearchQuery('');
                           setResults([]);
                         }}

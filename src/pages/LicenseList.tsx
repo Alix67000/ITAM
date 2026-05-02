@@ -12,11 +12,14 @@ import { SoftwareModal } from '../components/SoftwareModal';
 import { SoftwareCreateView } from '../components/SoftwareCreateView';
 import { LicenseDetailView } from '../components/LicenseDetailView';
 
+import { useNavigate } from 'react-router-dom';
+
 interface LicenseListProps {
   mode?: 'softwares' | 'licenses';
 }
 
 export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'licenses' }) => {
+  const navigate = useNavigate();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [softwares, setSoftwares] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +31,17 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const [selectedSoftware, setSelectedSoftware] = useState<any | null>(null);
   
-  const [viewingLicenseId, setViewingLicenseId] = useState<string | null>(null);
-
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [softwareDeleteId, setSoftwareDeleteId] = useState<string | null>(null);
   const [suppliers, setSuppliers] = useState<any[]>([]);
+
+  const PAGE_SIZE = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when switching tabs or searching
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, search]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -72,7 +81,7 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
   };
 
   const handleShowDetails = (license: License) => {
-    setViewingLicenseId(license.id);
+    navigate('/licenses/' + license.id);
   };
 
   const handleEditSoftware = (software: any) => {
@@ -86,15 +95,23 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
     fetchData();
   };
 
-  const filteredSoftwares = softwares.filter(s => 
+  const allFilteredSoftwares = softwares.filter(s => 
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.publisher?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const filteredLicenses = licenses.filter(l => 
+  const allFilteredLicenses = licenses.filter(l => 
     l.label.toLowerCase().includes(search.toLowerCase()) || 
     l.software.toLowerCase().includes(search.toLowerCase())
   );
+
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const filteredSoftwares = allFilteredSoftwares.slice(startIndex, startIndex + PAGE_SIZE);
+  const filteredLicenses = allFilteredLicenses.slice(startIndex, startIndex + PAGE_SIZE);
+
+  const totalPages = activeTab === 'softwares' 
+    ? Math.ceil(allFilteredSoftwares.length / PAGE_SIZE) 
+    : Math.ceil(allFilteredLicenses.length / PAGE_SIZE);
 
   if (isCreatingSoftware) {
     return (
@@ -105,26 +122,18 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
     );
   }
 
-  if (viewingLicenseId) {
-    return (
-      <LicenseDetailView 
-        licenseId={viewingLicenseId}
-        onClose={() => setViewingLicenseId(null)}
-        onRefresh={fetchData}
-      />
-    );
-  }
+  // Removed viewingLicenseId logic since route handles it
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+      <div className="flex justify-between items-center bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm gap-6">
         <div className="flex items-center gap-6">
-          <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               {activeTab === 'softwares' ? 'Catalogue Logiciels' : 'Parc de Licences'}
             </h1>
-            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">
-              Gestion des {activeTab === 'softwares' ? 'LOGICIELS' : 'LICENCES'}
+            <p className="text-sm font-medium text-slate-500">
+              Gestion et suivi des {activeTab === 'softwares' ? 'logiciels référencés' : 'licences de votre organisation'}
             </p>
           </div>
         </div>
@@ -137,7 +146,7 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
               setIsModalOpen(true);
             }
           }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-100 flex items-center gap-2 group"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 flex items-center gap-2 group"
         >
           <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
           {activeTab === 'softwares' ? 'Nouveau Logiciel' : 'Nouvelle Licence'}
@@ -146,11 +155,11 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
 
       <div className="flex gap-4">
         <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
           <input 
             type="text" 
             placeholder={activeTab === 'softwares' ? "Rechercher dans le catalogue..." : "Rechercher une licence..."}
-            className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-50 shadow-sm transition-all"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -158,64 +167,67 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
       </div>
 
       {activeTab === 'softwares' ? (
-        <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-mono">ID</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logiciel / Éditeur</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">Type</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Statut</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Fournisseur</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Actions</th>
+            <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
+              <tr className="border-b border-slate-100">
+                <th className="px-8 py-5">ID</th>
+                <th className="px-8 py-5">Logiciel / Éditeur</th>
+                <th className="px-8 py-5 text-center">Type</th>
+                <th className="px-8 py-5">Statut</th>
+                <th className="px-8 py-5">Fournisseur</th>
+                <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-50/50 text-sm">
               {filteredSoftwares.map((s) => (
                 <tr 
                   key={s.id} 
-                  className="group hover:bg-slate-50/80 transition-colors border-b border-slate-50 last:border-0"
+                  className="group hover:bg-slate-50 transition-colors"
                 >
-                  <td className="px-8 py-6 text-[10px] font-mono text-slate-400">#{s.id}</td>
+                  <td className="px-8 py-6 text-xs font-mono font-black text-slate-400">#{s.id}</td>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center font-bold">
-                        <Package className="w-6 h-6" />
+                      <div className="w-10 h-10 bg-slate-50 text-slate-500 rounded-xl flex items-center justify-center font-bold">
+                        <Package className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{s.name}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.publisher || 'Éditeur inconnu'}</div>
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{s.name}</div>
+                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{s.publisher || 'Éditeur inconnu'}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-8 py-6 text-center">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${
-                      s.type === 'Abonnement' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+                    <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] ${
+                      s.type === 'Abonnement' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
                     }`}>
                       {s.type}
                     </span>
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2">
-                       <div className={`w-2 h-2 rounded-full ${s.status === 'Actif' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
-                       <span className="text-sm font-bold text-slate-700">{s.status}</span>
+                       <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] text-center ${
+                         s.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                       }`}>
+                         {s.status}
+                       </span>
                     </div>
                   </td>
-                  <td className="px-8 py-6 text-sm font-medium text-slate-500">
-                    {suppliers.find(sup => sup.id === s.supplier_id)?.name || '-'}
+                  <td className="px-8 py-6 text-sm font-bold text-slate-600">
+                    {suppliers.find(sup => sup.id === s.supplier_id)?.name || <span className="opacity-40 italic">---</span>}
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => handleEditSoftware(s)} 
-                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                         title="Modifier le logiciel"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => setSoftwareDeleteId(s.id)} 
-                        className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         title="Supprimer le logiciel"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -234,32 +246,32 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Licence</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Utilisation</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Expiration</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Actions</th>
+            <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
+              <tr className="border-b border-slate-100">
+                <th className="px-8 py-5">Licence</th>
+                <th className="px-8 py-5">Utilisation</th>
+                <th className="px-8 py-5">Expiration</th>
+                <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-50/50 text-sm">
               {filteredLicenses.map((l) => {
               const usedSeats = (l as any).used_seats || 0;
               const ratio = (usedSeats / l.total_seats) * 100;
               const isFull = usedSeats >= l.total_seats;
 
               return (
-                <tr key={l.id} onClick={() => handleShowDetails(l)} className="group hover:bg-slate-50/80 transition-colors cursor-pointer border-b border-slate-50 last:border-0">
+                <tr key={l.id} onClick={() => handleShowDetails(l)} className="group hover:bg-slate-50 transition-colors cursor-pointer">
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-bold shadow-inner">
-                        <Key className="w-6 h-6" />
+                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                        <Key className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{l.label}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{l.software}</div>
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{l.label}</div>
+                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{l.software}</div>
                       </div>
                     </div>
                   </td>
@@ -275,7 +287,7 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
                         <motion.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${ratio}%` }}
-                          className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-indigo-500 shadow-[0_0_8px_rgba(79,70,229,0.4)]'}`}
+                          className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-indigo-500'}`}
                         />
                       </div>
                     </div>
@@ -287,17 +299,17 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleEdit(l); }} 
-                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                         title="Modifier la licence"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(l.id); }} 
-                        className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         title="Supprimer la licence"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -311,6 +323,29 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
         </table>
       </div>
       )}
+
+      {/* Pagination Controls */}
+      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between">
+        <span className="text-xs font-bold text-slate-400">
+          Page {currentPage} {totalPages > 0 && `sur ${totalPages}`}
+        </span>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            Précédent
+          </button>
+          <button 
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            Suivant
+          </button>
+        </div>
+      </div>
 
       <LicenseModal 
         isOpen={isModalOpen} 

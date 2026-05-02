@@ -94,77 +94,83 @@ export const SupplierList: React.FC = () => {
         supplier={selectedSupplier} 
       />
 
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-lg font-bold text-slate-900">Fournisseurs</h2>
-          <p className="text-xs text-slate-500">Gestion de vos partenaires et prestataires.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+        <div className="space-y-1.5 flex-1">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                 <Building2 className="w-5 h-5" />
+             </div>
+             Fournisseurs
+          </h2>
+          <p className="text-sm font-medium text-slate-500 pl-13">Gestion de vos partenaires et prestataires de services.</p>
         </div>
-        <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="relative group flex-1 sm:flex-initial">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
             <input 
               type="text" 
-              placeholder="Rechercher un fournisseur..." 
-              className="bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-blue-500 outline-none" 
-              value={search} 
-              onChange={(e) => setSearch(e.target.value)} 
+              placeholder="Rechercher..." 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 min-w-[240px]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <button 
             disabled={isViewer}
             onClick={handleCreate} 
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:grayscale group whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" /> Nouveau Fournisseur
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Nouveau Fournisseur
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+          <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
             <tr className="border-b border-slate-100">
-              <th className="px-8 py-4">Entreprise</th>
-              <th className="px-8 py-4">Contact</th>
-              <th className="px-8 py-4">Téléphone</th>
-              <th className="px-8 py-4 text-right">Actions</th>
+              <th className="px-8 py-5">Entreprise</th>
+              <th className="px-8 py-5">Contact</th>
+              <th className="px-8 py-5">Téléphone</th>
+              <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-slate-50/50 text-sm">
             {filtered.map((s, idx) => (
               <motion.tr 
                 key={s.id}
                 initial={{ opacity: 0, y: 10 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 transition={{ delay: idx * 0.05 }} 
-                className="hover:bg-slate-50 transition-colors group"
+                onClick={() => handleEdit(s)}
+                className="hover:bg-slate-50 transition-colors group cursor-pointer"
               >
-                <td className="px-8 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold">
+                <td className="px-8 py-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-[0.75rem] flex items-center justify-center font-black text-lg">
                       {s.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="font-bold text-slate-900">{s.name}</div>
+                    <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{s.name}</div>
                   </div>
                 </td>
-                <td className="px-8 py-4 text-slate-600">
-                   <div className="flex items-center gap-2">
-                     <User className="w-3.5 h-3.5 text-slate-400" />
-                     {s.contact || '---'}
+                <td className="px-8 py-6 text-slate-600">
+                   <div className="flex items-center gap-2 font-medium">
+                     <User className="w-4 h-4 text-slate-400" />
+                     {s.contact || <span className="text-slate-400 italic font-normal">Non renseigné</span>}
                    </div>
                 </td>
-                <td className="px-8 py-4 text-slate-600">
+                <td className="px-8 py-6 text-slate-600">
                    <div className="flex items-center gap-2">
-                     <Phone className="w-3.5 h-3.5 text-slate-400" />
-                     {s.phone || '---'}
+                     <Phone className="w-4 h-4 text-slate-400" />
+                     {s.phone ? <span className="font-mono text-xs">{s.phone}</span> : <span className="text-slate-400 italic">Non renseigné</span>}
                    </div>
                 </td>
-                <td className="px-8 py-4 text-right">
+                <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                        <button 
                          disabled={!canEdit}
                          onClick={() => handleEdit(s)} 
-                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
+                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
                          title="Modifier"
                        >
                          <Edit2 className="w-4 h-4" />

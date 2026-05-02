@@ -137,61 +137,56 @@ export const PhoneLineList: React.FC = () => {
       </AnimatePresence>
 
       {/* Header Section */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <div className="flex items-center gap-6">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-            <Phone className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">Lignes Téléphoniques</h1>
-            <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">
-              Gestion de la flotte mobile et fixe
-            </p>
-          </div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+        <div className="space-y-1.5 flex-1">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                 <Phone className="w-5 h-5" />
+             </div>
+             Lignes Téléphoniques
+          </h1>
+          <p className="text-sm font-medium text-slate-500 pl-13">Gestion de la flotte mobile, abonnements et lignes fixes.</p>
         </div>
-        <button 
-          onClick={() => {
-            setSelectedLine(null);
-            setIsModalOpen(true);
-          }}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100"
-        >
-          <Plus className="w-5 h-5" /> Nouvelle Ligne
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <button 
+            onClick={() => {
+              setSelectedLine(null);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 group whitespace-nowrap"
+          >
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Nouvelle Ligne
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative flex-1 w-full group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
             <input 
               type="text" 
               placeholder="Rechercher une ligne, un n°, un utilisateur..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400"
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-              <Filter className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-50">
-                <th className="px-8 py-4 text-[10px] uppercase font-black text-slate-400 tracking-widest">Ligne & Numéro</th>
-                <th className="px-8 py-4 text-[10px] uppercase font-black text-slate-400 tracking-widest">Utilisateur & Site</th>
-                <th className="px-8 py-4 text-[10px] uppercase font-black text-slate-400 tracking-widest">Contrat & Fournisseur</th>
-                <th className="px-8 py-4 text-[10px] uppercase font-black text-slate-400 tracking-widest text-center">Statut</th>
-                <th className="px-8 py-4 text-[10px] uppercase font-black text-slate-400 tracking-widest text-right">Actions</th>
+            <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
+              <tr className="border-b border-slate-100">
+                <th className="px-8 py-5">Ligne & Numéro</th>
+                <th className="px-8 py-5">Utilisateur & Site</th>
+                <th className="px-8 py-5">Contrat & Fournisseur</th>
+                <th className="px-8 py-5 text-center">Statut</th>
+                <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50/50 text-sm">
               {filteredLines.map((line, idx) => {
                 const assignedUser = users.find(u => u.id === line.assigned_user_id);
                 const location = locations.find(l => l.id === line.location_id);
@@ -202,67 +197,79 @@ export const PhoneLineList: React.FC = () => {
                   <motion.tr 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
+                    transition={{ delay: idx * 0.02 }}
                     key={line.id} 
-                    className="hover:bg-slate-50 transition-colors group"
+                    onClick={() => handleEdit(line)}
+                    className="hover:bg-slate-50 transition-colors group cursor-pointer"
                   >
-                    <td className="px-8 py-4">
+                    <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
                           <Phone className="w-5 h-5" />
                         </div>
-                        <div>
-                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{line.label}</div>
-                          <div className="text-xs font-mono text-slate-400 tracking-tighter">{line.number}</div>
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{line.number}</div>
+                          <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.1em]">{line.label}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                          <UserIcon className="w-3 h-3 text-slate-400" />
-                          {assignedUser ? assignedUser.name : 'Non assigné'}
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
-                          <MapPin className="w-3 h-3" />
-                          {location ? location.name : 'NON SPÉCIFIÉ'}
-                        </div>
+                    <td className="px-8 py-6">
+                      <div className="space-y-2">
+                        {assignedUser ? (
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-sm font-bold text-slate-700">{assignedUser.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-300">Non assigné</span>
+                        )}
+                        {location ? (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-[11px] font-medium text-slate-500 truncate max-w-[150px]">{location.name}</span>
+                          </div>
+                        ) : null}
                       </div>
                     </td>
-                    <td className="px-8 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                          <FileText className="w-3 h-3 text-slate-400" />
-                          {contract ? contract.label : 'Pas de contrat'}
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
-                          <Building2 className="w-3 h-3" />
-                          {supplier ? supplier.name : 'INCONNU'}
-                        </div>
+                    <td className="px-8 py-6">
+                      <div className="space-y-2">
+                        {contract ? (
+                           <div className="flex items-center gap-2">
+                             <FileText className="w-3.5 h-3.5 text-slate-400" />
+                             <span className="text-sm text-slate-600 font-bold truncate max-w-[150px]">{contract.label}</span>
+                           </div>
+                         ) : (
+                           <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-300">Aucun contrat</span>
+                         )}
+                         {supplier ? (
+                           <div className="flex items-center gap-2">
+                             <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                             <span className="text-[11px] font-medium text-slate-500 truncate max-w-[150px]">{supplier.name}</span>
+                           </div>
+                         ) : null}
                       </div>
                     </td>
-                    <td className="px-8 py-4">
+                    <td className="px-8 py-6">
                       <div className="flex justify-center">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600' : 
-                          line.status === 'Inactif' ? 'bg-slate-100 text-slate-500' : 'bg-red-50 text-red-600'
-                        }`}>
+                         <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] text-center ${
+                           line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                         }`}>
                           {line.status}
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-4">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => handleEdit(line)}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm"
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                           title="Modifier"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(line.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm"
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                           title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
