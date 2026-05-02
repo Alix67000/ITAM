@@ -14,7 +14,7 @@ export const SupplierList: React.FC = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [supplierToDelete, setSupplierToDelete] = useState<number | null>(null);
+  const [supplierToDelete, setSupplierToDelete] = useState<string | null>(null);
 
   const fetchSuppliers = () => {
     setLoading(true);
@@ -40,7 +40,7 @@ export const SupplierList: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (!canDelete) return;
     setSupplierToDelete(id);
     setIsConfirmOpen(true);
@@ -160,16 +160,24 @@ export const SupplierList: React.FC = () => {
                    </div>
                 </td>
                 <td className="px-8 py-4 text-right">
-                   <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        disabled={!canDelete}
-                        onClick={() => handleDelete(s.id)} 
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                   </div>
+                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                       <button 
+                         disabled={!canEdit}
+                         onClick={() => handleEdit(s)} 
+                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
+                         title="Modifier"
+                       >
+                         <Edit2 className="w-4 h-4" />
+                       </button>
+                       <button 
+                         disabled={!canDelete}
+                         onClick={() => handleDelete(s.id)} 
+                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
+                         title="Supprimer"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                    </div>
                 </td>
               </motion.tr>
             ))}

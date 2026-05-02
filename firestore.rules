@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Mode développement : Tout ouvert pour itam-emmaus
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

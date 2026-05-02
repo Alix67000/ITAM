@@ -1,5 +1,6 @@
 import React from 'react';
-import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2, Shield, ShieldCheck, ShieldAlert, Key, Phone, X, Plus } from 'lucide-react';
+import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2, Shield, ShieldCheck, ShieldAlert, Key, Phone, X, Plus, LogOut } from 'lucide-react';
+import { FooterStatus } from './FooterStatus';
 import { cn } from '../lib/utils';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,9 +13,9 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
-  const { role, setRole, isAdmin, isViewer } = useAuth();
+  const { user, logout, role, setRole, isAdmin, isViewer } = useAuth();
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [results, setResults] = React.useState<{ type: string; id: number; label: string }[]>([]);
+  const [results, setResults] = React.useState<{ type: string; id: string; label: string }[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
@@ -198,35 +199,47 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         </nav>
 
         <div className="p-4 border-t border-slate-100 mt-auto space-y-3">
-          <div className="bg-slate-900 rounded-xl p-4 text-white text-[10px] space-y-2">
-             <div className="flex justify-between items-center opacity-70 uppercase tracking-wider font-sans mb-2">
-                <span>Rôle Actuel</span>
-                {isAdmin ? <ShieldCheck className="w-3 h-3 text-green-400" /> : isViewer ? <ShieldAlert className="w-3 h-3 text-orange-400" /> : <Shield className="w-3 h-3 text-blue-400" />}
+          <div className="bg-slate-900 rounded-xl p-4 text-white text-[10px] space-y-4">
+             <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-black text-sm overflow-hidden">
+                 {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : user?.email?.substring(0, 2).toUpperCase()}
+               </div>
+               <div className="flex-1 overflow-hidden">
+                 <div className="font-black truncate">{user?.displayName || 'Utilisateur'}</div>
+                 <div className="opacity-50 truncate">{user?.email}</div>
+               </div>
              </div>
-             <div className="flex gap-1 flex-wrap">
-                {(['Admin', 'User', 'Viewer'] as Role[]).map(r => (
-                   <button 
-                    key={r}
-                    onClick={() => setRole(r)}
-                    className={cn(
-                      "px-2 py-1 rounded transition-all font-bold",
-                      role === r ? "bg-white text-slate-900" : "bg-white/10 text-white/50 hover:bg-white/20"
-                    )}
-                   >
-                    {r}
-                   </button>
-                ))}
+
+             <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex justify-between items-center opacity-70 uppercase tracking-wider font-sans">
+                    <span>Rôle Actuel</span>
+                    {isAdmin ? <ShieldCheck className="w-3 h-3 text-green-400" /> : isViewer ? <ShieldAlert className="w-3 h-3 text-orange-400" /> : <Shield className="w-3 h-3 text-blue-400" />}
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                    {(['Admin', 'User', 'Viewer'] as Role[]).map(r => (
+                      <button 
+                        key={r}
+                        onClick={() => setRole(r)}
+                        className={cn(
+                          "px-2 py-1 rounded transition-all font-bold",
+                          role === r ? "bg-white text-slate-900" : "bg-white/10 text-white/50 hover:bg-white/20"
+                        )}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                </div>
              </div>
-             <p className="opacity-40 italic mt-2 border-t border-white/5 pt-2">{isAdmin ? "Accès Complet" : isViewer ? "Lecture Seule" : "Édition Limitée"}</p>
+
+             <button 
+              onClick={logout}
+              className="w-full flex items-center justify-center gap-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors font-bold uppercase tracking-widest mt-2"
+             >
+               <LogOut className="w-3 h-3" />
+               Déconnexion
+             </button>
           </div>
-          <div className="bg-slate-100 rounded-xl p-4 text-slate-400 text-[10px]">
-             <p className="opacity-70 mb-1 font-sans uppercase tracking-wider">Database Version</p>
-             <p className="font-mono">SQLite v3.x • Core v1</p>
-             <div className="mt-3 pt-3 border-t border-slate-200">
-               <p className="opacity-70 font-sans uppercase tracking-wider">Copywrite 2026</p>
-               <p className="font-bold text-slate-500 mt-1 uppercase">Developed by Ali AHMADI</p>
-             </div>
-          </div>
+          <FooterStatus />
         </div>
       </aside>
 
@@ -255,7 +268,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
           <div className="flex items-center gap-2 md:gap-4">
              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-500 font-bold uppercase overflow-hidden text-xs">
-              {role.substring(0, 2)}
+              {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : role.substring(0, 2)}
             </div>
           </div>
 

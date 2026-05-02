@@ -138,7 +138,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur</label>
               <select 
                 value={formData.supplier_id || ''}
-                onChange={e => setFormData({ ...formData, supplier_id: e.target.value ? parseInt(e.target.value) : null })}
+                onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
               >
                 <option value="">Sélectionner</option>

@@ -9,7 +9,7 @@ import { motion } from 'motion/react';
 import { useToast } from '../services/toastContext';
 
 interface ContractDetailViewProps {
-  contractId: number;
+  contractId: string;
   onClose: () => void;
   onRefresh: () => void;
 }

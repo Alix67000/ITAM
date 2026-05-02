@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, Asset, License, Contract } from '../services/api';
+import { api, Asset, License, Contract, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
 import { 
   X, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, 
@@ -11,9 +11,10 @@ import { AssetForm } from './forms/AssetForm';
 import { useToast } from '../services/toastContext';
 
 interface AssetDetailViewProps {
-  assetId: number;
+  assetId: string;
   onClose: () => void;
   onRefresh: () => void;
+  onEdit?: (asset: Asset) => void;
 }
 
 export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClose, onRefresh }) => {
@@ -32,6 +33,9 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [allLicenses, setAllLicenses] = useState<any[]>([]);
   const [allContracts, setAllContracts] = useState<any[]>([]);
   
+  const [users, setUsers] = useState<User[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+
   const [showSoftwareAdd, setShowSoftwareAdd] = useState(false);
   const [showLicenseAdd, setShowLicenseAdd] = useState(false);
   const [showContractAdd, setShowContractAdd] = useState(false);
@@ -40,20 +44,22 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const fetchData = async () => {
     setLoading(true);
     try {
-      const assets = await api.getAssets();
-      setAllAssets(assets);
-      const foundAsset = assets.find(a => a.id === assetId);
+      const foundAsset = await api.getAsset(assetId);
       if (foundAsset) {
-        setAsset(foundAsset);
-        const [assetContracts, assetSoftwares, assetLicenses, assetChildren, softwaresList, licensesList, contractsList] = await Promise.all([
+        const [assetContracts, assetSoftwares, assetLicenses, assetChildren, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
           api.getAssetContracts(assetId),
           api.getAssetSoftwares(assetId),
           api.getAssetLicenses(assetId),
           api.getAssetChildren(assetId),
           api.getSoftwares(),
           api.getLicenses(),
-          api.getContracts()
+          api.getContracts(),
+          api.getUsers(),
+          api.getLocations(),
+          api.getAssets()
         ]);
+        
+        // Update all states at once for consistent rendering
         setContracts(assetContracts);
         setSoftwares(assetSoftwares);
         setLicenses(assetLicenses);
@@ -61,6 +67,10 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         setAllSoftwares(softwaresList);
         setAllLicenses(licensesList);
         setAllContracts(contractsList);
+        setUsers(usersList);
+        setLocations(locationsList);
+        setAllAssets(allAssetsList);
+        setAsset(foundAsset);
       }
     } catch (error) {
       console.error('Error fetching asset details:', error);
@@ -70,6 +80,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   };
 
   useEffect(() => {
+    // Clear asset when ID changes to avoid flickering stale data
+    setAsset(null);
     fetchData();
   }, [assetId]);
 
@@ -88,7 +100,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     }
   };
 
-  const handleLinkSoftware = async (softwareId: number) => {
+  const handleLinkSoftware = async (softwareId: string) => {
     try {
       await api.assignAssetToSoftware(softwareId, assetId);
       const updated = await api.getAssetSoftwares(assetId);
@@ -100,7 +112,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     }
   };
 
-  const handleLinkLicense = async (licenseId: number) => {
+  const handleLinkLicense = async (licenseId: string) => {
     try {
       await api.assignAssetToLicense(licenseId, assetId);
       const updated = await api.getAssetLicenses(assetId);
@@ -109,7 +121,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     } catch (e) { console.error(e); }
   };
 
-  const handleLinkContract = async (contractId: number) => {
+  const handleLinkContract = async (contractId: string) => {
     try {
       await api.assignContractToAsset(assetId, contractId);
       const updated = await api.getAssetContracts(assetId);
@@ -118,7 +130,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     } catch (e) { console.error(e); }
   };
 
-  const handleLinkAsset = async (childId: number) => {
+  const handleLinkAsset = async (childId: string) => {
     try {
       await api.linkAsset(assetId, childId);
       const updated = await api.getAssetChildren(assetId);
@@ -130,7 +142,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     }
   };
 
-  const handleUnlinkAsset = async (childId: number) => {
+  const handleUnlinkAsset = async (childId: string) => {
     if (!confirm('Voulez-vous vraiment détacher ce matériel ?')) return;
     try {
       await api.unlinkAsset(assetId, childId);
@@ -161,15 +173,21 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     }
   };
 
-  if (loading && !asset) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center p-20">
-        <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <div className="bg-white min-h-screen flex items-center justify-center p-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Chargement des données...</p>
+        </div>
       </div>
     );
   }
 
   if (!asset) return null;
+
+  const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
+  const location = locations.find(l => String(l.id) === String(asset.location_id));
 
   if (isEditing) {
     return (
@@ -356,7 +374,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                   <button onClick={() => setShowLicenseAdd(!showLicenseAdd)} className="p-1.5 hover:bg-slate-50 rounded-lg"><Plus className="w-3 h-3" /></button>
                 </div>
                 {showLicenseAdd && (
-                  <select onChange={(e) => handleLinkLicense(Number(e.target.value))} className="w-full p-2 text-xs border rounded-lg">
+                  <select onChange={(e) => handleLinkLicense(e.target.value)} className="w-full p-2 text-xs border rounded-lg">
                     <option value="">Lier une licence...</option>
                     {allLicenses.map(l => <option key={l.id} value={l.id}>{l.label} ({l.software})</option>)}
                   </select>
@@ -380,7 +398,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                   <button onClick={() => setShowContractAdd(!showContractAdd)} className="p-1.5 hover:bg-white/10 rounded-lg"><Plus className="w-3 h-3" /></button>
                 </div>
                 {showContractAdd && (
-                  <select onChange={(e) => handleLinkContract(Number(e.target.value))} className="w-full p-2 text-xs border rounded-lg bg-indigo-950 text-white">
+                  <select onChange={(e) => handleLinkContract(e.target.value)} className="w-full p-2 text-xs border rounded-lg bg-indigo-950 text-white">
                     <option value="">Lier un contrat...</option>
                     {allContracts.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
@@ -421,7 +439,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                  >
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Lier un matériel existant</label>
                    <select 
-                     onChange={(e) => e.target.value && handleLinkAsset(Number(e.target.value))}
+                     onChange={(e) => e.target.value && handleLinkAsset(e.target.value)}
                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500"
                    >
                      <option value="">Sélectionner un asset...</option>
@@ -484,18 +502,18 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           <div className="lg:col-span-4 space-y-8 order-1 lg:order-2">
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col items-center gap-6">
               <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-slate-200">
-                {asset.user_name ? asset.user_name.charAt(0) : '?'}
+                {assignedUser ? assignedUser.name.charAt(0) : '?'}
               </div>
               <div className="text-center space-y-1">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Utilisateur Assigné</p>
-                <h4 className="text-xl font-bold text-slate-900">{asset.user_name || 'Non assigné'}</h4>
+                <h4 className="text-xl font-bold text-slate-900">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
               </div>
               <div className="w-full pt-6 border-t border-slate-50 space-y-4">
                  <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-5 h-5" /></div>
                     <div>
                       <p className="text-[8px] font-black text-slate-400 uppercase">Emplacement</p>
-                      <p className="text-xs font-bold text-slate-900">{asset.location_name || 'Stock central'}</p>
+                      <p className="text-xs font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
                     </div>
                  </div>
               </div>

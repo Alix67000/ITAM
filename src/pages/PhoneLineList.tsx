@@ -1,26 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { api, PhoneLine } from '../services/api';
-import { Plus, Search, Filter, Phone, User, MapPin, Building2, FileText, Edit2, Trash2, X, AlertCircle } from 'lucide-react';
+import { api, PhoneLine, User, Location, Contract, Supplier } from '../services/api';
+import { Plus, Search, Filter, Phone, User as UserIcon, MapPin, Building2, FileText, Edit2, Trash2, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhoneLineModal } from '../components/PhoneLineModal';
 
 export const PhoneLineList: React.FC = () => {
   const [phoneLines, setPhoneLines] = useState<PhoneLine[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLine, setSelectedLine] = useState<PhoneLine | null>(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [lineToDelete, setLineToDelete] = useState<number | null>(null);
+  const [lineToDelete, setLineToDelete] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await api.getPhoneLines();
-      setPhoneLines(data);
+      const [linesData, usersData, locationsData, contractsData, suppliersData] = await Promise.all([
+        api.getPhoneLines(),
+        api.getUsers(),
+        api.getLocations(),
+        api.getContracts(),
+        api.getSuppliers()
+      ]);
+      setPhoneLines(linesData);
+      setUsers(usersData);
+      setLocations(locationsData);
+      setContracts(contractsData);
+      setSuppliers(suppliersData);
     } catch (error) {
-      console.error('Error fetching phone lines:', error);
+      console.error('Error fetching phone lines data:', error);
     } finally {
       setLoading(false);
     }
@@ -35,7 +49,7 @@ export const PhoneLineList: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setLineToDelete(id);
     setIsConfirmOpen(true);
   };
@@ -49,11 +63,21 @@ export const PhoneLineList: React.FC = () => {
     }
   };
 
-  const filteredLines = phoneLines.filter(line => 
-    line.label.toLowerCase().includes(search.toLowerCase()) ||
-    line.number.includes(search) ||
-    line.user_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredLines = phoneLines.filter(line => {
+    const assignedUser = users.find(u => u.id === line.assigned_user_id);
+    const location = locations.find(l => l.id === line.location_id);
+    const contract = contracts.find(c => c.id === line.contract_id);
+    const supplier = suppliers.find(s => s.id === line.supplier_id);
+
+    return (
+      line.label.toLowerCase().includes(search.toLowerCase()) ||
+      line.number.includes(search) ||
+      assignedUser?.name.toLowerCase().includes(search.toLowerCase()) ||
+      location?.name.toLowerCase().includes(search.toLowerCase()) ||
+      contract?.label.toLowerCase().includes(search.toLowerCase()) ||
+      supplier?.name.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   return (
     <div className="space-y-8 pb-20">
@@ -167,80 +191,87 @@ export const PhoneLineList: React.FC = () => {
                 <th className="px-8 py-4 text-[10px] uppercase font-black text-slate-400 tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredLines.map((line, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  key={line.id} 
-                  className="hover:bg-slate-50 transition-colors group"
-                >
-                  <td className="px-8 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
-                        <Phone className="w-5 h-5" />
+            <tbody className="divide-y divide-slate-50">
+              {filteredLines.map((line, idx) => {
+                const assignedUser = users.find(u => u.id === line.assigned_user_id);
+                const location = locations.find(l => l.id === line.location_id);
+                const contract = contracts.find(c => c.id === line.contract_id);
+                const supplier = suppliers.find(s => s.id === line.supplier_id);
+
+                return (
+                  <motion.tr 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    key={line.id} 
+                    className="hover:bg-slate-50 transition-colors group"
+                  >
+                    <td className="px-8 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                          <Phone className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{line.label}</div>
+                          <div className="text-xs font-mono text-slate-400 tracking-tighter">{line.number}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{line.label}</div>
-                        <div className="text-xs font-mono text-slate-400 tracking-tighter">{line.number}</div>
+                    </td>
+                    <td className="px-8 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                          <UserIcon className="w-3 h-3 text-slate-400" />
+                          {assignedUser ? assignedUser.name : 'Non assigné'}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
+                          <MapPin className="w-3 h-3" />
+                          {location ? location.name : 'NON SPÉCIFIÉ'}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                        <User className="w-3 h-3 text-slate-400" />
-                        {line.user_name || 'Non assigné'}
+                    </td>
+                    <td className="px-8 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                          <FileText className="w-3 h-3 text-slate-400" />
+                          {contract ? contract.label : 'Pas de contrat'}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
+                          <Building2 className="w-3 h-3" />
+                          {supplier ? supplier.name : 'INCONNU'}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
-                        <MapPin className="w-3 h-3" />
-                        {line.location_name || 'Non spécifié'}
+                    </td>
+                    <td className="px-8 py-4">
+                      <div className="flex justify-center">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600' : 
+                          line.status === 'Inactif' ? 'bg-slate-100 text-slate-500' : 'bg-red-50 text-red-600'
+                        }`}>
+                          {line.status}
+                        </span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                        <FileText className="w-3 h-3 text-slate-400" />
-                        {line.contract_name || 'Pas de contrat'}
+                    </td>
+                    <td className="px-8 py-4">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          onClick={() => handleEdit(line)}
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm"
+                          title="Modifier"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(line.id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
-                        <Building2 className="w-3 h-3" />
-                        {line.supplier_name || 'Inconnu'}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-4">
-                    <div className="flex justify-center">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                        line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600' : 
-                        line.status === 'Inactif' ? 'bg-slate-100 text-slate-500' : 'bg-red-50 text-red-600'
-                      }`}>
-                        {line.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-4">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                      <button 
-                        onClick={() => handleEdit(line)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm"
-                        title="Modifier"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(line.id)}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
+                    </td>
+                  </motion.tr>
+                );
+              })}
               {filteredLines.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-8 py-20 text-center text-slate-400 italic text-sm border-t border-slate-50">

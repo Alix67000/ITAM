@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, Contract, Asset } from '../services/api';
+import { api, Contract, Asset, Supplier } from '../services/api';
 import { cn } from '../lib/utils';
 import { Plus, Search, FileText, Calendar, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -10,20 +10,25 @@ import { useAuth } from '../services/authContext';
 export const ContractList: React.FC = () => {
   const { canEdit, canDelete, isViewer } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
-  const [viewingContractId, setViewingContractId] = useState<number | null>(null);
+  const [viewingContractId, setViewingContractId] = useState<string | null>(null);
   
   const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await api.getContracts();
-      setContracts(data);
+      const [contractsData, suppliersData] = await Promise.all([
+        api.getContracts(),
+        api.getSuppliers()
+      ]);
+      setContracts(contractsData);
+      setSuppliers(suppliersData);
     } catch (error) {
-      console.error('Error fetching contracts:', error);
+      console.error('Error fetching contracts data:', error);
     } finally {
       setLoading(false);
     }
@@ -49,20 +54,23 @@ export const ContractList: React.FC = () => {
     setIsContractModalOpen(true);
   };
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const handleDeleteContract = async (id: number) => {
+  const handleDeleteContract = async (id: string) => {
     if (!canDelete) return;
     await api.deleteContract(id);
     setDeleteConfirmId(null);
     fetchData();
   };
 
-  const filteredContracts = contracts.filter(c => 
-    c.label.toLowerCase().includes(search.toLowerCase()) || 
-    c.type.toLowerCase().includes(search.toLowerCase()) ||
-    c.supplier_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredContracts = contracts.filter(c => {
+    const supplier = suppliers.find(s => s.id === c.supplier_id);
+    return (
+      c.label.toLowerCase().includes(search.toLowerCase()) || 
+      c.type.toLowerCase().includes(search.toLowerCase()) ||
+      supplier?.name.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   const isExpiringSoon = (dateStr: string) => {
     if (!dateStr) return false;
@@ -129,97 +137,105 @@ export const ContractList: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {filteredContracts.map((c, idx) => (
-              <motion.tr 
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} 
-                key={c.id} onClick={() => handleShowContractDetails(c)}
-                className="hover:bg-slate-50 transition-colors group cursor-pointer"
-              >
-                <td className="px-8 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500"><FileText className="w-5 h-5" /></div>
-                    <div>
-                      <div className="font-bold text-slate-900">{c.label}</div>
-                      <div className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">{c.type}</div>
+            {filteredContracts.map((c, idx) => {
+              const supplier = suppliers.find(s => s.id === c.supplier_id);
+              
+              return (
+                <motion.tr 
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} 
+                  key={c.id} onClick={() => handleShowContractDetails(c)}
+                  className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                >
+                  <td className="px-8 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500"><FileText className="w-5 h-5" /></div>
+                      <div>
+                        <div className="font-bold text-slate-900">{c.label}</div>
+                        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">{c.type}</div>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-8 py-4 text-slate-600 font-medium">{c.supplier_name || '---'}</td>
-                <td className="px-8 py-4">
-                  <div className="flex flex-col text-xs">
-                    <span className="text-slate-500">Dès: {c.start_date || 'N/A'}</span>
-                    <span className={`font-medium ${isExpiringSoon(c.end_date) ? 'text-orange-600' : 'text-slate-500'}`}>
-                      Vient à: {c.end_date || 'N/A'}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-8 py-4 text-center">
-                  <span className="inline-flex items-center px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-500">{c.assets_count || 0}</span>
-                </td>
-                <td className="px-8 py-4">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${c.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>{c.status}</span>
-                </td>
-                <td className="px-8 py-4 text-right">
-                  <div className="flex justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleEditContract(c); }} 
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button 
-                      disabled={!canDelete}
-                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(c.id); }} 
-                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
+                  </td>
+                  <td className="px-8 py-4 text-slate-600 font-medium">{supplier ? supplier.name : '---'}</td>
+                  <td className="px-8 py-4">
+                    <div className="flex flex-col text-xs">
+                      <span className="text-slate-500">Dès: {c.start_date || 'N/A'}</span>
+                      <span className={`font-medium ${isExpiringSoon(c.end_date) ? 'text-orange-600' : 'text-slate-500'}`}>
+                        Vient à: {c.end_date || 'N/A'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-4 text-center">
+                    <span className="inline-flex items-center px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-500">{c.assets_count || 0}</span>
+                  </td>
+                  <td className="px-8 py-4">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${c.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>{c.status}</span>
+                  </td>
+                  <td className="px-8 py-4 text-right">
+                    <div className="flex justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleEditContract(c); }} 
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        disabled={!canDelete}
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(c.id); }} 
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
+              );
+            })}
             {filteredContracts.length === 0 && <tr><td colSpan={6} className="p-20 text-center text-slate-400 italic">Aucun contrat trouvé.</td></tr>}
           </tbody>
         </table>
 
         {/* Mobile View - Card List */}
         <div className="md:hidden divide-y divide-slate-100">
-          {filteredContracts.map((c) => (
-            <div 
-              key={`contract-card-${c.id}`}
-              onClick={() => handleShowContractDetails(c)}
-              className="p-4 active:bg-slate-50 transition-colors flex gap-4"
-            >
-              <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
-                <FileText className="w-5 h-5" />
+          {filteredContracts.map((c) => {
+            const supplier = suppliers.find(s => s.id === c.supplier_id);
+
+            return (
+              <div 
+                key={`contract-card-${c.id}`}
+                onClick={() => handleShowContractDetails(c)}
+                className="p-4 active:bg-slate-50 transition-colors flex gap-4"
+              >
+                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{c.label}</h3>
+                    <span className={cn(
+                      "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+                      c.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'
+                    )}>
+                      {c.status}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">
+                    {supplier ? supplier.name : 'Sans fournisseur'} • {c.type}
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                     <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                       <Calendar className="w-3 h-3" />
+                       <span className={isExpiringSoon(c.end_date) ? 'text-orange-600' : ''}>
+                         Expire: {c.end_date || 'N/A'}
+                       </span>
+                     </div>
+                     <div className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-black text-slate-600">
+                       {c.assets_count || 0} ASSETS
+                     </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{c.label}</h3>
-                  <span className={cn(
-                    "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
-                    c.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'
-                  )}>
-                    {c.status}
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-500 font-medium">
-                  {c.supplier_name || 'Sans fournisseur'} • {c.type}
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                   <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-tight">
-                     <Calendar className="w-3 h-3" />
-                     <span className={isExpiringSoon(c.end_date) ? 'text-orange-600' : ''}>
-                       Expire: {c.end_date || 'N/A'}
-                     </span>
-                   </div>
-                   <div className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-black text-slate-600">
-                     {c.assets_count || 0} ASSETS
-                   </div>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {filteredContracts.length === 0 && !loading && (
             <div className="p-12 text-center text-slate-400 italic text-xs">
               Aucun contrat trouvé.

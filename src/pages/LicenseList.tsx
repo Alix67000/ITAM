@@ -9,6 +9,8 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { LicenseModal } from '../components/LicenseModal';
 import { SoftwareModal } from '../components/SoftwareModal';
+import { SoftwareCreateView } from '../components/SoftwareCreateView';
+import { LicenseDetailView } from '../components/LicenseDetailView';
 
 interface LicenseListProps {
   mode?: 'softwares' | 'licenses';
@@ -22,15 +24,14 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
   const [activeTab, setActiveTab] = useState<'licenses' | 'softwares'>(initialMode);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSoftwareModalOpen, setIsSoftwareModalOpen] = useState(false);
+  const [isCreatingSoftware, setIsCreatingSoftware] = useState(false);
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const [selectedSoftware, setSelectedSoftware] = useState<any | null>(null);
-  const [detailsLicense, setDetailsLicense] = useState<License | null>(null);
-  const [detailsSoftware, setDetailsSoftware] = useState<any | null>(null);
-  const [linkedUsers, setLinkedUsers] = useState<any[]>([]);
-  const [linkedAssets, setLinkedAssets] = useState<Asset[]>([]);
-  const [loadingDetails, setLoadingDetails] = useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [softwareDeleteId, setSoftwareDeleteId] = useState<number | null>(null);
+  
+  const [viewingLicenseId, setViewingLicenseId] = useState<string | null>(null);
+
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [softwareDeleteId, setSoftwareDeleteId] = useState<string | null>(null);
   const [suppliers, setSuppliers] = useState<any[]>([]);
 
   const fetchData = async () => {
@@ -64,27 +65,14 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await api.deleteLicense(id);
     setDeleteConfirmId(null);
     fetchData();
   };
 
-  const handleShowDetails = async (license: License) => {
-    setDetailsLicense(license);
-    setLoadingDetails(true);
-    try {
-      const [users, assets] = await Promise.all([
-        api.getLicenseUsers(license.id),
-        api.getLicenseAssets(license.id)
-      ]);
-      setLinkedUsers(users);
-      setLinkedAssets(assets);
-    } catch (error) {
-      console.error('Error fetching license details:', error);
-    } finally {
-      setLoadingDetails(false);
-    }
+  const handleShowDetails = (license: License) => {
+    setViewingLicenseId(license.id);
   };
 
   const handleEditSoftware = (software: any) => {
@@ -92,7 +80,7 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
     setIsSoftwareModalOpen(true);
   };
 
-  const handleDeleteSoftware = async (id: number) => {
+  const handleDeleteSoftware = async (id: string) => {
     await api.deleteSoftwareById(id);
     setSoftwareDeleteId(null);
     fetchData();
@@ -107,6 +95,25 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
     l.label.toLowerCase().includes(search.toLowerCase()) || 
     l.software.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isCreatingSoftware) {
+    return (
+      <SoftwareCreateView 
+        onClose={() => setIsCreatingSoftware(false)}
+        onRefresh={fetchData}
+      />
+    );
+  }
+
+  if (viewingLicenseId) {
+    return (
+      <LicenseDetailView 
+        licenseId={viewingLicenseId}
+        onClose={() => setViewingLicenseId(null)}
+        onRefresh={fetchData}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8 pb-20">
@@ -124,8 +131,7 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
         <button 
           onClick={() => { 
             if (activeTab === 'softwares') {
-              setSelectedSoftware(null);
-              setIsSoftwareModalOpen(true);
+              setIsCreatingSoftware(true);
             } else {
               setSelectedLicense(null);
               setIsModalOpen(true);
@@ -196,7 +202,7 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
                     </div>
                   </td>
                   <td className="px-8 py-6 text-sm font-medium text-slate-500">
-                    {s.supplier_name || '-'}
+                    {suppliers.find(sup => sup.id === s.supplier_id)?.name || '-'}
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -282,7 +288,18 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                      <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(l.id); }} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleEdit(l); }} 
+                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                        title="Modifier la licence"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(l.id); }} 
+                        className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        title="Supprimer la licence"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -308,116 +325,6 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
         onRefresh={fetchData}
         software={selectedSoftware}
       />
-
-      <AnimatePresence>
-        {detailsLicense && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setDetailsLicense(null)} 
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100]" 
-            />
-            <motion.div 
-              initial={{ x: '100%' }} 
-              animate={{ x: 0 }} 
-              exit={{ x: '100%' }} 
-              className="fixed right-0 top-0 h-full w-[500px] bg-white z-[110] shadow-2xl overflow-y-auto"
-            >
-              <div className="p-10 space-y-10">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
-                      <Key className="w-7 h-7" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black text-slate-900">{detailsLicense.label}</h2>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{detailsLicense.software}</span>
-                    </div>
-                  </div>
-                  <button onClick={() => setDetailsLicense(null)} className="p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-2xl transition-all">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <div className="bg-slate-50 p-6 rounded-3xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Clé de Licence</span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <div className="text-xl font-mono font-bold tracking-wider text-slate-700 bg-white p-4 rounded-2xl border border-slate-200">
-                    {detailsLicense.license_key || '--- XXX ---- XXX ---'}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                   <div className="flex items-center gap-2 text-slate-500">
-                      <Building2 className="w-4 h-4" />
-                      <span className="font-medium">{detailsLicense.supplier_name || 'Aucun fournisseur'}</span>
-                   </div>
-                   <div className="flex items-center gap-2 text-slate-500 justify-end">
-                      <Clock className="w-4 h-4" />
-                      <span className="font-medium">{detailsLicense.end_date ? new Date(detailsLicense.end_date).toLocaleDateString() : 'Perpétuelle'}</span>
-                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-indigo-200 transition-all">
-                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Sièges Totaux</div>
-                    <div className="text-3xl font-black text-slate-900">{detailsLicense.total_seats}</div>
-                    <div className="text-xs font-bold text-indigo-500 mt-1">{detailsLicense.type}</div>
-                  </div>
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-emerald-200 transition-all">
-                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Utilisés</div>
-                    <div className="text-3xl font-black text-slate-900">{(detailsLicense as any).used_seats}</div>
-                    <div className="text-xs font-bold text-emerald-500 mt-1">Sièges actifs</div>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Attribution des sièges ({linkedUsers.length + linkedAssets.length})
-                  </h3>
-
-                  {loadingDetails ? (
-                    <div className="space-y-3">
-                      {[1,2,3].map(i => <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />)}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {linkedUsers.map(user => (
-                        <div key={user.id} className="flex items-center gap-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                          <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center font-bold">{user.name.charAt(0)}</div>
-                          <div>
-                            <div className="text-sm font-bold text-emerald-900">{user.name}</div>
-                            <div className="text-[10px] text-emerald-600 font-medium">{user.email}</div>
-                          </div>
-                        </div>
-                      ))}
-                      {linkedAssets.map(asset => (
-                        <div key={asset.id} className="flex items-center gap-4 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                          <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-                            <Package className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-indigo-900">{asset.label}</div>
-                            <div className="text-[10px] text-indigo-600 font-medium font-mono">{asset.serial}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-10 flex gap-4">
-                  {/* Action buttons could go here, but no Edit as per request */}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {softwareDeleteId && (

@@ -1,0 +1,158 @@
+{
+  "entities": {
+    "Asset": {
+      "title": "Asset",
+      "description": "Un matériel informatique ou mobilier",
+      "type": "object",
+      "properties": {
+        "label": { "type": "string" },
+        "serial": { "type": "string" },
+        "inventory_number": { "type": "string" },
+        "type": { "type": "string" },
+        "subtype": { "type": "string" },
+        "status": { "type": "string" },
+        "location_id": { "type": "string" },
+        "supplier_id": { "type": "string" },
+        "assigned_user_id": { "type": "string" },
+        "parent_asset_id": { "type": "string" },
+        "specs": { "type": "string" },
+        "condition": { "type": "string" },
+        "value_euros": { "type": "number" },
+        "manufacture_date": { "type": "string", "format": "date" },
+        "commissioning_date": { "type": "string", "format": "date" },
+        "has_warranty": { "type": "boolean" },
+        "warranty_end": { "type": "string", "format": "date" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["label", "type"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Un collaborateur de l'entreprise",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "department": { "type": "string" },
+        "location_id": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Location": {
+      "title": "Location",
+      "description": "Un site ou un service",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "parent_id": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Supplier": {
+      "title": "Supplier",
+      "description": "Un fournisseur de matériel ou service",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "contact": { "type": "string" },
+        "phone": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Contract": {
+      "title": "Contract",
+      "description": "Un contrat de maintenance ou leasing",
+      "type": "object",
+      "properties": {
+        "label": { "type": "string" },
+        "type": { "type": "string" },
+        "supplier_id": { "type": "string" },
+        "start_date": { "type": "string", "format": "date" },
+        "end_date": { "type": "string", "format": "date" },
+        "price": { "type": "number" },
+        "status": { "type": "string" },
+        "description": { "type": "string" },
+        "reference": { "type": "string" }
+      },
+      "required": ["label"]
+    },
+    "Software": {
+      "title": "Software",
+      "description": "Un logiciel",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "publisher": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string" },
+        "supplier_id": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "License": {
+      "title": "License",
+      "description": "Une licence logicielle",
+      "type": "object",
+      "properties": {
+        "label": { "type": "string" },
+        "software": { "type": "string" },
+        "license_key": { "type": "string" },
+        "total_seats": { "type": "number" },
+        "type": { "type": "string" },
+        "status": { "type": "string" },
+        "end_date": { "type": "string", "format": "date" },
+        "supplier_id": { "type": "string" }
+      },
+      "required": ["label", "software"]
+    },
+    "PhoneLine": {
+      "title": "PhoneLine",
+      "description": "Une ligne téléphonique mobile ou fixe",
+      "type": "object",
+      "properties": {
+        "label": { "type": "string" },
+        "number": { "type": "string" },
+        "status": { "type": "string" },
+        "location_id": { "type": "string" },
+        "assigned_user_id": { "type": "string" },
+        "supplier_id": { "type": "string" },
+        "contract_id": { "type": "string" },
+        "comments": { "type": "string" }
+      },
+      "required": ["label", "number"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Un événement d'historique",
+      "type": "object",
+      "properties": {
+        "asset_id": { "type": "string" },
+        "action": { "type": "string" },
+        "description": { "type": "string" },
+        "user_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["action"]
+    }
+  },
+  "firestore": {
+    "/assets": { "schema": "Asset", "description": "Collection des assets" },
+    "/users": { "schema": "User", "description": "Collection des utilisateurs" },
+    "/locations": { "schema": "Location", "description": "Collection des sites" },
+    "/suppliers": { "schema": "Supplier", "description": "Collection des fournisseurs" },
+    "/contracts": { "schema": "Contract", "description": "Collection des contrats" },
+    "/softwares": { "schema": "Software", "description": "Collection des logiciels" },
+    "/licenses": { "schema": "License", "description": "Collection des licences" },
+    "/phone_lines": { "schema": "PhoneLine", "description": "Collection des lignes télécom" },
+    "/events": { "schema": "Event", "description": "Collection historique" },
+    "/asset_contracts": { "schema": { "type": "object", "properties": { "asset_id": { "type": "string" }, "contract_id": { "type": "string" } } }, "description": "Associations Asset/Contrat" },
+    "/asset_softwares": { "schema": { "type": "object", "properties": { "asset_id": { "type": "string" }, "software_id": { "type": "string" } } }, "description": "Associations Asset/Logiciel" },
+    "/asset_licenses": { "schema": { "type": "object", "properties": { "asset_id": { "type": "string" }, "license_id": { "type": "string" } } }, "description": "Associations Asset/Licence" },
+    "/user_licenses": { "schema": { "type": "object", "properties": { "user_id": { "type": "string" }, "license_id": { "type": "string" } } }, "description": "Associations Utilisateur/Licence" },
+    "/user_softwares": { "schema": { "type": "object", "properties": { "user_id": { "type": "string" }, "software_id": { "type": "string" } } }, "description": "Associations Utilisateur/Logiciel" }
+  }
+}

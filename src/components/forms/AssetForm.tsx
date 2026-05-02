@@ -5,7 +5,7 @@ import { Save, Cpu, Smartphone, Monitor, Printer, HardDrive, MousePointer2, Netw
 
 interface AssetFormProps {
   initialData?: Partial<Asset>;
-  onSubmit: (data: Partial<Asset>, extra?: { license_id?: number | null; contract_id?: number | null }) => Promise<void>;
+  onSubmit: (data: Partial<Asset>, extra?: { license_id?: string | null; contract_id?: string | null }) => Promise<void>;
   onCancel: () => void;
   isSaving?: boolean;
   showLinks?: boolean;
@@ -32,7 +32,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
     ...initialData
   });
 
-  const [extraData, setExtraData] = useState<{ license_id?: number | null; contract_id?: number | null }>({
+  const [extraData, setExtraData] = useState<{ license_id?: string | null; contract_id?: string | null }>({
     license_id: null,
     contract_id: null
   });
@@ -106,7 +106,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom / Libellé</label>
               <input 
-                required
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                 value={formData.label || ''}
                 onChange={e => setFormData({ ...formData, label: e.target.value })}
@@ -160,6 +159,16 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                  ))}
               </div>
             </div>
+
+            <div className="space-y-1 pt-2">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Type précis / Modèle (Subtype)</label>
+              <input 
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                value={formData.subtype || ''}
+                onChange={e => setFormData({ ...formData, subtype: e.target.value })}
+                placeholder="Ex: Latitude 5420, iPhone 13, HP LaserJet..."
+              />
+            </div>
           </div>
         </div>
 
@@ -174,7 +183,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">État à l'acquisition</label>
               <select 
-                required
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
                 value={formData.condition || 'neuf'}
                 onChange={e => setFormData({ ...formData, condition: e.target.value })}
@@ -190,7 +198,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Date de fabrication</label>
                 <input 
                   type="date"
-                  required
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
                   value={formData.manufacture_date || ''}
                   onChange={e => setFormData({ ...formData, manufacture_date: e.target.value })}
@@ -200,7 +207,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Mise en service</label>
                 <input 
                   type="date"
-                  required
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
                   value={formData.commissioning_date || ''}
                   onChange={e => setFormData({ ...formData, commissioning_date: e.target.value })}
@@ -223,7 +229,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               <input 
                 type="number"
                 step="0.01"
-                required
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
                 value={formData.value_euros || ''}
                 onChange={e => setFormData({ ...formData, value_euros: Number(e.target.value) })}
@@ -280,7 +285,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <select 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
                   value={formData.location_id || ''}
-                  onChange={e => setFormData({ ...formData, location_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={e => setFormData({ ...formData, location_id: e.target.value || null })}
                 >
                   <option value="">Non assigné</option>
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -291,7 +296,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <select 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
                   value={formData.assigned_user_id || ''}
-                  onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value || null })}
                 >
                   <option value="">En stock</option>
                   {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -325,7 +330,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <select 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
                   value={formData.supplier_id || ''}
-                  onChange={e => setFormData({ ...formData, supplier_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
                 >
                   <option value="">Inconnu</option>
                   {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -353,7 +358,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <select 
                   className="w-full bg-indigo-950/50 border border-indigo-800 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500"
                   value={extraData.license_id || ''}
-                  onChange={e => setExtraData({ ...extraData, license_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={e => setExtraData({ ...extraData, license_id: e.target.value || null })}
                 >
                   <option value="">Aucune licence</option>
                   {licenses.map(lic => <option key={lic.id} value={lic.id}>{lic.label} ({lic.software})</option>)}
@@ -367,7 +372,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 <select 
                   className="w-full bg-indigo-950/50 border border-indigo-800 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500"
                   value={extraData.contract_id || ''}
-                  onChange={e => setExtraData({ ...extraData, contract_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={e => setExtraData({ ...extraData, contract_id: e.target.value || null })}
                 >
                   <option value="">Aucun contrat</option>
                   {contracts.map(c => <option key={c.id} value={c.id}>{c.label} ({c.type})</option>)}
@@ -419,7 +424,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
             }
             onSubmit(formData, extraData);
           }}
-          disabled={isSaving || !formData.label || !formData.manufacture_date || !formData.commissioning_date || (formData.value_euros === undefined || formData.value_euros === 0)}
+          disabled={isSaving || !formData.label}
           className="flex items-center gap-2 bg-indigo-600 text-white px-10 py-4 rounded-2xl text-sm font-black shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:grayscale disabled:translate-y-0"
         >
           {isSaving ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}

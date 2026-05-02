@@ -1,35 +1,42 @@
 import React, { useState } from 'react';
-import { api, Asset } from '../services/api';
+import { api } from '../services/api';
 import { X } from 'lucide-react';
 import { motion } from 'motion/react';
-import { AssetForm } from './forms/AssetForm';
+import { SoftwareForm } from './forms/SoftwareForm';
 import { useToast } from '../services/toastContext';
 
-interface AssetCreateViewProps {
+interface SoftwareCreateViewProps {
   onClose: () => void;
   onRefresh: () => void;
 }
 
-export const AssetCreateView: React.FC<AssetCreateViewProps> = ({ onClose, onRefresh }) => {
+export const SoftwareCreateView: React.FC<SoftwareCreateViewProps> = ({ onClose, onRefresh }) => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (data: Partial<Asset>, extra?: { license_id?: string | null; contract_id?: string | null }) => {
+  const handleSubmit = async (data: any, extra?: { asset_ids?: string[]; user_ids?: string[] }) => {
     setLoading(true);
     try {
-      const created = await api.createAsset(data);
-      
-      if (extra?.license_id) {
-        await api.assignAssetToLicense(extra.license_id, created.id);
+      const result = await api.createSoftware(data);
+      const softwareId = result.id;
+
+      if (extra?.asset_ids) {
+        for (const id of extra.asset_ids) {
+          await api.assignAssetToSoftware(softwareId, id);
+        }
       }
-      if (extra?.contract_id) {
-        await api.assignContractToAsset(created.id, extra.contract_id);
+      
+      if (extra?.user_ids) {
+        for (const id of extra.user_ids) {
+          await api.assignUserToSoftware(softwareId, id);
+        }
       }
 
       onRefresh();
-      showToast('Nouveau matériel enregistré avec succès', 'success');
+      showToast('Logiciel enregistré avec succès', 'success');
       onClose();
     } catch (err) {
+      console.error('Error creating software:', err);
       showToast('Une erreur est survenue lors de la création', 'error');
     } finally {
       setLoading(false);
@@ -53,18 +60,17 @@ export const AssetCreateView: React.FC<AssetCreateViewProps> = ({ onClose, onRef
           </button>
           <div className="h-8 w-[1px] bg-slate-200" />
           <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">Nouvel Asset</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enregistrement manuel du matériel</p>
+            <h1 className="text-xl font-black text-slate-900 tracking-tight">Nouveau Logiciel</h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enregistrement au catalogue logiciel</p>
           </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <AssetForm 
+        <SoftwareForm 
           onSubmit={handleSubmit}
           onCancel={onClose}
           isSaving={loading}
-          showLinks={true}
         />
       </div>
     </motion.div>

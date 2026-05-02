@@ -129,7 +129,7 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Utilisateur</label>
                 <select 
                   value={formData.assigned_user_id || ''}
-                  onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value ? parseInt(e.target.value) : null })}
+                  onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value || null })}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
                 >
                   <option value="">Non assigné</option>
@@ -143,7 +143,7 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Entité / Site</label>
                 <select 
                   value={formData.location_id || ''}
-                  onChange={e => setFormData({ ...formData, location_id: e.target.value ? parseInt(e.target.value) : null })}
+                  onChange={e => setFormData({ ...formData, location_id: e.target.value || null })}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
                 >
                   <option value="">Sélectionner...</option>
@@ -157,12 +157,26 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Contrat lié</label>
                 <select 
                   value={formData.contract_id || ''}
-                  onChange={e => setFormData({ ...formData, contract_id: e.target.value ? parseInt(e.target.value) : null })}
+                  onChange={e => setFormData({ ...formData, contract_id: e.target.value || null })}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
                 >
                   <option value="">Aucun contrat</option>
                   {contracts.map(c => (
                     <option key={c.id} value={c.id}>{c.label} ({c.reference})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur / Opérateur</label>
+                <select 
+                  value={formData.supplier_id || ''}
+                  onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                >
+                  <option value="">Sélectionner...</option>
+                  {suppliers.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
               </div>

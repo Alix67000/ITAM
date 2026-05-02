@@ -271,12 +271,12 @@ if (seatUsers.count <= 2) { // Increased threshold to ensure we add our new rich
   db.prepare(`
     INSERT INTO assets (label, serial, type, status, location_id, supplier_id, parent_asset_id, condition, value_euros, manufacture_date, commissioning_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run('Souris MX Master 3S', 'LOGI-MS78-9', 'Souris', 'En service', locParis, supPeriph, pcId, 'neuf', 99, '2023-05-01', '2024-01-10').run();
+  `).run('Souris MX Master 3S', 'LOGI-MS78-9', 'Souris', 'En service', locParis, supPeriph, pcId, 'neuf', 99, '2023-05-01', '2024-01-10');
 
   db.prepare(`
     INSERT INTO assets (label, serial, type, status, location_id, supplier_id, parent_asset_id, condition, value_euros, manufacture_date, commissioning_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run('Clavier Apple Magic', 'APL-KB-442', 'Clavier', 'En service', locParis, supPeriph, pc2Id, 'neuf', 120, '2023-08-01', '2023-11-20').run();
+  `).run('Clavier Apple Magic', 'APL-KB-442', 'Clavier', 'En service', locParis, supPeriph, pc2Id, 'neuf', 120, '2023-08-01', '2023-11-20');
 
   // 6. Softwares
   const swVsCode = db.prepare("INSERT INTO softwares (name, publisher, type, supplier_id) VALUES (?, ?, ?, ?)").run('VS Code', 'Microsoft', 'IDE', supSoftware).lastInsertRowid;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, Stats } from '../services/api';
+import { api, Stats, computeStats } from '../services/api';
 import { Laptop, Users, MapPin, AlertCircle, TrendingUp, Clock, ShieldAlert, PieChart as PieIcon, BarChart3, LineChart as LineIcon, FileText, ChevronRight, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { 
@@ -17,7 +17,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    api.getStats().then(setStats);
+    const load = async () => {
+      const [assets, phoneLines, users, locations, contracts, licenses] = await Promise.all([
+        api.getAssets(),
+        api.getPhoneLines(),
+        api.getUsers(),
+        api.getLocations(),
+        api.getContracts(),
+        api.getLicenses()
+      ]);
+      setStats(computeStats(assets, phoneLines, users, locations, contracts, licenses));
+    };
+    load();
   }, []);
 
   if (!stats) return (

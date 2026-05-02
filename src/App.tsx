@@ -13,17 +13,18 @@ import { ContractList } from './pages/ContractList';
 import { LicenseList } from './pages/LicenseList';
 import { SupplierList } from './pages/SupplierList';
 import { PhoneLineList } from './pages/PhoneLineList';
-import { AuthProvider } from './services/authContext';
+import { AuthProvider, useAuth } from './services/authContext';
 import { ToastProvider } from './services/toastContext';
+import { Login } from './components/Login';
 
-export default function App() {
+const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const renderContent = () => {
     if (activeTab.startsWith('assets:')) {
       const parts = activeTab.split(':');
       if (parts[1] === 'user') {
-        return <AssetList initialUserId={parseInt(parts[2])} />;
+        return <AssetList initialUserId={parts[2]} />;
       }
       const type = parts[1];
       return <AssetList initialType={type} />;
@@ -61,11 +62,17 @@ export default function App() {
   };
 
   return (
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+      {renderContent()}
+    </Layout>
+  );
+};
+
+export default function App() {
+  return (
     <ToastProvider>
       <AuthProvider>
-        <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-          {renderContent()}
-        </Layout>
+        <AppContent />
       </AuthProvider>
     </ToastProvider>
   );

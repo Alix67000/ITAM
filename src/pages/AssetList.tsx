@@ -8,16 +8,16 @@ import { AssetDetailView } from '../components/AssetDetailView';
 import { AssetCreateView } from '../components/AssetCreateView';
 import { useAuth } from '../services/authContext';
 
-export const AssetList: React.FC<{ initialType?: string; initialUserId?: number }> = ({ initialType, initialUserId }) => {
+export const AssetList: React.FC<{ initialType?: string; initialUserId?: string }> = ({ initialType, initialUserId }) => {
   const { canEdit, canDelete, isViewer } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [phoneLines, setPhoneLines] = useState<PhoneLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(initialType || null);
-  const [selectedUserFilter, setSelectedUserFilter] = useState<number | null>(initialUserId || null);
+  const [selectedUserFilter, setSelectedUserFilter] = useState<string | null>(initialUserId || null);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
-  const [selectedLocationFilter, setSelectedLocationFilter] = useState<number | null>(null);
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<string>('all'); // all, month, year
   
   const [users, setUsers] = useState<User[]>([]);
@@ -25,7 +25,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   // View mode state
-  const [viewingAssetId, setViewingAssetId] = useState<number | null>(null);
+  const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   // Update filter when initialType or initialUserId changes
@@ -42,7 +42,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
   const [selectedPhoneLine, setSelectedPhoneLine] = useState<PhoneLine | null>(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [assetToDelete, setAssetToDelete] = useState<number | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -93,7 +93,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (!canDelete) return;
     setAssetToDelete(id);
     setIsConfirmOpen(true);
@@ -110,11 +110,14 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
   };
 
   const filtered = assets.filter(a => {
+    const userName = users.find(u => String(u.id) === String(a.assigned_user_id))?.name || '';
+    const locationName = locations.find(l => String(l.id) === String(a.location_id))?.name || '';
+    
     const matchesSearch = 
       a.label.toLowerCase().includes(search.toLowerCase()) || 
       a.serial?.toLowerCase().includes(search.toLowerCase()) ||
       a.inventory_number?.toLowerCase().includes(search.toLowerCase()) ||
-      a.user_name?.toLowerCase().includes(search.toLowerCase());
+      userName.toLowerCase().includes(search.toLowerCase());
     
     if (selectedUserFilter && a.assigned_user_id !== selectedUserFilter) {
       return false;
@@ -330,7 +333,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Utilisateur</label>
                 <select 
                   value={selectedUserFilter || ''} 
-                  onChange={(e) => setSelectedUserFilter(Number(e.target.value) || null)}
+                  onChange={(e) => setSelectedUserFilter(e.target.value || null)}
                   className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold focus:bg-white outline-none"
                 >
                   <option value="">Tous les utilisateurs</option>
@@ -344,7 +347,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Entité</label>
                 <select 
                   value={selectedLocationFilter || ''} 
-                  onChange={(e) => setSelectedLocationFilter(Number(e.target.value) || null)}
+                  onChange={(e) => setSelectedLocationFilter(e.target.value || null)}
                   className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold focus:bg-white outline-none"
                 >
                   <option value="">Toutes les entités</option>
@@ -385,60 +388,64 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {[...filtered].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => (
-              <motion.tr 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                key={`asset-${asset.id}`} 
-                onClick={(e) => {
-                  const target = e.target as HTMLElement;
-                  if (target.closest('button')) return;
-                  setViewingAssetId(asset.id);
-                }}
-                className="hover:bg-slate-50 transition-colors group cursor-pointer"
-              >
-                <td className="px-8 py-4">
-                  <div className="flex flex-col">
-                    <span className="font-mono font-black text-blue-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
-                    <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-0.5">{asset.type}</span>
-                  </div>
-                </td>
-                <td className="px-8 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-all">{asset.label}</div>
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.subtype}</span>
-                        </div>
-                        {asset.manufacture_date && (
-                          <div className="text-[9px] text-slate-400">
-                             Fab: {new Date(asset.manufacture_date).toLocaleDateString('fr-FR')} 
-                             {asset.commissioning_date && ` • MES: ${new Date(asset.commissioning_date).toLocaleDateString('fr-FR')}`}
+            {[...filtered].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => {
+              const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
+              const location = locations.find(l => String(l.id) === String(asset.location_id));
+              
+              return (
+                <motion.tr 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  key={`asset-${asset.id}`} 
+                  onClick={(e) => {
+                    const target = e.target as HTMLElement;
+                    if (target.closest('button')) return;
+                    setViewingAssetId(asset.id);
+                  }}
+                  className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                >
+                  <td className="px-8 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-mono font-black text-blue-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
+                      <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-0.5">{asset.type}</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-4">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-all">{asset.label}</div>
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">{asset.subtype}</span>
                           </div>
-                        )}
+                          {asset.manufacture_date && (
+                            <div className="text-[9px] text-slate-400">
+                               Fab: {new Date(asset.manufacture_date).toLocaleDateString('fr-FR')} 
+                               {asset.commissioning_date && ` • MES: ${new Date(asset.commissioning_date).toLocaleDateString('fr-FR')}`}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-8 py-4">
-                  {asset.user_name ? (
-                    <div className="flex flex-col">
-                       <span className="font-bold text-slate-900 text-xs">{asset.user_name}</span>
-                       <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                         <MapPin className="w-2.5 h-2.5" /> {asset.location_name || 'Stock'}
-                       </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col">
-                       <span className="text-slate-300 italic text-[10px]">Non affecté</span>
-                       <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                         <MapPin className="w-2.5 h-2.5" /> {asset.location_name || 'Stock'}
-                       </span>
-                    </div>
-                  )}
-                </td>
+                  </td>
+                  <td className="px-8 py-4">
+                    {assignedUser ? (
+                      <div className="flex flex-col">
+                         <span className="font-bold text-slate-900 text-xs">{assignedUser.name}</span>
+                         <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                           <MapPin className="w-2.5 h-2.5" /> {location ? location.name : 'Stock'}
+                         </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                         <span className="text-slate-300 italic text-[10px]">Non affecté</span>
+                         <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                           <MapPin className="w-2.5 h-2.5" /> {location ? location.name : 'Stock'}
+                         </span>
+                      </div>
+                    )}
+                  </td>
                 <td className="px-8 py-4">
                   <div className="flex flex-col">
                     <span className={cn(
@@ -482,48 +489,53 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
                     </div>
                 </td>
               </motion.tr>
-            ))}
+            );
+          })}
 
             {/* Display Phone Lines in the same list when applicable */}
-            {filteredPhoneLines.map((line, idx) => (
-              <motion.tr 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: (filtered.length + idx) * 0.05 }}
-                key={`phone-${line.id}`} 
-                className="hover:bg-slate-50 transition-colors group border-l-4 border-l-indigo-400"
-              >
-                <td className="px-8 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 group-hover:bg-white transition-colors border border-transparent group-hover:border-indigo-200">
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-all">{line.label}</div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <div className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">Ligne Téléphonique</div>
+            {filteredPhoneLines.map((line, idx) => {
+              const assignedUser = users.find(u => String(u.id) === String(line.assigned_user_id));
+              const location = locations.find(l => String(l.id) === String(line.location_id));
+              
+              return (
+                <motion.tr 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: (filtered.length + idx) * 0.05 }}
+                  key={`phone-${line.id}`} 
+                  className="hover:bg-slate-50 transition-colors group border-l-4 border-l-indigo-400"
+                >
+                  <td className="px-8 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 group-hover:bg-white transition-colors border border-transparent group-hover:border-indigo-200">
+                        <Phone className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-all">{line.label}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <div className="text-[10px] text-slate-400 uppercase font-mono tracking-tighter">Ligne Téléphonique</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-8 py-4 font-mono text-[11px] text-slate-500">
-                  {line.number}
-                </td>
-                <td className="px-8 py-4 text-slate-600">
-                  {line.location_name || <span className="opacity-30">---</span>}
-                </td>
-                <td className="px-8 py-4">
-                  {line.user_name ? (
-                    <div className="flex items-center gap-2">
-                       <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
-                         {line.user_name.charAt(0)}
-                       </div>
-                       <span className="font-medium text-slate-900">{line.user_name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-slate-300 italic text-xs">Non affecté</span>
-                  )}
-                </td>
+                  </td>
+                  <td className="px-8 py-4 font-mono text-[11px] text-slate-500">
+                    {line.number}
+                  </td>
+                  <td className="px-8 py-4 text-slate-600">
+                    {location?.name || <span className="opacity-30">---</span>}
+                  </td>
+                  <td className="px-8 py-4">
+                    {assignedUser ? (
+                      <div className="flex items-center gap-2">
+                         <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                           {assignedUser.name.charAt(0)}
+                         </div>
+                         <span className="font-medium text-slate-900">{assignedUser.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-slate-300 italic text-xs">Non affecté</span>
+                    )}
+                  </td>
                 <td className="px-8 py-4 text-center">
                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase inline-block min-w-[80px] ${
                     line.status === 'Actif' ? 'bg-emerald-100 text-emerald-700' : 
@@ -538,7 +550,8 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
                     </div>
                 </td>
               </motion.tr>
-            ))}
+            );
+          })}
 
             {filtered.length === 0 && filteredPhoneLines.length === 0 && !loading && (
                <tr>
@@ -552,86 +565,94 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: number 
 
         {/* Mobile Card List - Mobile Only */}
         <div className="md:hidden divide-y divide-slate-100 h-full">
-          {filtered.map((asset) => (
-            <div 
-              key={`asset-card-${asset.id}`}
-              onClick={() => setViewingAssetId(asset.id)}
-              className="p-4 active:bg-slate-50 transition-colors flex gap-4"
-            >
-              <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 flex-shrink-0">
-                {getTypeIcon(asset.type)}
-              </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-slate-900 truncate pr-2">{asset.label}</h3>
-                  <span className={cn(
-                    "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
-                    asset.status === 'Stock' ? 'bg-blue-100 text-blue-700' : 
-                    asset.status === 'Panne' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                  )}>
-                    {asset.status}
-                  </span>
+          {filtered.map((asset) => {
+            const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
+            
+            return (
+              <div 
+                key={`asset-card-${asset.id}`}
+                onClick={() => setViewingAssetId(asset.id)}
+                className="p-4 active:bg-slate-50 transition-colors flex gap-4"
+              >
+                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 flex-shrink-0">
+                  {getTypeIcon(asset.type)}
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                  <span className="uppercase">{asset.type}</span>
-                  {asset.serial && <span>• {asset.serial}</span>}
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                   {asset.user_name ? (
-                     <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[8px] font-black border border-blue-100">
-                          {asset.user_name.charAt(0)}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-slate-900 truncate pr-2">{asset.label}</h3>
+                    <span className={cn(
+                      "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+                      asset.status === 'Stock' ? 'bg-blue-100 text-blue-700' : 
+                      asset.status === 'Panne' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    )}>
+                      {asset.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                    <span className="uppercase">{asset.type}</span>
+                    {asset.serial && <span>• {asset.serial}</span>}
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                     {assignedUser ? (
+                       <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[8px] font-black border border-blue-100">
+                            {assignedUser.name.charAt(0)}
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-600">{assignedUser.name}</span>
+                       </div>
+                     ) : (
+                       <span className="text-[10px] italic text-slate-300">Non affecté</span>
+                     )}
+                     <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                           {asset.contract_count ? asset.contract_count > 0 && <FileText className="w-3 h-3 text-blue-400" /> : null}
+                           {asset.software_count ? asset.software_count > 0 && <Box className="w-3 h-3 text-emerald-400" /> : null}
                         </div>
-                        <span className="text-[10px] font-bold text-slate-600">{asset.user_name}</span>
                      </div>
-                   ) : (
-                     <span className="text-[10px] italic text-slate-300">Non affecté</span>
-                   )}
-                   <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                         {asset.contract_count ? asset.contract_count > 0 && <FileText className="w-3 h-3 text-blue-400" /> : null}
-                         {asset.software_count ? asset.software_count > 0 && <Box className="w-3 h-3 text-emerald-400" /> : null}
-                      </div>
-                   </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
-          {filteredPhoneLines.map((line) => (
-            <div 
-              key={`phone-card-${line.id}`}
-              onClick={() => handleEditPhone(line)}
-              className="p-4 active:bg-slate-50 transition-colors flex gap-4 border-l-4 border-l-indigo-400"
-            >
-              <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <Phone className="w-5 h-5" />
+          {filteredPhoneLines.map((line) => {
+            const assignedUser = users.find(u => String(u.id) === String(line.assigned_user_id));
+            
+            return (
+              <div 
+                key={`phone-card-${line.id}`}
+                onClick={() => handleEditPhone(line)}
+                className="p-4 active:bg-slate-50 transition-colors flex gap-4 border-l-4 border-l-indigo-400"
+              >
+                <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-slate-900 truncate pr-2">{line.label}</h3>
+                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter bg-emerald-100 text-emerald-700">
+                      {line.status}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-indigo-500 font-mono font-bold tracking-tight">
+                    {line.number}
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                     {assignedUser ? (
+                       <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[8px] font-black border border-indigo-100">
+                            {assignedUser.name.charAt(0)}
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-600">{assignedUser.name}</span>
+                       </div>
+                     ) : (
+                       <span className="text-[10px] italic text-slate-300">Non affecté</span>
+                     )}
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-slate-900 truncate pr-2">{line.label}</h3>
-                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter bg-emerald-100 text-emerald-700">
-                    {line.status}
-                  </span>
-                </div>
-                <div className="text-[10px] text-indigo-500 font-mono font-bold tracking-tight">
-                  {line.number}
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                   {line.user_name ? (
-                     <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[8px] font-black border border-indigo-100">
-                          {line.user_name.charAt(0)}
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-600">{line.user_name}</span>
-                     </div>
-                   ) : (
-                     <span className="text-[10px] italic text-slate-300">Non affecté</span>
-                   )}
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
 
           {filtered.length === 0 && filteredPhoneLines.length === 0 && !loading && (
              <div className="p-12 text-center text-slate-400 italic text-xs">

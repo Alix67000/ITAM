@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidAsset(data) {
+      return data.label is string && data.label.size() > 0 && data.label.size() <= 200 &&
+             data.type is string && data.type.size() > 0 &&
+             (!('inventory_number' in data) || data.inventory_number is string) &&
+             (!('value_euros' in data) || data.value_euros is number) &&
+             (!('condition' in data) || data.condition in ['neuf', 'occasion', 'reconditionné']) &&
+             (!('has_warranty' in data) || data.has_warranty is bool);
+    }
+
+    function isValidUser(data) {
+      return data.name is string && data.name.size() > 0 &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 255));
+    }
+
+    function isValidLocation(data) {
+      return data.name is string && data.name.size() > 0;
+    }
+
+    function isValidSupplier(data) {
+      return data.name is string && data.name.size() > 0;
+    }
+
+    function isValidContract(data) {
+      return data.label is string && data.label.size() > 0;
+    }
+
+    function isValidSoftware(data) {
+      return data.name is string && data.name.size() > 0;
+    }
+
+    function isValidLicense(data) {
+      return data.label is string && data.label.size() > 0 &&
+             data.software is string && data.software.size() > 0;
+    }
+
+    function isValidPhoneLine(data) {
+      return data.label is string && data.label.size() > 0 &&
+             data.number is string && data.number.size() > 0;
+    }
+
+    // --- Rules ---
+
+    match /assets/{assetId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(assetId) && isValidAsset(incoming());
+      allow update: if isSignedIn() && isValidId(assetId) && isValidAsset(incoming()) && (
+        // Allow all non-immutable changes here for simplicity since full RBAC isn't in DB yet
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'label', 'serial', 'inventory_number', 'type', 'subtype', 'status',
+          'location_id', 'supplier_id', 'assigned_user_id', 'parent_asset_id',
+          'specs', 'condition', 'value_euros', 'manufacture_date', 'commissioning_date',
+          'has_warranty', 'warranty_end', 'updated_at'
+        ])
+      );
+      allow delete: if isSignedIn();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(userId) && isValidUser(incoming());
+      allow update: if isSignedIn() && isValidId(userId) && isValidUser(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /locations/{locationId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(locationId) && isValidLocation(incoming());
+      allow update: if isSignedIn() && isValidId(locationId) && isValidLocation(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(supplierId) && isValidSupplier(incoming());
+      allow update: if isSignedIn() && isValidId(supplierId) && isValidSupplier(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /contracts/{contractId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(contractId) && isValidContract(incoming());
+      allow update: if isSignedIn() && isValidId(contractId) && isValidContract(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /softwares/{softwareId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(softwareId) && isValidSoftware(incoming());
+      allow update: if isSignedIn() && isValidId(softwareId) && isValidSoftware(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /licenses/{licenseId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(licenseId) && isValidLicense(incoming());
+      allow update: if isSignedIn() && isValidId(licenseId) && isValidLicense(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /phone_lines/{lineId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(lineId) && isValidPhoneLine(incoming());
+      allow update: if isSignedIn() && isValidId(lineId) && isValidPhoneLine(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(eventId);
+    }
+
+    // Relationship collections
+    match /asset_contracts/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+    match /asset_softwares/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+    match /asset_licenses/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+    match /user_licenses/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+    match /user_softwares/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+  }
+}

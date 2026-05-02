@@ -1,17 +1,17 @@
 export const API_URL = '/api';
 
 export interface Asset {
-  id: number;
+  id: string;
   label: string;
   serial: string;
   inventory_number?: string;
   type: string;
   subtype: string;
   status: string;
-  location_id: number | null;
-  supplier_id: number | null;
-  assigned_user_id: number | null;
-  parent_asset_id?: number | null;
+  location_id: string | null;
+  supplier_id: string | null;
+  assigned_user_id: string | null;
+  parent_asset_id?: string | null;
   specs: string;
   condition: string;
   value_euros: number;
@@ -30,27 +30,27 @@ export interface Asset {
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   department: string;
-  location_id: number | null;
+  location_id: string | null;
   role: string;
 }
 
 export interface Location {
-  id: number;
+  id: string;
   name: string;
   address: string;
-  parent_id?: number | null;
+  parent_id?: string | null;
   parent_name?: string;
 }
 
 export interface Contract {
-  id: number;
+  id: string;
   label: string;
   type: string;
-  supplier_id: number | null;
+  supplier_id: string | null;
   supplier_name?: string;
   start_date: string;
   end_date: string;
@@ -63,7 +63,7 @@ export interface Contract {
 }
 
 export interface License {
-  id: number;
+  id: string;
   label: string;
   software: string;
   license_key: string;
@@ -73,12 +73,12 @@ export interface License {
   status: string;
   end_date: string;
   reference: string | null;
-  supplier_id: number | null;
+  supplier_id: string | null;
   supplier_name?: string;
 }
 
 export interface Supplier {
-  id: number;
+  id: string;
   name: string;
   contact: string;
   phone: string;
@@ -96,8 +96,8 @@ export interface Stats {
     averageAgeYears: number;
   };
   recentEvents: Array<{
-    id: number;
-    asset_id: number;
+    id: string;
+    asset_id: string;
     asset_label: string;
     action: string;
     description: string;
@@ -115,20 +115,15 @@ export interface Stats {
   };
 }
 
-async function handleResponse(res: Response) {
-  if (!res.ok) throw new Error('API Error');
-  return res.json();
-}
-
 export interface PhoneLine {
-  id: number;
+  id: string;
   label: string;
   number: string;
   status: string;
-  location_id: number | null;
-  assigned_user_id: number | null;
-  supplier_id: number | null;
-  contract_id: number | null;
+  location_id: string | null;
+  assigned_user_id: string | null;
+  supplier_id: string | null;
+  contract_id: string | null;
   comments: string;
   location_name?: string;
   user_name?: string;
@@ -138,169 +133,726 @@ export interface PhoneLine {
   updated_at: string;
 }
 
-export const api = {
-  getStats: (): Promise<Stats> => fetch(`${API_URL}/stats`).then(handleResponse),
-  getAssets: (): Promise<Asset[]> => fetch(`${API_URL}/assets`).then(handleResponse),
-  createAsset: (data: Partial<Asset>) => fetch(`${API_URL}/assets`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateAsset: (id: number, data: Partial<Asset>) => fetch(`${API_URL}/assets/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteAsset: (id: number) => fetch(`${API_URL}/assets/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getNextInventoryNumber: (assetType: string): Promise<{ nextNumber: string }> => fetch(`${API_URL}/assets/next-inventory-number/${encodeURIComponent(assetType)}`).then(handleResponse),
-  getUsers: (): Promise<User[]> => fetch(`${API_URL}/users`).then(handleResponse),
-  createUser: (data: Partial<User>) => fetch(`${API_URL}/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateUser: (id: number, data: Partial<User>) => fetch(`${API_URL}/users/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteUser: (id: number) => fetch(`${API_URL}/users/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getLocations: (): Promise<Location[]> => fetch(`${API_URL}/locations`).then(handleResponse),
-  createLocation: (data: Partial<Location>) => fetch(`${API_URL}/locations`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateLocation: (id: number, data: Partial<Location>) => fetch(`${API_URL}/locations/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteLocation: (id: number) => fetch(`${API_URL}/locations/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getContracts: (): Promise<Contract[]> => fetch(`${API_URL}/contracts`).then(handleResponse),
-  createContract: (data: Partial<Contract>) => fetch(`${API_URL}/contracts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateContract: (id: number, data: Partial<Contract>) => fetch(`${API_URL}/contracts/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteContract: (id: number) => fetch(`${API_URL}/contracts/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getContractAssets: (contractId: number): Promise<Asset[]> => fetch(`${API_URL}/contracts/${contractId}/assets`).then(handleResponse),
-  getLicenses: (): Promise<License[]> => fetch(`${API_URL}/licenses`).then(handleResponse),
-  createLicense: (data: Partial<License>) => fetch(`${API_URL}/licenses`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateLicense: (id: number, data: Partial<License>) => fetch(`${API_URL}/licenses/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteLicense: (id: number) => fetch(`${API_URL}/licenses/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getLicenseAssets: (licenseId: number): Promise<Asset[]> => fetch(`${API_URL}/licenses/${licenseId}/assets`).then(handleResponse),
-  getAssetLicenses: (assetId: number): Promise<License[]> => fetch(`${API_URL}/assets/${assetId}/licenses`).then(handleResponse),
-  getAssetSoftwares: (assetId: number): Promise<any[]> => fetch(`${API_URL}/assets/${assetId}/softwares`).then(handleResponse),
-  getAssetChildren: (assetId: number): Promise<Asset[]> => fetch(`${API_URL}/assets/${assetId}/children`).then(handleResponse),
-  linkAsset: (parentId: number, childId: number) => fetch(`${API_URL}/assets/${parentId}/link/${childId}`, { method: 'POST' }).then(handleResponse),
-  unlinkAsset: (parentId: number, childId: number) => fetch(`${API_URL}/assets/${parentId}/unlink/${childId}`, { method: 'POST' }).then(handleResponse),
-  getLicenseUsers: (licenseId: number): Promise<any[]> => fetch(`${API_URL}/licenses/${licenseId}/users`).then(handleResponse),
-  assignAssetToLicense: (licenseId: number, assetId: number) => fetch(`${API_URL}/licenses/${licenseId}/assets`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ asset_id: assetId })
-  }).then(handleResponse),
-  assignUserToLicense: (licenseId: number, userId: number) => fetch(`${API_URL}/licenses/${licenseId}/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId })
-  }).then(handleResponse),
-  removeAssetFromLicense: (licenseId: number, assetId: number) => fetch(`${API_URL}/licenses/${licenseId}/assets/${assetId}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  removeUserFromLicense: (licenseId: number, userId: number) => fetch(`${API_URL}/licenses/${licenseId}/users/${userId}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  updateSoftware: (oldName: string, data: { newName: string; type?: string; supplier_id?: number | null }) => fetch(`${API_URL}/softwares-bulk`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ oldName, ...data })
-  }).then(handleResponse),
-  getSoftwares: () => fetch(`${API_URL}/softwares`).then(handleResponse),
-  createSoftware: (data: any) => fetch(`${API_URL}/softwares`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateSoftwareById: (id: number, data: any) => fetch(`${API_URL}/softwares/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteSoftwareById: (id: number) => fetch(`${API_URL}/softwares/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getSoftwareUsers: (id: number) => fetch(`${API_URL}/softwares/${id}/users`).then(handleResponse),
-  assignUserToSoftware: (softwareId: number, userId: number) => fetch(`${API_URL}/softwares/${softwareId}/users/${userId}`, { method: 'POST' }).then(handleResponse),
-  removeUserFromSoftware: (softwareId: number, userId: number) => fetch(`${API_URL}/softwares/${softwareId}/users/${userId}`, { method: 'DELETE' }).then(handleResponse),
-  getSoftwareAssets: (id: number) => fetch(`${API_URL}/softwares/${id}/assets`).then(handleResponse),
-  assignAssetToSoftware: (softwareId: number, assetId: number) => fetch(`${API_URL}/softwares/${softwareId}/assets/${assetId}`, { method: 'POST' }).then(handleResponse),
-  removeAssetFromSoftware: (softwareId: number, assetId: number) => fetch(`${API_URL}/softwares/${softwareId}/assets/${assetId}`, { method: 'DELETE' }).then(handleResponse),
-  deleteSoftware: (name: string) => fetch(`${API_URL}/softwares/${encodeURIComponent(name)}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getAssetContracts: (assetId: number): Promise<Contract[]> => fetch(`${API_URL}/assets/${assetId}/contracts`).then(handleResponse),
-  assignContractToAsset: (assetId: number, contractId: number) => fetch(`${API_URL}/assets/${assetId}/contracts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contract_id: contractId })
-  }).then(handleResponse),
-  removeContractFromAsset: (assetId: number, contractId: number) => fetch(`${API_URL}/assets/${assetId}/contracts/${contractId}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  getDoc
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-  // Phone Lines
-  getPhoneLines: (): Promise<PhoneLine[]> => fetch(`${API_URL}/phone-lines`).then(handleResponse),
-  createPhoneLine: (line: Partial<PhoneLine>) => fetch(`${API_URL}/phone-lines`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(line)
-  }).then(handleResponse),
-  updatePhoneLine: (id: number, line: Partial<PhoneLine>) => fetch(`${API_URL}/phone-lines/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(line)
-  }).then(handleResponse),
-  deletePhoneLine: (id: number) => fetch(`${API_URL}/phone-lines/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
 
-  getSuppliers: (): Promise<Supplier[]> => fetch(`${API_URL}/suppliers`).then(handleResponse),
-  createSupplier: (data: Partial<Supplier>) => fetch(`${API_URL}/suppliers`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateSupplier: (id: number, data: Partial<Supplier>) => fetch(`${API_URL}/suppliers/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteSupplier: (id: number) => fetch(`${API_URL}/suppliers/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: null,
+      email: null,
+      emailVerified: null,
+      isAnonymous: null,
+      tenantId: null,
+      providerInfo: []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+export const computeStats = (assets: Asset[], phoneLines: PhoneLine[], users: User[], locations: Location[], contracts: Contract[], licenses: License[]): Stats => {
+  const totalValue = assets.reduce((acc, a) => acc + (a.value_euros || 0), 0);
+  const brokenCount = assets.filter(a => a.status === 'Panne').length;
+  const underWarranty = assets.filter(a => a.has_warranty && (!a.warranty_end || new Date(a.warranty_end) > new Date())).length;
+  
+  const totalAgeDays = assets
+    .filter(a => a.manufacture_date)
+    .reduce((acc, a) => acc + (new Date().getTime() - new Date(a.manufacture_date).getTime()) / (1000 * 60 * 60 * 24), 0);
+  
+  const assetsWithDate = assets.filter(a => a.manufacture_date).length;
+  const averageAgeYears = assetsWithDate > 0 ? (totalAgeDays / assetsWithDate) / 365.25 : 0;
+
+  const categoriesMap: Record<string, number> = {};
+  assets.forEach(a => {
+    categoriesMap[a.type] = (categoriesMap[a.type] || 0) + 1;
+  });
+
+  const statusesMap: Record<string, number> = {};
+  assets.forEach(a => {
+    statusesMap[a.status] = (statusesMap[a.status] || 0) + 1;
+  });
+
+  return {
+    counts: {
+      assets: assets.length,
+      users: users.length,
+      locations: locations.length,
+      broken: brokenCount,
+      contracts: contracts.filter(c => c.status === 'Actif').length,
+      totalValue,
+      warrantyPercent: assets.length > 0 ? (underWarranty / assets.length) * 100 : 0,
+      averageAgeYears
+    },
+    recentEvents: [], // Would need to fetch separately or pass events
+    upcomingExpirations: [], 
+    charts: {
+      categories: Object.entries(categoriesMap).map(([name, value]) => ({ name, value })),
+      statuses: Object.entries(statusesMap).map(([name, value]) => ({ name, value })),
+      trends: []
+    }
+  };
 };
+
+export const api = {
+  getStats: async (): Promise<Stats> => {
+    // Legacy mapping - now we prefer computeStats client-side
+    return {} as Stats;
+  },
+
+  getAsset: async (id: string): Promise<Asset | null> => {
+    try {
+      const docSnap = await getDoc(doc(db, 'assets', id));
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Asset;
+      }
+      return null;
+    } catch (e) {
+      handleFirestoreError(e, OperationType.GET, `assets/${id}`);
+      return null;
+    }
+  },
+
+  getLicense: async (id: string): Promise<License | null> => {
+    try {
+      const [docSnap, assetLinks, userLinks] = await Promise.all([
+        getDoc(doc(db, 'licenses', id)),
+        getDocs(query(collection(db, 'asset_licenses'), where('license_id', '==', id))),
+        getDocs(query(collection(db, 'user_licenses'), where('license_id', '==', id)))
+      ]);
+
+      if (docSnap.exists()) {
+        return { 
+          id: docSnap.id, 
+          ...docSnap.data(),
+          used_seats: assetLinks.size + userLinks.size
+        } as License;
+      }
+      return null;
+    } catch (e) {
+      handleFirestoreError(e, OperationType.GET, `licenses/${id}`);
+      return null;
+    }
+  },
+
+  getAssets: async (): Promise<Asset[]> => {
+    try {
+      const q = query(collection(db, 'assets'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Asset));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'assets');
+      return [];
+    }
+  },
+
+  createAsset: async (data: Partial<Asset>) => {
+    try {
+      console.log('Tentative de création d\'asset dans Firestore...', data);
+      const docRef = await addDoc(collection(db, 'assets'), {
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      console.log('Asset créé avec succès ! ID Firestore :', docRef.id);
+      return { id: docRef.id };
+    } catch (e) {
+      console.error('Erreur lors de l\'écriture dans Firestore :', e);
+      handleFirestoreError(e, OperationType.CREATE, 'assets');
+    }
+  },
+
+  updateAsset: async (id: string, data: Partial<Asset>) => {
+    try {
+      await updateDoc(doc(db, 'assets', id), {
+        ...data,
+        updated_at: new Date().toISOString()
+      });
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `assets/${id}`);
+    }
+  },
+
+  deleteAsset: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'assets', id));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `assets/${id}`);
+    }
+  },
+
+  getNextInventoryNumber: async (assetType: string): Promise<{ nextNumber: string }> => {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const mapping: Record<string, string> = {
+      'PC': 'PC',
+      'PC fixe': 'PC',
+      'PC portable': 'PL',
+      'Tablette': 'TB',
+      'Téléphone': 'TEL',
+      'Imprimante': 'IMP',
+      'Écran': 'ECR',
+      'Périphérique': 'PER',
+      'Souris': 'PER',
+      'Clavier': 'PER',
+      'Casque': 'PER'
+    };
+    const prefix = mapping[assetType] || 'ASSET';
+    try {
+      const q = query(
+        collection(db, 'assets'), 
+        where('inventory_number', '>=', `${prefix}-${year}-`),
+        where('inventory_number', '<=', `${prefix}-${year}-\uf8ff`),
+        orderBy('inventory_number', 'desc'),
+        limit(1)
+      );
+      const snapshot = await getDocs(q);
+      let nextNum = 1;
+      if (!snapshot.empty) {
+        const lastNumStr = snapshot.docs[0].data().inventory_number;
+        const parts = lastNumStr.split('-');
+        const lastSeq = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(lastSeq)) nextNum = lastSeq + 1;
+      }
+      return { nextNumber: `${prefix}-${year}-${nextNum.toString().padStart(3, '0')}` };
+    } catch (e) {
+      return { nextNumber: `${prefix}-${year}-001` };
+    }
+  },
+
+  getUsers: async (): Promise<User[]> => {
+    try {
+      const snapshot = await getDocs(collection(db, 'users'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as User));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'users');
+      return [];
+    }
+  },
+
+  createUser: async (data: Partial<User>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'users'), data);
+      return { id: docRef.id };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, 'users');
+    }
+  },
+
+  updateUser: async (id: string, data: Partial<User>) => {
+    try {
+      await updateDoc(doc(db, 'users', id), data);
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `users/${id}`);
+    }
+  },
+
+  deleteUser: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'users', id));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `users/${id}`);
+    }
+  },
+
+  getLocations: async (): Promise<Location[]> => {
+    try {
+      const snapshot = await getDocs(collection(db, 'locations'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Location));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'locations');
+      return [];
+    }
+  },
+
+  createLocation: async (data: Partial<Location>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'locations'), data);
+      return { id: docRef.id };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, 'locations');
+    }
+  },
+
+  updateLocation: async (id: string, data: Partial<Location>) => {
+    try {
+      await updateDoc(doc(db, 'locations', id), data);
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `locations/${id}`);
+    }
+  },
+
+  deleteLocation: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'locations', id));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `locations/${id}`);
+    }
+  },
+
+  getContracts: async (): Promise<Contract[]> => {
+    try {
+      const snapshot = await getDocs(collection(db, 'contracts'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Contract));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'contracts');
+      return [];
+    }
+  },
+
+  createContract: async (data: Partial<Contract>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'contracts'), data);
+      return { id: docRef.id };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, 'contracts');
+    }
+  },
+
+  updateContract: async (id: string, data: Partial<Contract>) => {
+    try {
+      await updateDoc(doc(db, 'contracts', id), data);
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `contracts/${id}`);
+    }
+  },
+
+  deleteContract: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'contracts', id));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `contracts/${id}`);
+    }
+  },
+
+  getLicenses: async (): Promise<License[]> => {
+    try {
+      const [licenseSnap, assetLinksSnap, userLinksSnap] = await Promise.all([
+        getDocs(collection(db, 'licenses')),
+        getDocs(collection(db, 'asset_licenses')),
+        getDocs(collection(db, 'user_licenses'))
+      ]);
+      
+      const licenses = licenseSnap.docs.map(d => ({ id: d.id, ...d.data() } as License));
+      
+      const assetCounts: Record<string, number> = {};
+      assetLinksSnap.docs.forEach(d => {
+        const lid = d.data().license_id;
+        assetCounts[lid] = (assetCounts[lid] || 0) + 1;
+      });
+
+      const userCounts: Record<string, number> = {};
+      userLinksSnap.docs.forEach(d => {
+        const lid = d.data().license_id;
+        userCounts[lid] = (userCounts[lid] || 0) + 1;
+      });
+
+      return licenses.map(l => ({
+        ...l,
+        used_seats: (assetCounts[l.id] || 0) + (userCounts[l.id] || 0)
+      }));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'licenses');
+      return [];
+    }
+  },
+
+  createLicense: async (data: Partial<License>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'licenses'), data);
+      return { id: docRef.id };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, 'licenses');
+    }
+  },
+
+  updateLicense: async (id: string, data: Partial<License>) => {
+    try {
+      await updateDoc(doc(db, 'licenses', id), data);
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `licenses/${id}`);
+    }
+  },
+
+  deleteLicense: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'licenses', id));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `licenses/${id}`);
+    }
+  },
+
+  getSoftwares: async () => {
+    try {
+      const snapshot = await getDocs(collection(db, 'softwares'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'softwares');
+      return [];
+    }
+  },
+
+  createSoftware: async (data: any) => {
+    try {
+      const docRef = await addDoc(collection(db, 'softwares'), data);
+      return { id: docRef.id };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, 'softwares');
+    }
+  },
+
+  getPhoneLines: async (): Promise<PhoneLine[]> => {
+    try {
+      const snapshot = await getDocs(collection(db, 'phone_lines'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as PhoneLine));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'phone_lines');
+      return [];
+    }
+  },
+
+  updatePhoneLine: async (id: string, line: Partial<PhoneLine>) => {
+    try {
+      await updateDoc(doc(db, 'phone_lines', id), line);
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `phone_lines/${id}`);
+    }
+  },
+
+  getSuppliers: async (): Promise<Supplier[]> => {
+    try {
+      const snapshot = await getDocs(collection(db, 'suppliers'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Supplier));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, 'suppliers');
+      return [];
+    }
+  },
+  
+  createSupplier: async (data: Partial<Supplier>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'suppliers'), data);
+      return { id: docRef.id };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.CREATE, 'suppliers');
+    }
+  },
+
+  updateSupplier: async (id: string, data: Partial<Supplier>) => {
+    try {
+      await updateDoc(doc(db, 'suppliers', id), data);
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `suppliers/${id}`);
+    }
+  },
+
+  deleteSupplier: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'suppliers', id));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `suppliers/${id}`);
+    }
+  },
+
+  // Relationship implementations
+  getAssetContracts: async (assetId: string): Promise<Contract[]> => {
+    try {
+      const q = query(collection(db, 'asset_contracts'), where('asset_id', '==', assetId));
+      const snap = await getDocs(q);
+      const contractIds = snap.docs.map(d => d.data().contract_id);
+      if (contractIds.length === 0) return [];
+      
+      const contracts = await Promise.all(contractIds.map(async (cid: string) => {
+        const d = await getDoc(doc(db, 'contracts', cid));
+        return d.exists() ? { id: d.id, ...d.data() } as Contract : null;
+      }));
+      return contracts.filter(c => c !== null) as Contract[];
+    } catch (e) { return []; }
+  },
+
+  assignContractToAsset: async (assetId: string, contractId: string) => {
+    try {
+      await addDoc(collection(db, 'asset_contracts'), { asset_id: assetId, contract_id: contractId });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'asset_contracts'); }
+  },
+
+  removeContractFromAsset: async (assetId: string, contractId: string) => {
+    try {
+      const q = query(collection(db, 'asset_contracts'), where('asset_id', '==', assetId), where('contract_id', '==', contractId));
+      const snap = await getDocs(q);
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, 'asset_contracts'); }
+  },
+
+  getContractAssets: async (contractId: string): Promise<Asset[]> => {
+    try {
+      const q = query(collection(db, 'asset_contracts'), where('contract_id', '==', contractId));
+      const snap = await getDocs(q);
+      const assetIds = snap.docs.map(d => d.data().asset_id);
+      if (assetIds.length === 0) return [];
+      const assets = await Promise.all(assetIds.map(async (aid: string) => {
+        const d = await getDoc(doc(db, 'assets', aid));
+        return d.exists() ? { id: d.id, ...d.data() } as Asset : null;
+      }));
+      return assets.filter(a => a !== null) as Asset[];
+    } catch (e) { return []; }
+  },
+
+  getAssetSoftwares: async (assetId: string): Promise<any[]> => {
+    try {
+      const q = query(collection(db, 'asset_softwares'), where('asset_id', '==', assetId));
+      const snap = await getDocs(q);
+      const softwareIds = snap.docs.map(d => d.data().software_id);
+      if (softwareIds.length === 0) return [];
+      const softwares = await Promise.all(softwareIds.map(async (sid: string) => {
+        const d = await getDoc(doc(db, 'softwares', sid));
+        return d.exists() ? { id: d.id, ...d.data() } : null;
+      }));
+      return softwares.filter(s => s !== null);
+    } catch (e) { return []; }
+  },
+
+  getAssetLicenses: async (assetId: string): Promise<License[]> => {
+    try {
+      const q = query(collection(db, 'asset_licenses'), where('asset_id', '==', assetId));
+      const snap = await getDocs(q);
+      const ids = snap.docs.map(d => d.data().license_id);
+      if (ids.length === 0) return [];
+      const items = await Promise.all(ids.map(async (id: string) => {
+        const d = await getDoc(doc(db, 'licenses', id));
+        return d.exists() ? { id: d.id, ...d.data() } as License : null;
+      }));
+      return items.filter(x => x !== null) as License[];
+    } catch (e) { return []; }
+  },
+
+  assignAssetToSoftware: async (softwareId: string, assetId: string) => {
+    try {
+      await addDoc(collection(db, 'asset_softwares'), { asset_id: assetId, software_id: softwareId });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'asset_softwares'); }
+  },
+
+  removeAssetFromSoftware: async (softwareId: string, assetId: string) => {
+    try {
+      const q = query(collection(db, 'asset_softwares'), where('asset_id', '==', assetId), where('software_id', '==', softwareId));
+      const snap = await getDocs(q);
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, 'asset_softwares'); }
+  },
+
+  getAssetChildren: async (parentId: string): Promise<Asset[]> => {
+    try {
+      const q = query(collection(db, 'assets'), where('parent_asset_id', '==', parentId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() } as Asset));
+    } catch (e) { return []; }
+  },
+
+  linkAsset: async (parentId: string, childId: string) => {
+    try {
+      await updateDoc(doc(db, 'assets', childId), { parent_asset_id: parentId });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `assets/${childId}`); }
+  },
+
+  unlinkAsset: async (parentId: string, childId: string) => {
+    try {
+      await updateDoc(doc(db, 'assets', childId), { parent_asset_id: null });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `assets/${childId}`); }
+  },
+
+  getLicenseAssets: async (licenseId: string): Promise<Asset[]> => {
+    try {
+      const q = query(collection(db, 'asset_licenses'), where('license_id', '==', licenseId));
+      const snap = await getDocs(q);
+      const ids = snap.docs.map(d => d.data().asset_id);
+      if (ids.length === 0) return [];
+      const items = await Promise.all(ids.map(async (id: string) => {
+        const d = await getDoc(doc(db, 'assets', id));
+        return d.exists() ? { id: d.id, ...d.data() } as Asset : null;
+      }));
+      return items.filter(x => x !== null) as Asset[];
+    } catch (e) { return []; }
+  },
+
+  getLicenseUsers: async (licenseId: string): Promise<User[]> => {
+    try {
+      const q = query(collection(db, 'user_licenses'), where('license_id', '==', licenseId));
+      const snap = await getDocs(q);
+      const ids = snap.docs.map(d => d.data().user_id);
+      if (ids.length === 0) return [];
+      const items = await Promise.all(ids.map(async (id: string) => {
+        const d = await getDoc(doc(db, 'users', id));
+        return d.exists() ? { id: d.id, ...d.data() } as User : null;
+      }));
+      return items.filter(x => x !== null) as User[];
+    } catch (e) { return []; }
+  },
+
+  assignAssetToLicense: async (licenseId: string, assetId: string) => {
+    try {
+      await addDoc(collection(db, 'asset_licenses'), { asset_id: assetId, license_id: licenseId });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'asset_licenses'); }
+  },
+
+  removeAssetFromLicense: async (licenseId: string, assetId: string) => {
+    try {
+      const q = query(collection(db, 'asset_licenses'), where('asset_id', '==', assetId), where('license_id', '==', licenseId));
+      const snap = await getDocs(q);
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, 'asset_licenses'); }
+  },
+
+  assignUserToLicense: async (licenseId: string, userId: string) => {
+    try {
+      await addDoc(collection(db, 'user_licenses'), { user_id: userId, license_id: licenseId });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'user_licenses'); }
+  },
+
+  removeUserFromLicense: async (licenseId: string, userId: string) => {
+    try {
+      const q = query(collection(db, 'user_licenses'), where('user_id', '==', userId), where('license_id', '==', licenseId));
+      const snap = await getDocs(q);
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, 'user_licenses'); }
+  },
+
+  createPhoneLine: async (data: Partial<PhoneLine>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'phone_lines'), {
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      return { id: docRef.id };
+    } catch (e) { handleFirestoreError(e, OperationType.CREATE, 'phone_lines'); }
+  },
+
+  deletePhoneLine: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'phone_lines', id));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, `phone_lines/${id}`); }
+  },
+
+  getSoftwareUsers: async (softwareId: string): Promise<User[]> => {
+    try {
+      const q = query(collection(db, 'user_softwares'), where('software_id', '==', softwareId));
+      const snap = await getDocs(q);
+      const ids = snap.docs.map(d => d.data().user_id);
+      if (ids.length === 0) return [];
+      const items = await Promise.all(ids.map(async (id: string) => {
+        const d = await getDoc(doc(db, 'users', id));
+        return d.exists() ? { id: d.id, ...d.data() } as User : null;
+      }));
+      return items.filter(x => x !== null) as User[];
+    } catch (e) { return []; }
+  },
+
+  getSoftwareAssets: async (softwareId: string): Promise<Asset[]> => {
+    try {
+      const q = query(collection(db, 'asset_softwares'), where('software_id', '==', softwareId));
+      const snap = await getDocs(q);
+      const ids = snap.docs.map(d => d.data().asset_id);
+      if (ids.length === 0) return [];
+      const items = await Promise.all(ids.map(async (id: string) => {
+        const d = await getDoc(doc(db, 'assets', id));
+        return d.exists() ? { id: d.id, ...d.data() } as Asset : null;
+      }));
+      return items.filter(x => x !== null) as Asset[];
+    } catch (e) { return []; }
+  },
+
+  updateSoftwareById: async (id: string, data: any) => {
+    try {
+      await updateDoc(doc(db, 'softwares', id), data);
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `softwares/${id}`); }
+  },
+
+  deleteSoftwareById: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'softwares', id));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, `softwares/${id}`); }
+  },
+
+  assignUserToSoftware: async (softwareId: string, userId: string) => {
+    try {
+      await addDoc(collection(db, 'user_softwares'), { user_id: userId, software_id: softwareId });
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'user_softwares'); }
+  },
+
+  removeUserFromSoftware: async (softwareId: string, userId: string) => {
+    try {
+      const q = query(collection(db, 'user_softwares'), where('user_id', '==', userId), where('software_id', '==', softwareId));
+      const snap = await getDocs(q);
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.DELETE, 'user_softwares'); }
+  },
+};
+;

@@ -14,7 +14,7 @@ export const LocationList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoc, setSelectedLoc] = useState<Location | null>(null);
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const fetchLocations = () => {
     setLoading(true);
@@ -46,7 +46,7 @@ export const LocationList: React.FC = () => {
     }
   };
 
-  const buildTree = (nodes: Location[], parentId: number | null = null): (Location & { children?: any[] })[] => {
+  const buildTree = (nodes: Location[], parentId: string | null = null): (Location & { children?: any[] })[] => {
     return nodes
       .filter(node => node.parent_id === parentId)
       .map(node => ({

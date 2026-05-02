@@ -16,7 +16,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    parent_id: null as number | null
+    parent_id: null as string | null
   });
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
             <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Entité Parente</label>
             <select 
               value={formData.parent_id || ''} 
-              onChange={e => setFormData({...formData, parent_id: e.target.value ? parseInt(e.target.value) : null})}
+              onChange={e => setFormData({...formData, parent_id: e.target.value || null})}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
             >
               <option value="">Aucune (Entité principale)</option>
