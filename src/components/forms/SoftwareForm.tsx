@@ -36,7 +36,7 @@ export const SoftwareForm: React.FC<SoftwareFormProps> = ({ initialData, onSubmi
       try {
         const [s, a, u] = await Promise.all([
           api.getSuppliers(),
-          api.getAssets(),
+          api.getAssets({ fetchAll: true }).then(r => r.assets),
           api.getUsers()
         ]);
         setSuppliers(s);

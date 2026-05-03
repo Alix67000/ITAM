@@ -37,7 +37,7 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
     const loadData = async () => {
       try {
         const [assets, users, suppliers] = await Promise.all([
-          api.getAssets(),
+          api.getAssets({ fetchAll: true }).then(r => r.assets),
           api.getUsers(),
           api.getSuppliers()
         ]);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset, PhoneLine, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
-import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin } from 'lucide-react';
+import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhoneLineModal } from '../components/PhoneLineModal';
 import { AssetDetailView } from '../components/AssetDetailView';
@@ -158,6 +158,8 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
       case 'téléphone': return <Smartphone className="w-4 h-4" />;
       case 'écran': return <Monitor className="w-4 h-4" />;
       case 'imprimante': return <Printer className="w-4 h-4" />;
+      case 'autre':
+      case 'autres': return <Package className="w-4 h-4" />;
       default: return <HardDrive className="w-4 h-4" />;
     }
   };
@@ -208,7 +210,8 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         'matériels réseau': ['réseau', 'network', 'switch', 'routeur', 'borne'],
         'périphériques': ['périphérique', 'accessoire', 'souris', 'clavier', 'casque', 'webcam', 'dock'],
         'imprimantes': ['imprimante', 'printer', 'scanner', 'copieur'],
-        'téléphones': ['téléphone', 'mobile', 'smartphone', 'fixe']
+        'téléphones': ['téléphone', 'mobile', 'smartphone', 'fixe'],
+        'autres': ['autre', 'autres', 'divers', 'tpe', 'badgeur', 'caméra']
       };
 
       if (typeMap[filter]) {

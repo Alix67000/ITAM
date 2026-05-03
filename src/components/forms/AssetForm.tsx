@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset, User, Location, Contract, License, Supplier } from '../../services/api';
 import { cn } from '../../lib/utils';
-import { Save, Cpu, Smartphone, Monitor, Printer, HardDrive, MousePointer2, Network, Box, Key, FileText, Calendar } from 'lucide-react';
+import { Save, Cpu, Smartphone, Monitor, Printer, HardDrive, MousePointer2, Network, Box, Key, FileText, Calendar, Package } from 'lucide-react';
 
 interface AssetFormProps {
   initialData?: Partial<Asset>;
@@ -85,6 +85,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
       case 'Écran': return <Monitor className="w-4 h-4" />;
       case 'Périphérique': return <MousePointer2 className="w-4 h-4" />;
       case 'Réseau': return <Network className="w-4 h-4" />;
+      case 'Autre': return <Package className="w-4 h-4" />;
       default: return <Box className="w-4 h-4" />;
     }
   };

@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { 
   X, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, 
   FileText, Key, MapPin, Calendar, Plus, 
-  MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2
+  MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2, Package
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AssetForm } from './forms/AssetForm';
@@ -26,7 +26,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [softwares, setSoftwares] = useState<any[]>([]);
   const [licenses, setLicenses] = useState<License[]>([]);
-  const [linkedAssets, setLinkedAssets] = useState<Asset[]>([]);
   const [allAssets, setAllAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -42,7 +41,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [showSoftwareAdd, setShowSoftwareAdd] = useState(false);
   const [showLicenseAdd, setShowLicenseAdd] = useState(false);
   const [showContractAdd, setShowContractAdd] = useState(false);
-  const [showAssetLink, setShowAssetLink] = useState(false);
 
   const [events, setEvents] = useState<any[]>([]);
   const [showEventAdd, setShowEventAdd] = useState(false);
@@ -52,11 +50,10 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     try {
       const foundAsset = await api.getAsset(assetId);
       if (foundAsset) {
-        const [assetContracts, assetSoftwares, assetLicenses, assetChildren, assetEvents, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
+        const [assetContracts, assetSoftwares, assetLicenses, assetEvents, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
           api.getAssetContracts(assetId),
           api.getAssetSoftwares(assetId),
           api.getAssetLicenses(assetId),
-          api.getAssetChildren(assetId),
           api.getAssetEvents(assetId),
           api.getSoftwares(),
           api.getLicenses(),
@@ -70,7 +67,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         setContracts(assetContracts);
         setSoftwares(assetSoftwares);
         setLicenses(assetLicenses);
-        setLinkedAssets(assetChildren);
         setEvents(assetEvents);
         setAllSoftwares(softwaresList);
         setAllLicenses(licensesList);
@@ -138,30 +134,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
     } catch (e) { console.error(e); }
   };
 
-  const handleLinkAsset = async (childId: string) => {
-    try {
-      await api.linkAsset(assetId, childId);
-      const updated = await api.getAssetChildren(assetId);
-      setLinkedAssets(updated);
-      setShowAssetLink(false);
-      showToast('Matériel rattaché', 'success');
-    } catch (e) { 
-      showToast('Échec du rattachage', 'error');
-    }
-  };
-
-  const handleUnlinkAsset = async (childId: string) => {
-    if (!confirm('Voulez-vous vraiment détacher ce matériel ?')) return;
-    try {
-      await api.unlinkAsset(assetId, childId);
-      const updated = await api.getAssetChildren(assetId);
-      setLinkedAssets(updated);
-      showToast('Matériel détaché', 'success');
-    } catch (e) {
-      showToast('Échec du détachage', 'error');
-    }
-  };
-
   const getAssetIcon = (type: string, size = "w-8 h-8") => {
     switch (type?.toLowerCase()) {
       case 'pc': 
@@ -177,6 +149,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
       case 'souris': return <MousePointer2 className={size} />;
       case 'casque': return <Headphones className={size} />;
       case 'haut-parleur': return <Speaker className={size} />;
+      case 'autre':
+      case 'autres': return <Package className={size} />;
       default: return <Box className={size} />;
     }
   };
@@ -196,6 +170,11 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
 
   const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
   const location = locations.find(l => String(l.id) === String(asset.location_id));
+
+  // Auto-linking logic: assets with the same assigned user
+  const combinedAssets = asset.assigned_user_id 
+    ? allAssets.filter(a => a.id !== assetId && String(a.assigned_user_id) === String(asset.assigned_user_id))
+    : [];
 
   if (isEditing) {
     return (
@@ -450,79 +429,46 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
                <div className="flex items-center justify-between border-b border-slate-50 pb-4">
                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                   <Monitor className="w-4 h-4 text-blue-500" /> Matériels rattachés ({linkedAssets.length})
+                   <Monitor className="w-4 h-4 text-blue-500" /> Matériels rattachés ({combinedAssets.length})
                  </h3>
-                 <button 
-                   onClick={() => setShowAssetLink(!showAssetLink)}
-                   className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 group transition-all"
-                 >
-                   <Plus className={cn("w-4 h-4 transition-transform", showAssetLink && "rotate-45")} />
-                 </button>
                </div>
-
-               {showAssetLink && (
-                 <motion.div 
-                   initial={{ opacity: 0, height: 0 }}
-                   animate={{ opacity: 1, height: 'auto' }}
-                   className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-100"
-                 >
-                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Lier un matériel existant</label>
-                   <select 
-                     onChange={(e) => e.target.value && handleLinkAsset(e.target.value)}
-                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500"
-                   >
-                     <option value="">Sélectionner un asset...</option>
-                     {allAssets
-                       .filter(a => a.id !== assetId && !linkedAssets.some(la => la.id === a.id))
-                       .map(a => (
-                         <option key={a.id} value={a.id}>{a.label} ({a.type} - {a.serial})</option>
-                       ))
-                     }
-                   </select>
-                 </motion.div>
-               )}
                
-               {linkedAssets.length > 0 ? (
+               {combinedAssets.length > 0 ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   {linkedAssets.map(child => (
-                     <div 
-                        key={child.id} 
-                        className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4 hover:border-blue-200 hover:bg-blue-50/10 transition-all group cursor-pointer"
-                        onClick={() => {
-                          navigate(`/assets/${child.id}`);
-                        }}
-                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm border border-slate-50 transition-colors">
-                         {getAssetIcon(child.type, "w-6 h-6")}
-                       </div>
-                       <div className="min-w-0 flex-1 space-y-1">
-                         <div className="flex items-center justify-between gap-2">
-                           <div className="text-sm font-bold text-slate-900 truncate">{child.label}</div>
-                           <span className={cn(
-                             "px-2 py-0.5 rounded-full text-[8px] font-black uppercase",
-                             child.status === 'En service' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
-                           )}>
-                             {child.status}
-                           </span>
+                   {combinedAssets.map(child => {
+                     return (
+                       <div 
+                          key={child.id} 
+                          className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4 hover:border-blue-200 hover:bg-blue-50/10 transition-all group cursor-pointer"
+                          onClick={() => {
+                            navigate(`/assets/${child.id}`);
+                          }}
+                        >
+                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm border border-slate-50 transition-colors">
+                           {getAssetIcon(child.type, "w-6 h-6")}
                          </div>
-                         <div className="flex flex-col gap-0.5">
-                           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{child.subtype || child.type}</div>
-                           {child.serial && (
-                             <div className="text-[9px] font-mono text-slate-400">S/N: {child.serial}</div>
-                           )}
+                         <div className="min-w-0 flex-1 space-y-1">
+                           <div className="flex items-center justify-between gap-2">
+                             <div className="text-sm font-bold text-slate-900 truncate">{child.label}</div>
+                             <span className={cn(
+                               "px-2 py-0.5 rounded-full text-[8px] font-black uppercase",
+                               child.status === 'En service' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                             )}>
+                               {child.status}
+                             </span>
+                           </div>
+                           <div className="flex flex-col gap-0.5">
+                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                               {child.subtype || child.type}
+                             </div>
+                             {child.serial && (
+                               <div className="text-[9px] font-mono text-slate-400">S/N: {child.serial}</div>
+                             )}
+                           </div>
                          </div>
                        </div>
-                       <button 
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           handleUnlinkAsset(child.id);
-                         }}
-                         className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                     </div>
-                   ))}
+                     );
+                   })}
                  </div>
                ) : (
                  <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-100 rounded-3xl">
