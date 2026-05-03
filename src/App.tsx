@@ -18,22 +18,25 @@ import { AssetDetailView } from './components/AssetDetailView';
 import { LicenseDetailView } from './components/LicenseDetailView';
 import { ContractDetailView } from './components/ContractDetailView';
 import { CMDB } from './pages/CMDB';
-import { AuthProvider } from './services/authContext';
+import { AuthProvider, useAuth } from './services/authContext';
 import { ToastProvider } from './services/toastContext';
+import { Login } from './pages/Login';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Sync activeTab with URL for Layout
   useEffect(() => {
+    if (!isAuthenticated) return;
     const path = location.pathname.split('/')[1] || 'dashboard';
     // If current activeTab already starts with the path (e.g. assets:moniteurs), don't overwrite it with just the path (assets)
     if (activeTab !== path && !activeTab.startsWith(`${path}:`)) {
       setActiveTab(path);
     }
-  }, [location.pathname, activeTab]);
+  }, [location.pathname, activeTab, isAuthenticated]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -52,6 +55,14 @@ const AppContent: React.FC = () => {
       navigate(`/${tab === 'dashboard' ? '' : tab}`);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="*" element={<Login />} />
+      </Routes>
+    );
+  }
 
   return (
     <Layout activeTab={activeTab} setActiveTab={handleTabChange}>

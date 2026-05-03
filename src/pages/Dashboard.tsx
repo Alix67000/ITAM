@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { api, Stats, computeStats } from '../services/api';
-import { Laptop, Users, MapPin, AlertCircle, TrendingUp, Clock, ShieldAlert, PieChart as PieIcon, BarChart3, LineChart as LineIcon, FileText, ChevronRight, Plus } from 'lucide-react';
+import { api, Stats, computeStats, Asset, User, Location, Contract, License, PhoneLine } from '../services/api';
+import { Laptop, Users, MapPin, AlertCircle, TrendingUp, Clock, ShieldAlert, PieChart as PieIcon, BarChart3, LineChart as LineIcon, FileText, ChevronRight, Plus, FileDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, AreaChart, Area, Legend 
  } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { exportFleetSummaryToPDF } from '../services/pdfService';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
@@ -17,6 +18,14 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [rawData, setRawData] = useState<{
+    assets: Asset[],
+    phoneLines: PhoneLine[],
+    users: User[],
+    locations: Location[],
+    contracts: Contract[],
+    licenses: License[]
+  } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -28,6 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         api.getContracts(),
         api.getLicenses()
       ]);
+      setRawData({ assets, phoneLines, users, locations, contracts, licenses });
       setStats(computeStats(assets, phoneLines, users, locations, contracts, licenses));
     };
     load();
@@ -48,9 +58,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Tableau de Bord</h2>
           <p className="text-slate-500 font-medium italic mt-1">Vue d'ensemble du parc informatique et des alertes critiques.</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Système OK</span>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if (rawData) {
+                exportFleetSummaryToPDF(rawData.assets, rawData.phoneLines, rawData.users, rawData.locations, rawData.contracts, rawData.licenses);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm group"
+          >
+            <FileDown className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />
+            <span>Export Bilan PDF</span>
+          </button>
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Système OK</span>
+          </div>
         </div>
       </div>
 

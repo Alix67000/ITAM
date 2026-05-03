@@ -132,8 +132,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       )}>
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">E</div>
-            <span className="font-bold text-lg tracking-tight">ITAM EMMAÜS <span className="text-blue-600">v.1</span></span>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-lg tracking-tight">ITAM EMMAÜS</span>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 text-slate-400">
             <X className="w-6 h-6" />
@@ -205,34 +207,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         <div className="p-4 border-t border-slate-100 mt-auto space-y-3">
           <div className="bg-slate-900 rounded-xl p-4 text-white text-[10px] space-y-4">
              <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-black text-sm overflow-hidden">
-                 {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : user?.email?.substring(0, 2).toUpperCase()}
+               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-black text-sm overflow-hidden text-white uppercase">
+                 {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : 'AA'}
                </div>
                <div className="flex-1 overflow-hidden">
-                 <div className="font-black truncate">{user?.displayName || 'Utilisateur'}</div>
-                 <div className="opacity-50 truncate">{user?.email}</div>
+                 <div className="font-black truncate">{user?.displayName || 'Ali A.'}</div>
+                 <div className="opacity-50 truncate">{user?.email || 'Admin'}</div>
                </div>
-             </div>
-
-             <div className="space-y-2 pt-2 border-t border-white/10">
-                <div className="flex justify-between items-center opacity-70 uppercase tracking-wider font-sans">
-                    <span>Rôle Actuel</span>
-                    {isAdmin ? <ShieldCheck className="w-3 h-3 text-green-400" /> : isViewer ? <ShieldAlert className="w-3 h-3 text-orange-400" /> : <Shield className="w-3 h-3 text-blue-400" />}
-                </div>
-                <div className="flex gap-1 flex-wrap">
-                    {(['Admin', 'User', 'Viewer'] as Role[]).map(r => (
-                      <button 
-                        key={r}
-                        onClick={() => setRole(r)}
-                        className={cn(
-                          "px-2 py-1 rounded transition-all font-bold",
-                          role === r ? "bg-white text-slate-900" : "bg-white/10 text-white/50 hover:bg-white/20"
-                        )}
-                      >
-                        {r}
-                      </button>
-                    ))}
-                </div>
              </div>
 
              <button 

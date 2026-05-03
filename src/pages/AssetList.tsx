@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset, PhoneLine, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
-import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin, Package } from 'lucide-react';
+import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin, Package, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhoneLineModal } from '../components/PhoneLineModal';
 import { AssetDetailView } from '../components/AssetDetailView';
 import { AssetCreateView } from '../components/AssetCreateView';
 import { useAuth } from '../services/authContext';
+import { exportAssetListToPDF } from '../services/pdfService';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -355,6 +356,19 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
             title="Filtres avancés"
           >
             <Filter className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => {
+              const title = selectedTypeFilter 
+                ? `Inventaire : ${selectedTypeFilter.charAt(0).toUpperCase() + selectedTypeFilter.slice(1)}` 
+                : 'Inventaire Global Assets';
+              exportAssetListToPDF(filtered, users, locations, title);
+            }}
+            className="flex items-center gap-2 px-4 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all hover:border-slate-300"
+            title="Exporter l'inventaire en PDF"
+          >
+            <Download className="w-5 h-5 text-blue-600" />
+            <span className="hidden sm:inline">Export</span>
           </button>
           <button 
             disabled={isViewer}

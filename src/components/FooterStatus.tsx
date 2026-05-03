@@ -32,8 +32,8 @@ export const FooterStatus: React.FC = () => {
         </div>
         
         <div className="text-[10px] text-slate-400 font-medium leading-tight">
-          © 2026 ITAM.<br />
-          Créé par <span className="font-bold text-slate-600">Ali Ahmadi</span>
+          © 2026 ITAM EMMAÜS.<br />
+          Créé par <span className="font-bold text-slate-600">Ali A.</span>
         </div>
       </div>
     </div>
