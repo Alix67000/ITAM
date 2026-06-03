@@ -24,20 +24,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('itam_auth') === 'true';
   });
-  const [user, setUser] = useState<any>(() => {
-    const saved = localStorage.getItem('itam_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState<any>(null);
 
   const login = async (identifier: string, password: string): Promise<boolean> => {
-    if (identifier === 'Ali' && password === 'Etikette@67') {
-      const userData = { email: 'ali.emmaus67@gmail.com', displayName: 'Ali A.' };
-      setUser(userData);
-      setIsAuthenticated(true);
-      localStorage.setItem('itam_auth', 'true');
-      localStorage.setItem('itam_user', JSON.stringify(userData));
-      return true;
-    }
+    console.warn('[Auth] Login non implémenté — Firebase Auth à venir');
+    // Empêche volontairement toute connexion tant que Firebase Auth
+    // n'est pas en place (prompts P1.A, P1.B, P1.C).
     return false;
   };
 
