@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# ITAM EMMAÜS
 
-# Run and deploy your AI Studio app
+## 🚀 Déploiement Firebase
 
-This contains everything you need to run your app locally.
+### Prérequis (une seule fois)
 
-View your app in AI Studio: https://ai.studio/apps/f72552e7-0838-497f-889b-4cbca4f76121
+```bash
+npm install -g firebase-tools
+firebase login
+firebase use itam-emmaus
+```
 
-## Run Locally
+### Déployer les règles Firestore
+⚠️ Important : à faire après TOUTE modification de firestore.rules ou firestore.indexes.json.
 
-**Prerequisites:**  Node.js
+```bash
+firebase deploy --only firestore:rules,firestore:indexes
+```
 
+### Déployer l'application
+```bash
+npm run build
+firebase deploy --only hosting
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Tout déployer
+```bash
+npm run build && firebase deploy
+```

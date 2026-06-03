@@ -1,9 +1,223 @@
 rules_version = '2';
+
 service cloud.firestore {
-  match /databases/{database}/documents {
-    // Mode développement : Tout ouvert pour itam-emmaus
-    match /{document=**} {
-      allow read, write: if true;
-    }
+match /databases/{database}/documents {
+
+// ───────────────────────────────────────────────────────────────
+// 0. Default deny — aucune règle, aucun accès
+// ───────────────────────────────────────────────────────────────
+match /{document=**} {
+  allow read, write: if false;
+}
+
+// ───────────────────────────────────────────────────────────────
+// Helpers
+// ───────────────────────────────────────────────────────────────
+function isSignedIn() {
+  return request.auth != null;
+}
+
+function isValidId(id) {
+  // ID document : alphanumérique, tiret, underscore, max 128 chars
+  return id is string
+    && id.size() > 0
+    && id.size() <= 128
+    && id.matches('^[a-zA-Z0-9_\\-]+$');
+}
+
+function incoming() {
+  return request.resource.data;
+}
+
+function existing() {
+  return resource.data;
+}
+
+// Limites de taille pour éviter le "Denial of Wallet"
+function isShortText(v) {
+  return v is string && v.size() <= 500;
+}
+
+function isMediumText(v) {
+  return v is string && v.size() <= 2000;
+}
+
+function isLongText(v) {
+  return v is string && v.size() <= 10000;
+}
+
+// ───────────────────────────────────────────────────────────────
+// Validations par entité
+// ───────────────────────────────────────────────────────────────
+
+function isValidAsset(d) {
+  return d.label is string && d.label.size() > 0 && d.label.size() <= 200
+    && d.type is string && d.type.size() > 0 && d.type.size() <= 100
+    && (!('serial' in d) || isShortText(d.serial))
+    && (!('inventory_number' in d) || isShortText(d.inventory_number))
+    && (!('subtype' in d) || isShortText(d.subtype))
+    && (!('status' in d) || isShortText(d.status))
+    && (!('specs' in d) || isLongText(d.specs))
+    && (!('condition' in d) || d.condition is string)
+    && (!('value_euros' in d) || d.value_euros is number)
+    && (!('has_warranty' in d) || d.has_warranty is bool);
+}
+
+function isValidUser(d) {
+  return d.name is string && d.name.size() > 0 && d.name.size() <= 200
+    && (!('email' in d) || (d.email is string && d.email.size() <= 255))
+    && (!('department' in d) || isShortText(d.department))
+    && (!('role' in d) || isShortText(d.role));
+}
+
+function isValidLocation(d) {
+  return d.name is string && d.name.size() > 0 && d.name.size() <= 200
+    && (!('address' in d) || isMediumText(d.address));
+}
+
+function isValidSupplier(d) {
+  return d.name is string && d.name.size() > 0 && d.name.size() <= 200
+    && (!('contact' in d) || isShortText(d.contact))
+    && (!('phone' in d) || isShortText(d.phone));
+}
+
+function isValidContract(d) {
+  return d.label is string && d.label.size() > 0 && d.label.size() <= 200
+    && (!('description' in d) || isMediumText(d.description))
+    && (!('reference' in d) || isShortText(d.reference))
+    && (!('price' in d) || d.price is number);
+}
+
+function isValidSoftware(d) {
+  return d.name is string && d.name.size() > 0 && d.name.size() <= 200
+    && (!('description' in d) || isMediumText(d.description))
+    && (!('publisher' in d) || isShortText(d.publisher));
+}
+
+function isValidLicense(d) {
+  return d.label is string && d.label.size() > 0 && d.label.size() <= 200
+    && d.software is string && d.software.size() > 0
+    && (!('license_key' in d) || isMediumText(d.license_key))
+    && (!('total_seats' in d) || d.total_seats is number);
+}
+
+function isValidPhoneLine(d) {
+  return d.label is string && d.label.size() > 0 && d.label.size() <= 200
+    && d.number is string && d.number.size() > 0 && d.number.size() <= 50
+    && (!('comments' in d) || isMediumText(d.comments));
+}
+
+function isValidEvent(d) {
+  return d.action is string && d.action.size() > 0 && d.action.size() <= 100
+    && (!('description' in d) || isMediumText(d.description));
+}
+
+function isValidRelation(d) {
+  // Relations (asset_contracts, asset_softwares, etc.)
+  return d.keys().size() <= 5;
+}
+
+// ───────────────────────────────────────────────────────────────
+// Collections principales
+// ───────────────────────────────────────────────────────────────
+
+match /assets/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidAsset(incoming());
+  allow update: if isSignedIn() && isValidAsset(incoming());
+  allow delete: if isSignedIn();
+
+  // Sous-collection events sur un asset
+  match /events/{eventId} {
+    allow read: if isSignedIn();
+    allow create: if isSignedIn() && isValidEvent(incoming());
+    allow update, delete: if isSignedIn();
   }
+}
+
+match /users/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidUser(incoming());
+  allow update: if isSignedIn() && isValidUser(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /locations/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidLocation(incoming());
+  allow update: if isSignedIn() && isValidLocation(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /suppliers/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidSupplier(incoming());
+  allow update: if isSignedIn() && isValidSupplier(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /contracts/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidContract(incoming());
+  allow update: if isSignedIn() && isValidContract(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /softwares/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidSoftware(incoming());
+  allow update: if isSignedIn() && isValidSoftware(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /licenses/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidLicense(incoming());
+  allow update: if isSignedIn() && isValidLicense(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /phone_lines/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidPhoneLine(incoming());
+  allow update: if isSignedIn() && isValidPhoneLine(incoming());
+  allow delete: if isSignedIn();
+}
+
+match /events/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidEvent(incoming());
+  allow update, delete: if isSignedIn();
+}
+
+match /mobile_subscriptions/{id} {
+  allow read: if isSignedIn();
+  allow write: if isSignedIn();
+}
+
+// ───────────────────────────────────────────────────────────────
+// Tables de jointure (relations N-N)
+// ───────────────────────────────────────────────────────────────
+
+match /asset_contracts/{id} {
+  allow read: if isSignedIn();
+  allow write: if isSignedIn() && isValidRelation(incoming());
+}
+match /asset_softwares/{id} {
+  allow read: if isSignedIn();
+  allow write: if isSignedIn() && isValidRelation(incoming());
+}
+match /asset_licenses/{id} {
+  allow read: if isSignedIn();
+  allow write: if isSignedIn() && isValidRelation(incoming());
+}
+match /user_licenses/{id} {
+  allow read: if isSignedIn();
+  allow write: if isSignedIn() && isValidRelation(incoming());
+}
+match /user_softwares/{id} {
+  allow read: if isSignedIn();
+  allow write: if isSignedIn() && isValidRelation(incoming());
+}
+}
 }
