@@ -4,7 +4,7 @@ import { FooterStatus } from './FooterStatus';
 import { cn } from '../lib/utils';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth, Role } from '../services/authContext';
+import { useAuth } from '../services/authContext';
 import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
@@ -15,7 +15,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
   const navigate = useNavigate();
-  const { user, logout, role, setRole, isAdmin, isViewer } = useAuth();
+  const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [results, setResults] = React.useState<{ type: string; id: string; label: string }[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
@@ -211,10 +211,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                  {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : 'AA'}
                </div>
                <div className="flex-1 overflow-hidden">
-                 <div className="font-black truncate">{user?.displayName || 'Ali A.'}</div>
-                 <div className="opacity-50 truncate">{user?.email || 'Admin'}</div>
+                 <div className="font-black truncate">{user?.displayName || 'Admin'}</div>
+                 <div className="opacity-50 truncate">{user?.email || 'admin@example.com'}</div>
                </div>
              </div>
+
+             {user?.email && (
+               <div className="text-center">
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden md:inline truncate max-w-[160px]">
+                   {user.email}
+                 </span>
+               </div>
+             )}
 
              <button 
               onClick={logout}
@@ -253,7 +261,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
           <div className="flex items-center gap-2 md:gap-4">
              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-500 font-bold uppercase overflow-hidden text-xs">
-              {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : role.substring(0, 2)}
+              {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : (user?.email?.substring(0, 2) || 'AD')}
             </div>
           </div>
 

@@ -2,16 +2,21 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
-export type Role = 'Admin' | 'User' | 'Viewer';
+/** @deprecated Plus de système de rôles. Tout utilisateur connecté
+ *  est administrateur. */
+export type Role = 'Admin';
 
 interface AuthContextType {
   user: FirebaseUser | null;
-  role: Role;
-  setRole: (role: Role) => void;
+  /** @deprecated Tout utilisateur connecté est admin. */
   isAdmin: boolean;
+  /** @deprecated Tout utilisateur connecté est admin. (gardé pour compat) */
   isUser: boolean;
+  /** @deprecated Plus de rôle Viewer. */
   isViewer: boolean;
+  /** @deprecated Tout utilisateur connecté peut éditer. */
   canEdit: boolean;
+  /** @deprecated Tout utilisateur connecté peut supprimer. */
   canDelete: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; errorCode?: string }>;
@@ -22,7 +27,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<Role>('Admin'); // TODO P1.C : récupérer le rôle depuis /users/{uid}
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -53,17 +57,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const isAdmin = role === 'Admin';
-  const isUser = role === 'User';
-  const isViewer = role === 'Viewer';
-  const canEdit = isAdmin || isUser;
-  const canDelete = isAdmin;
+  const isAdmin = isAuthenticated;
+  const isUser = isAuthenticated;
+  const isViewer = false;
+  const canEdit = isAuthenticated;
+  const canDelete = isAuthenticated;
 
   return (
     <AuthContext.Provider value={{ 
       user,
-      role, 
-      setRole, 
       isAdmin, 
       isUser, 
       isViewer, 
