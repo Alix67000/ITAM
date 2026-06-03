@@ -1,10 +1,31 @@
 import React, { useState } from 'react';
 import { useAuth } from '../services/authContext';
-import { Lock, User, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ShieldCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 
+const translateAuthError = (code?: string): string => {
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Email ou mot de passe incorrect.';
+    case 'auth/invalid-email':
+      return 'Adresse email invalide.';
+    case 'auth/user-disabled':
+      return 'Ce compte a été désactivé.';
+    case 'auth/too-many-requests':
+      return 'Trop de tentatives. Réessayez dans quelques minutes.';
+    case 'auth/network-request-failed':
+      return 'Problème de connexion réseau. Vérifiez votre Internet.';
+    case 'auth/operation-not-allowed':
+      return "La connexion par email/mot de passe n'est pas activée.";
+    default:
+      return 'Une erreur est survenue. Veuillez réessayer.';
+  }
+};
+
 export const Login: React.FC = () => {
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -15,9 +36,9 @@ export const Login: React.FC = () => {
     setIsLoading(true);
     setError('');
     
-    const success = await login(identifier, password);
-    if (!success) {
-      setError('Identifiant ou mot de passe incorrect.');
+    const result = await login(email, password);
+    if (!result.success) {
+      setError(translateAuthError(result.errorCode));
       setIsLoading(false);
     }
   };
@@ -45,14 +66,15 @@ export const Login: React.FC = () => {
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Identifiant</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
-                type="text" 
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="Ex: Ali"
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="vous@exemple.com"
+                autoComplete="email"
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 required
               />
@@ -68,6 +90,7 @@ export const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 required
               />
