@@ -25,7 +25,7 @@ import { Login } from './pages/Login';
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Sync activeTab with URL for Layout
@@ -55,6 +55,17 @@ const AppContent: React.FC = () => {
       navigate(`/${tab === 'dashboard' ? '' : tab}`);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+        <p className="text-sm font-bold uppercase tracking-widest text-slate-400">
+          Chargement...
+        </p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

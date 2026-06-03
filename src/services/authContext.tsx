@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 export type Role = 'Admin' | 'User' | 'Viewer';
 
 interface AuthContextType {
-  user: any;
+  user: FirebaseUser | null;
   role: Role;
   setRole: (role: Role) => void;
   isAdmin: boolean;
@@ -12,7 +14,7 @@ interface AuthContextType {
   canEdit: boolean;
   canDelete: boolean;
   loading: boolean;
-  login: (identifier: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; errorCode?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -20,24 +22,35 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<Role>('Admin'); 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('itam_auth') === 'true';
-  });
-  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState<Role>('Admin'); // TODO P1.C : récupérer le rôle depuis /users/{uid}
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const login = async (identifier: string, password: string): Promise<boolean> => {
-    console.warn('[Auth] Login non implémenté — Firebase Auth à venir');
-    // Empêche volontairement toute connexion tant que Firebase Auth
-    // n'est pas en place (prompts P1.A, P1.B, P1.C).
-    return false;
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const isAuthenticated = user !== null;
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; errorCode?: string }> => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, errorCode: e.code };
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('itam_auth');
-    localStorage.removeItem('itam_user');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error('Erreur lors de la déconnexion', e);
+    }
   };
 
   const isAdmin = role === 'Admin';
@@ -56,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       isViewer, 
       canEdit, 
       canDelete,
-      loading: false,
+      loading,
       login,
       logout,
       isAuthenticated
