@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../services/authContext';
 import { useNavigate } from 'react-router-dom';
 
+import { GlobalCreateHub } from './GlobalCreateHub';
+
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
@@ -20,6 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   const [results, setResults] = React.useState<{ type: string; id: string; label: string }[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [isCreateHubOpen, setIsCreateHubOpen] = React.useState(false);
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
     assets: true,
     gestion: true
@@ -260,6 +263,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
+             <button 
+               onClick={() => setIsCreateHubOpen(true)}
+               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-xl text-sm font-bold shadow-sm transition-colors"
+             >
+               <Plus className="w-4 h-4" />
+               <span className="hidden md:inline">Nouveau</span>
+             </button>
              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-500 font-bold uppercase overflow-hidden text-xs">
               {user?.photoURL ? <img src={user.photoURL} alt={user.displayName || ''} /> : (user?.email?.substring(0, 2) || 'AD')}
             </div>
@@ -340,6 +350,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
             </button>
           ))}
         </nav>
+        <GlobalCreateHub isOpen={isCreateHubOpen} onClose={() => setIsCreateHubOpen(false)} />
       </main>
     </div>
   );
