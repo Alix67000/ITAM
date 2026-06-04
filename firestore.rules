@@ -117,6 +117,26 @@ function isValidRelation(d) {
   return d.keys().size() <= 5;
 }
 
+function isValidGenericRelation(d) {
+  let allowedEntities = ['asset', 'user', 'location', 'supplier', 'contract', 'license', 'software', 'phone_line'];
+  let hasRequired = d.keys().hasAll(['from_type', 'from_id', 'to_type', 'to_id', 'relation_type', 'status']);
+  let allowedKeys = d.keys().hasOnly(['from_type', 'from_id', 'to_type', 'to_id', 'relation_type', 'status', 'label', 'notes', 'is_primary', 'created_at', 'updated_at', 'created_by']);
+
+  return hasRequired && allowedKeys
+    && d.from_type in allowedEntities
+    && d.from_id is string && d.from_id.size() > 0 && d.from_id.size() <= 128
+    && d.to_type in allowedEntities
+    && d.to_id is string && d.to_id.size() > 0 && d.to_id.size() <= 128
+    && d.relation_type is string && d.relation_type.size() > 0 && d.relation_type.size() <= 50
+    && d.status is string && d.status.size() > 0 && d.status.size() <= 50
+    && (!('label' in d) || isShortText(d.label))
+    && (!('notes' in d) || isMediumText(d.notes))
+    && (!('is_primary' in d) || d.is_primary is bool)
+    && (!('created_at' in d) || isShortText(d.created_at))
+    && (!('updated_at' in d) || isShortText(d.updated_at))
+    && (!('created_by' in d) || isShortText(d.created_by));
+}
+
 // ───────────────────────────────────────────────────────────────
 // Collections principales
 // ───────────────────────────────────────────────────────────────
@@ -218,6 +238,12 @@ match /user_licenses/{id} {
 match /user_softwares/{id} {
   allow read: if isSignedIn();
   allow write: if isSignedIn() && isValidRelation(incoming());
+}
+match /relations/{id} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && isValidGenericRelation(incoming());
+  allow update: if isSignedIn() && isValidGenericRelation(incoming());
+  allow delete: if isSignedIn();
 }
 }
 }

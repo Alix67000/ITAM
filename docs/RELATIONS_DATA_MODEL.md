@@ -48,11 +48,12 @@ Pour assurer une certaine cohérence visuelle, le typage des "relation_type" est
 
 - `assigned_to` : Un matériel/abonnement est assigné à une personne.
 - `located_at` : Un matériel/personne est placé sur un lieu physique.
-- `supplied_by` : Matériel fournit par (ou contrat fourni par).
+- `supplied_by` : Matériel fournit par (ou contrat/licence fourni par).
 - `covered_by` : Un matériel sous contrat d'entretien/garantie temporaire.
 - `consumes_license` : Un matériel (PC) ou une personne utilise un "seat" de licence.
 - `installed_software` : Un logiciel physique/stand-alone (sans license traçable).
-- `child_of` / `parent_of` : Une hiérarchie de même type (ex: un PC et son écran).
+- `uses_software` : Un utilisateur utilise un logiciel.
+- `attached_to` : Une hiérarchie (ex: un PC et son écran, ou un accessoire lié à un autre).
 
 ## 4. Stratégie de Cohabitation
 

@@ -154,7 +154,7 @@ export const relationService = {
       relations.push({
         id: `legacy_parent_${assetId}_${entity.parent_asset_id}`,
         direction: 'outgoing',
-        relation_type: 'child_of',
+        relation_type: 'attached_to',
         source: { type: 'asset', id: assetId, label: entity.label },
         target: { type: 'asset', id: entity.parent_asset_id },
         status: 'active',
@@ -166,8 +166,8 @@ export const relationService = {
       entity.linkedAssets.forEach(linkedId => {
         relations.push({
           id: `legacy_linked_${assetId}_${linkedId}`,
-          direction: 'outgoing', // Ou incoming selon sémantique parent/enfant
-          relation_type: 'parent_of',
+          direction: 'outgoing',
+          relation_type: 'attached_to',
           source: { type: 'asset', id: assetId, label: entity.label },
           target: { type: 'asset', id: linkedId },
           status: 'active',
@@ -314,7 +314,7 @@ export const relationService = {
       relations.push({
         id: `legacy_supplier_${contractId}_${contract.supplier_id}`,
         direction: 'outgoing',
-        relation_type: 'provided_by',
+        relation_type: 'supplied_by',
         source: { type: 'contract', id: contractId, label: contract.label },
         target: { type: 'supplier', id: contract.supplier_id },
         status: 'active',
@@ -365,7 +365,7 @@ export const relationService = {
       relations.push({
         id: `legacy_supplier_${licenseId}_${license.supplier_id}`,
         direction: 'outgoing',
-        relation_type: 'purchased_from',
+        relation_type: 'supplied_by',
         source: { type: 'license', id: licenseId, label: license.label },
         target: { type: 'supplier', id: license.supplier_id },
         status: 'active',
@@ -434,7 +434,7 @@ export const relationService = {
     const genericIn = await relationService.getIncomingRelations(entityType, entityId);
 
     const mapGenericToNormalized = (rel: GenericRelation, direction: 'incoming' | 'outgoing'): NormalizedRelation => ({
-      id: rel.id || Math.random().toString(),
+      id: rel.id || `generic_${rel.from_id}_${rel.to_id}_${rel.relation_type}`,
       direction,
       relation_type: rel.relation_type,
       source: { type: rel.from_type, id: rel.from_id },
