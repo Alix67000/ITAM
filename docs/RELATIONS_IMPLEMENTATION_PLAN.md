@@ -7,7 +7,7 @@ L'application ITAM EMMAÜS est fonctionnelle avec une architecture React + TypeS
 - **Vues UI** : Des pages listant les entités (`AssetList`, `UserList`, etc.), des modales de création/édition (`AssetForm`, `UserModal`), et des vues détaillées (`AssetDetailView`).
 - **Modèle relationnel actuel** : Un mix hybride entre :
   - **Clés étrangères directes** (1-N) (ex: `location_id` dans un asset).
-  - **Tables de jointure explicites** (N-N) via sous-collections (ex: `asset_contracts`, `user_licenses`).
+  - **Tables de jointure explicites** (N-N) via collections dédiées à la racine (ex: `asset_contracts`, `user_licenses`).
 
 ## 2. Cartographie des relations existantes (selon `api.ts` et `firestore.rules`)
 
@@ -73,7 +73,7 @@ Plutôt qu'un refactor destructeur ("big bang"), l'objectif est une migration do
   - Développer le modal Wizard (`CompleteWorkstationWizard.tsx`) utilisant `relationService.ts`.
 
 - **Phase 4 : Migration des anciennes jointures (Nettoyage - Optionnel)**
-  - Déprécier les sous-collections de jointure dans `api.ts` au profit du service générique.
+  - Déprécier les collections de jointure dans `api.ts` au profit du service générique.
 
 ## 6. Fichiers pressentis à modifier
 *Modifications futures, après validation du plan :*
