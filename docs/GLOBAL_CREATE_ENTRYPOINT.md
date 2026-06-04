@@ -25,5 +25,5 @@ Cela permet de créer depuis n'importe quelle page sans interrompre sa navigatio
 - L'actualisation conditionnelle ciblée : après création, c'est l'unmount naturel du composant de liste (lorsque l'utilisateur va sur la page correspondante) qui assurera l'affichage des nouveaux éléments, ou une actualisation automatique si la ressource gère des événements.
 - La création de dépendances croisées en un clic n'est pas encore supportée (le composant `AssetCreateView` garde néanmoins sa logique isolée s'il relie ses objets liés).
 
-## 5. Prochaine étape logique
-L'intégration du **Poste complet (Wizard)**. L'UI prévoit déjà cette tuile en état désactivée (avec badge "Bientôt"). La prochaine brique logicielle sera de libérer ce flux, permettant à l'utilisateur de procéder à une affectation en bulk/batch (Asset + User + Ligne + Licence) en une seule étape.
+## 5. Prochaine étape logique (Complétée)
+L'intégration du **Poste complet (Wizard)** est désormais finalisée. La tuile libère le flux permettant à l'utilisateur de procéder à une affectation groupée (Asset + User + Ligne + Logiciels/Licences).

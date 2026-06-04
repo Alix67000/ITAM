@@ -143,7 +143,7 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
         location_id: mainAsset.location_id || null,
         assigned_user_id: userId,
         status: 'En service',
-        condition: 'Neuf',
+        condition: 'neuf',
         ...(mainInventory && { inventory_number: mainInventory })
       });
       const pcId = pc?.id;
@@ -171,7 +171,7 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
           location_id: mainAsset.location_id || null,
           assigned_user_id: userId,
           status: 'En service',
-          condition: 'Neuf',
+          condition: 'neuf',
           ...(eqInventory && { inventory_number: eqInventory })
         });
 

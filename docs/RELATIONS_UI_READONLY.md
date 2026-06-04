@@ -22,8 +22,8 @@ Les vues de détail ont été complétées d'une carte "Relations métier" au se
 - On ne crée pas de relation via cette composante actuellement.
 - On ne remplace pas encore les autres modules spécifiques d'affichages d'onglet déjà hardcodés dans les fiches mères, bien que la finalité soit de les fusionner petit à petit.
 
-## 5. Prochaines étapes logiques
-1. Ajout de gestion en écriture (Bouton `+ Nouveau` global).
+## 5. Prochaines étapes logiques (et Statut)
+1. Ajout d'une gestion en écriture (Bouton `+ Nouveau` global) : **FAIT** (`GlobalCreateHub`)
 2. Formulaire pour ajouter une relation générique.
-3. Assistant global de provisioning ("Wizard poste complet") capable de faire les N écritures du `RelationService` en un batch.
+3. Assistant global de provisioning ("Wizard poste complet") capable de faire les N écritures du `RelationService` : **FAIT** (`WorkstationWizard`)
 4. Remplacement total et final des anciens onglets métier hardcodés Legacy.

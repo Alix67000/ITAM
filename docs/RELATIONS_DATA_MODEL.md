@@ -32,8 +32,6 @@ Implémenté dans `src/services/relationService.ts`, il sert de façade.
 - `deleteRelation(...)` : Supprime une relation.
 - `getIncomingRelations(...)` / `getOutgoingRelations(...)` : Requête la table.
 
-*(Attention : L'UI n'appelle pas encore `createRelation`, et les règles de sécurité Firestore n'autorisent pas encore cette collection).*
-
 ### B. Méthodes Legacy
 Des méthodes `getLegacy[Entité]Relations(id)` récupèrent les données historiques (via `api.ts` ou requêtes directes) et les transforment en objets `NormalizedRelation`.
 - Cela traduit une clé étrangère (ex: `assigned_user_id` dans un asset) en une relation `outgoing` (asset -> user) de type `assigned_to`.
@@ -58,9 +56,7 @@ Pour assurer une certaine cohérence visuelle, le typage des "relation_type" est
 ## 4. Stratégie de Cohabitation
 
 **Phase actuelle** : 
-L'Application UI (modales, listes) fonctionne toujours sur le pattern legacy et utilise `api.ts` classique. Le `relationService` est actuellement déployé en mode "Read-Only Observateur". 
+L'Application UI (modales, listes) fonctionne sur un mix entre le pattern legacy (clés étrangères via `api.ts`) et les `relations` génériques. 
+Le `relationService` permet d'aggréger ces données dans le composant `<RelationViewer relations={allRelations} />`, afin d'afficher la dépendance dans l'application.
 
-**Pourquoi cette étape transparente ?**
-Cela permet dans un prochain développement UI de remplacer les panneaux hardcodés ("Contrats de l'ordinateur", "Logiciels de l'ordinateur") par un unique et simple composant `<RelationViewer relations={allRelations} />` sans altérer la modification (ajout/suppression legacy) qui perdure avec l'API existante.
-
-Une fois l'UI harmonisée grace aux lectures normalisées, la logique d'écriture pourra être basculée sur la nouvelle table générique sans douleur visuelle.
+Une fois l'UX stabilisée (et notamment via le nouveau Workstation Wizard qui écrit dans les structures locales et dans `relations`), il sera possible de migrer d'autres créations au profit du modèle générique.
