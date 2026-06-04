@@ -11,9 +11,10 @@ import { useToast } from '../../services/toastContext';
 
 interface WorkstationWizardProps {
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose }) => {
+export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, onSuccess }) => {
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,10 +65,10 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
   });
 
   // Step 3: Linked Equipments
-  const [equipments, setEquipments] = useState<Array<{ id: string, label: string, type: string, model: string, serial: string }>>([]);
+  const [equipments, setEquipments] = useState<Array<{ id: string, label: string, type: string, subtype: string, model: string, serial: string }>>([]);
 
   const addEquipment = () => {
-    setEquipments([...equipments, { id: Math.random().toString(), label: '', type: 'Périphérique', model: '', serial: '' }]);
+    setEquipments([...equipments, { id: Math.random().toString(), label: '', type: 'Périphérique', subtype: '', model: '', serial: '' }]);
   };
   const updateEquipment = (id: string, field: string, value: string) => {
     setEquipments(equipments.map(eq => eq.id === id ? { ...eq, [field]: value } : eq));
@@ -124,17 +125,26 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
       if (!userId) throw new Error("Utilisateur non défini.");
 
       // 2. Create Main Asset
+      let mainInventory = '';
+      try {
+        const res = await api.getNextInventoryNumber('PC');
+        mainInventory = res.nextNumber;
+      } catch (e) {
+        console.warn("Could not generate main inventory number", e);
+      }
+
       const pc = await api.createAsset({
         label: mainAsset.label || 'Ordinateur Principal',
-        type: 'Ordinateur',
+        type: 'PC',
         subtype: mainAsset.subtype,
         specs: mainAsset.model,
         serial: mainAsset.serial,
         supplier_id: mainAsset.supplier_id || null,
         location_id: mainAsset.location_id || null,
         assigned_user_id: userId,
-        status: 'active',
-        condition: 'new'
+        status: 'En service',
+        condition: 'Neuf',
+        ...(mainInventory && { inventory_number: mainInventory })
       });
       const pcId = pc?.id;
       if (!pcId) throw new Error("Erreur de création de l'ordinateur principal.");
@@ -142,17 +152,27 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
       // 3. Create & Link Equipments
       for (const eq of equipments) {
         if (!eq.label) continue;
+        
+        let eqInventory = '';
+        try {
+          const res = await api.getNextInventoryNumber(eq.type);
+          eqInventory = res.nextNumber;
+        } catch (e) {
+          console.warn("Could not generate equipment inventory number", e);
+        }
+
         const eqAsset = await api.createAsset({
           label: eq.label,
           type: eq.type,
-          subtype: 'Autre',
+          subtype: eq.subtype || 'Autre',
           specs: eq.model,
           serial: eq.serial,
           supplier_id: mainAsset.supplier_id || null,
           location_id: mainAsset.location_id || null,
           assigned_user_id: userId,
-          status: 'active',
-          condition: 'new'
+          status: 'En service',
+          condition: 'Neuf',
+          ...(eqInventory && { inventory_number: eqInventory })
         });
 
         if (eqAsset && eqAsset.id) {
@@ -174,9 +194,10 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
         await api.createPhoneLine({
           label: phone.label || 'Ligne attribuée',
           number: phone.number,
-          status: 'active',
+          status: 'Actif',
           assigned_user_id: userId,
-          location_id: mainAsset.location_id || null
+          location_id: mainAsset.location_id || null,
+          comments: phone.type ? `Type: ${phone.type}` : ''
         });
       }
 
@@ -189,7 +210,11 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
       }
 
       showToast("Le poste complet a été créé et assigné avec succès !", "success");
-      onClose(); // Fermer le wizard
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onClose();
+      }
     } catch (err: any) {
       console.error(err);
       showToast(err.message || 'Erreur lors du provisionnement.', 'error');
@@ -388,6 +413,19 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
                           ))}
                        </select>
                     </div>
+                    <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-1">Fournisseur</label>
+                       <select 
+                         value={mainAsset.supplier_id}
+                         onChange={(e) => setMainAsset({...mainAsset, supplier_id: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3"
+                       >
+                          <option value="">-- Aucun fournisseur --</option>
+                          {suppliers.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                       </select>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -441,10 +479,20 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose })
                                  className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-lg p-2"
                                >
                                   <option value="Écran">Écran</option>
-                                  <option value="Périphérique">Périphérique (Clavier, Souris...)</option>
-                                  <option value="Docking Station">Docking Station</option>
-                                  <option value="Audio">Audio / Micro casque</option>
+                                  <option value="Périphérique">Périphérique</option>
+                                  <option value="Téléphone">Téléphone</option>
+                                  <option value="Autre">Autre</option>
                                </select>
+                            </div>
+                            <div>
+                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Sous-type (Détail)</label>
+                               <input 
+                                 type="text" 
+                                 value={eq.subtype}
+                                 onChange={(e) => updateEquipment(eq.id, 'subtype', e.target.value)}
+                                 placeholder="Ex: Souris, Dock..."
+                                 className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-lg p-2" 
+                               />
                             </div>
                             <div>
                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Modèle</label>

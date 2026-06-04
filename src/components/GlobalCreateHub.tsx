@@ -141,7 +141,7 @@ export const GlobalCreateHub: React.FC<GlobalCreateHubProps> = ({ isOpen, onClos
       {activeType === 'license' && <LicenseModal isOpen={true} onClose={closeInner} onRefresh={() => {}} />}
       {activeType === 'software' && <SoftwareModal isOpen={true} onClose={closeInner} onRefresh={() => {}} />}
       {activeType === 'phone_line' && <PhoneLineModal isOpen={true} onClose={closeInner} onSuccess={() => {}} />}
-      {activeType === 'wizard' && <WorkstationWizard onClose={closeInner} />}
+      {activeType === 'wizard' && <WorkstationWizard onClose={closeInner} onSuccess={closeEverything} />}
     </>
   );
 };
