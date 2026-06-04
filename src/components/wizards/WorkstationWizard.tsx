@@ -108,6 +108,20 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    
+    // Provisioning Context for Rollback
+    const ctx = {
+      isNewUser: false,
+      userId: '',
+      pcId: '',
+      equipmentIds: [] as string[],
+      phoneLineId: '',
+      relationIds: [] as string[],
+      assignedSoftwares: [] as { swId: string; assetId: string }[],
+      assignedLicenses: [] as { licId: string; userId: string }[],
+      linkedAssets: [] as { parentId: string; childId: string }[],
+    };
+
     try {
       // 1. Create or get User
       let userId = selectedUserId;
@@ -119,7 +133,13 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
           role: 'user',
           location_id: mainAsset.location_id || null
         });
-        if (u && u.id) userId = u.id;
+        if (u && u.id) {
+          userId = u.id;
+          ctx.userId = u.id;
+          ctx.isNewUser = true;
+        }
+      } else {
+        ctx.userId = userId;
       }
 
       if (!userId) throw new Error("Utilisateur non défini.");
@@ -148,6 +168,7 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
       });
       const pcId = pc?.id;
       if (!pcId) throw new Error("Erreur de création de l'ordinateur principal.");
+      ctx.pcId = pcId;
 
       // 3. Create & Link Equipments
       for (const eq of equipments) {
@@ -176,9 +197,12 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
         });
 
         if (eqAsset && eqAsset.id) {
+          ctx.equipmentIds.push(eqAsset.id);
           await api.linkAsset(pcId, eqAsset.id);
+          ctx.linkedAssets.push({ parentId: pcId, childId: eqAsset.id });
+
           // Optional: On pourrait aussi insérer la relation générique ici pour la formaliser
-          await relationService.createRelation({
+          const rel = await relationService.createRelation({
             from_type: 'asset',
             from_id: eqAsset.id,
             to_type: 'asset',
@@ -186,12 +210,15 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
             relation_type: 'attached_to',
             status: 'active'
           });
+          if (rel && rel.id) {
+            ctx.relationIds.push(rel.id);
+          }
         }
       }
 
       // 4. Create Phone Line
       if (addPhone && phone.number) {
-        await api.createPhoneLine({
+        const ph = await api.createPhoneLine({
           label: phone.label || 'Ligne attribuée',
           number: phone.number,
           status: 'Actif',
@@ -199,14 +226,19 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
           location_id: mainAsset.location_id || null,
           comments: phone.type ? `Type: ${phone.type}` : ''
         });
+        if (ph && ph.id) {
+          ctx.phoneLineId = ph.id;
+        }
       }
 
       // 5. Link Softwares and Licenses
       for (const swId of selectedSoftwares) {
         await api.assignAssetToSoftware(swId, pcId);
+        ctx.assignedSoftwares.push({ swId, assetId: pcId });
       }
       for (const licId of selectedLicenses) {
         await api.assignUserToLicense(licId, userId);
+        ctx.assignedLicenses.push({ licId, userId });
       }
 
       showToast("Le poste complet a été créé et assigné avec succès !", "success");
@@ -216,8 +248,53 @@ export const WorkstationWizard: React.FC<WorkstationWizardProps> = ({ onClose, o
         onClose();
       }
     } catch (err: any) {
-      console.error(err);
-      showToast(err.message || 'Erreur lors du provisionnement.', 'error');
+      console.error("Erreur provisioning, debut du rollback", err);
+      
+      // -- ROLLBACK --
+      let rollbackSuccess = true;
+      try {
+        // 1. Unassign Softwares
+        for (const s of ctx.assignedSoftwares) {
+          await api.removeAssetFromSoftware(s.swId, s.assetId);
+        }
+        // 2. Unassign Licenses
+        for (const l of ctx.assignedLicenses) {
+          await api.removeUserFromLicense(l.licId, l.userId);
+        }
+        // 3. Delete Generic Relations
+        for (const rId of ctx.relationIds) {
+          await relationService.deleteRelation(rId);
+        }
+        // 4. Unlink legacy assets
+        for (const link of ctx.linkedAssets) {
+          await api.unlinkAsset(link.parentId, link.childId);
+        }
+        // 5. Delete Equipments
+        for (const eqId of ctx.equipmentIds) {
+          await api.deleteAsset(eqId);
+        }
+        // 6. Delete Phone Line
+        if (ctx.phoneLineId) {
+          await api.deletePhoneLine(ctx.phoneLineId);
+        }
+        // 7. Delete Main Asset
+        if (ctx.pcId) {
+          await api.deleteAsset(ctx.pcId);
+        }
+        // 8. Delete User (only if newly created)
+        if (ctx.isNewUser && ctx.userId) {
+          await api.deleteUser(ctx.userId);
+        }
+      } catch (rollbackErr) {
+        console.error("Erreur durant le rollback :", rollbackErr);
+        rollbackSuccess = false;
+      }
+
+      if (rollbackSuccess) {
+        showToast("La création du poste a échoué. Les éléments créés ont été annulés automatiquement.", 'error');
+      } else {
+        showToast("La création a échoué et le nettoyage automatique est incomplet. Vérifiez les données créées.", 'error');
+      }
     } finally {
       setIsSubmitting(false);
     }
