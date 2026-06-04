@@ -11,6 +11,7 @@ import { AssetForm } from './forms/AssetForm';
 import { useToast } from '../services/toastContext';
 
 import { useNavigate } from 'react-router-dom';
+import { RelationViewer } from './RelationViewer';
 
 interface AssetDetailViewProps {
   assetId: string;
@@ -613,6 +614,13 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                  </div>
               </div>
             </div>
+
+            <RelationViewer
+              entityType="asset"
+              entityId={assetId}
+              title="Relations métier"
+              className="border-slate-100 shadow-sm rounded-[2rem]"
+            />
           </div>
 
         </div>

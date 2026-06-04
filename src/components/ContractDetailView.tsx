@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useToast } from '../services/toastContext';
+import { RelationViewer } from './RelationViewer';
 
 interface ContractDetailViewProps {
   contractId: string;
@@ -368,6 +369,13 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                   </button>
                </div>
             </div>
+            
+            <RelationViewer
+              entityType="contract"
+              entityId={contractId}
+              title="Relations métier"
+              className="border-slate-200 shadow-sm rounded-3xl"
+            />
 
           </div>
 

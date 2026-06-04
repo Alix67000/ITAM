@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { LicenseForm } from './forms/LicenseForm';
 import { useToast } from '../services/toastContext';
+import { RelationViewer } from './RelationViewer';
 
 interface LicenseDetailViewProps {
   licenseId: string;
@@ -333,6 +334,14 @@ export const LicenseDetailView: React.FC<LicenseDetailViewProps> = ({ licenseId,
                     </div>
                  </div>
               </div>
+
+              <RelationViewer
+                entityType="license"
+                entityId={licenseId}
+                title="Relations métier"
+                className="border-slate-100 shadow-sm rounded-[2rem]"
+              />
+
             </div>
           </motion.div>
         )}
