@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset, PhoneLine, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
+import { theme } from '../lib/theme';
 import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin, Package, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhoneLineModal } from '../components/PhoneLineModal';
@@ -305,16 +306,21 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         )}
       </AnimatePresence>
 
-      <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1.5">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            {selectedTypeFilter 
-              ? `Inventaire : ${selectedTypeFilter.charAt(0).toUpperCase() + selectedTypeFilter.slice(1)}` 
-              : selectedUserFilter
-                ? `Matériel & Lignes assignés`
-                : 'Inventaire Global'}
-          </h2>
-          <p className="text-sm font-medium text-slate-500">
+      <div className={theme.pageHeader}>
+        <div className="space-y-1">
+          <div className={theme.pageTitleBox}>
+            <div className={theme.pageTitleIcon}>
+              <Box className="w-5 h-5" />
+            </div>
+            <h2 className={theme.pageTitleText}>
+              {selectedTypeFilter 
+                ? `Inventaire : ${selectedTypeFilter.charAt(0).toUpperCase() + selectedTypeFilter.slice(1)}` 
+                : selectedUserFilter
+                  ? `Matériel & Lignes assignés`
+                  : 'Inventaire Global'}
+            </h2>
+          </div>
+          <p className={theme.pageSubtitle}>
             {selectedTypeFilter 
               ? `Affichage des matériels de type ${selectedTypeFilter}.` 
               : selectedUserFilter
@@ -322,7 +328,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                 : `Gestion et suivi des ${assets.length + phoneLines.length} éléments répertoriés.`}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {(selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all') && (
             <button 
               onClick={() => {
@@ -332,17 +338,17 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                 setSelectedLocationFilter(null);
                 setDateFilter('all');
               }}
-              className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-all hover:border-slate-300 whitespace-nowrap"
+              className="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-all hover:border-slate-300 whitespace-nowrap"
             >
               <X className="w-3.5 h-3.5" /> Effacer
             </button>
           )}
-          <div className="relative flex-1 md:flex-none">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <div className="relative group flex-1 md:w-[280px]">
+            <Search className={theme.searchIcon} />
             <input 
               type="text" 
               placeholder="Série, Label, User..." 
-              className="bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium w-full md:w-64 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+              className={theme.searchInput}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -350,8 +356,8 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
           <button 
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className={cn(
-              "p-3 rounded-xl border transition-all flex items-center justify-center",
-              showAdvancedFilters ? "bg-slate-900 border-slate-900 text-white shadow-lg" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+              "p-2.5 rounded-xl border transition-all flex items-center justify-center",
+              showAdvancedFilters ? "bg-slate-900 border-slate-900 text-white shadow-lg" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-700"
             )}
             title="Filtres avancés"
           >
@@ -364,18 +370,18 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                 : 'Inventaire Global Assets';
               exportAssetListToPDF(filtered, users, locations, title);
             }}
-            className="flex items-center gap-2 px-4 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all hover:border-slate-300"
+            className={theme.btnSecondary}
             title="Exporter l'inventaire en PDF"
           >
-            <Download className="w-5 h-5 text-blue-600" />
+            <Download className="w-4 h-4 text-indigo-600" />
             <span className="hidden sm:inline">Export</span>
           </button>
           <button 
             disabled={isViewer}
             onClick={handleCreate}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed whitespace-nowrap"
+            className={theme.btnPrimary}
           >
-            <Plus className="w-5 h-5" /> Nouvel Asset
+            <Plus className="w-4 h-4 text-indigo-100" /> Nouvel Asset
           </button>
         </div>
       </div>

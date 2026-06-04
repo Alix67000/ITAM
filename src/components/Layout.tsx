@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { GlobalCreateHub } from './GlobalCreateHub';
 
+import { theme } from '../lib/theme';
+
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
@@ -323,8 +325,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
             )}
         </header>
 
-        <div className="flex-1 overflow-y-auto w-full relative">
-          <div className="p-4 md:p-8 h-full w-full max-w-[1400px] mx-auto">
+        <div className="flex-1 overflow-y-auto w-full relative bg-slate-50/50">
+          <div className={cn("p-4 md:p-6 lg:p-8 h-full w-full", theme.pageContainer)}>
             {children}
           </div>
         </div>
