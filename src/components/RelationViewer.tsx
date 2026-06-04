@@ -129,9 +129,10 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
     );
   }
 
-  // Grouper par Cible (Target Type)
+  // Grouper par Contrepartie (Related Entity)
   const grouped = relations.reduce((acc, rel) => {
-    const t = rel.target.type;
+    const relatedEntity = rel.direction === 'incoming' ? rel.source : rel.target;
+    const t = relatedEntity.type;
     if (!acc[t]) acc[t] = [];
     acc[t].push(rel);
     return acc;
@@ -159,21 +160,28 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
                
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                  {grouped[type].map(rel => {
-                   const clickable = isClickable(rel.target.type);
+                   const relatedEntity = rel.direction === 'incoming' ? rel.source : rel.target;
+                   const clickable = isClickable(relatedEntity.type);
                    return (
                      <div 
                         key={rel.id}
-                        onClick={() => clickable && handleNav(rel.target.type, rel.target.id)}
+                        onClick={() => clickable && handleNav(relatedEntity.type, relatedEntity.id)}
                         className={`flex items-center justify-between p-3 border border-slate-200 rounded-lg group ${clickable ? 'cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm transition-all' : 'bg-slate-50/50'}`}
                      >
                         <div className="flex flex-col min-w-0 pr-3">
                           <div className="flex items-center gap-2 text-sm font-medium text-slate-900 truncate">
-                            <span className="truncate">{rel.target.label || 'Non nommé'}</span>
+                            <span className="truncate">{relatedEntity.label || 'Non nommé'}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-1">
+                            {rel.direction === 'incoming' && (
+                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded" title="Entrant">Entrant</span>
+                            )}
                             <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full capitalize">
                               {rel.relation_type.replace(/_/g, ' ')}
                             </span>
+                            {rel.direction === 'outgoing' && (
+                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded" title="Sortant">Sortant</span>
+                            )}
                             {rel.origin === 'generic' && (
                               <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">Générique</span>
                             )}
