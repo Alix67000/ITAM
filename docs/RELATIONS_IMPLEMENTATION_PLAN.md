@@ -15,7 +15,7 @@ L'application ITAM EMMAÜS est fonctionnelle avec une architecture React + TypeS
 - `Asset` ➡️ `Location` (`location_id`)
 - `Asset` ➡️ `Supplier` (`supplier_id`)
 - `Asset` ➡️ `User` (`assigned_user_id`)
-- `Asset` ➡️ `Asset` (lié via `linkedAssets`)
+- `Asset` ➡️ `Asset` (lié principalement via `linkedAssets`, `parent_asset_id` étant déprécié)
 - `User` ➡️ `Location` (`location_id`)
 - `Location` ➡️ `Location` (`parent_id`)
 - `Contract` ➡️ `Supplier` (`supplier_id`)

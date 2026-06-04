@@ -150,6 +150,7 @@ export const relationService = {
       });
     }
 
+    // Rétrocompatibilité : ancienne relation parent-enfant (dépréciée au profit de linkedAssets)
     if (entity.parent_asset_id) {
       relations.push({
         id: `legacy_parent_${assetId}_${entity.parent_asset_id}`,
@@ -162,6 +163,7 @@ export const relationService = {
       });
     }
 
+    // Pivot principal des relations matérielles
     if (entity.linkedAssets && entity.linkedAssets.length > 0) {
       entity.linkedAssets.forEach(linkedId => {
         relations.push({

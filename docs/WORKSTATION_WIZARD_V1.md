@@ -17,7 +17,7 @@ La V1 du Wizard simplifie l'onboarding équipement/collaborateur. Plutôt que de
 Le flux génère un ensemble de mutations via Firebase (API legacy/base) en utilisant les vraies valeurs du métier :
 1. Génération des numéros d'inventaire (`getNextInventoryNumber`)
 2. Création du `user` (si nouveau)
-3. Création de l'`asset` (Poste principal) : assigné à `userId` (Statut "En service", Condition "Neuf", Type "PC").
+3. Création de l'`asset` (Poste principal) : assigné à `userId` (Statut "En service", Condition "neuf", Type "PC").
 4. Créations des `assets` périphériques secondaires : assignés à `userId`.
 5. Création de la ligne téléphonique (`phone_lines`) : assignée à `userId` (Statut "Actif", Type dans `comments`).
 
@@ -36,7 +36,6 @@ Le flux génère un ensemble de mutations via Firebase (API legacy/base) en util
 ## 5. Ce qui n'est pas encore géré dans la V1
 - Pas de création inline de Logiciel ou de Licence (seulement de l'affectation).
 - Pas de "vrai" transaction batch Firestore atomique : Les étapes de création s'enchaînent dans le front-end.
-- Fermeture automatique complète du Hub après validation via la propagation d'état `onSuccess`.
 
 ## 6. Prochaines évolutions
 - Grouper les écritures dans un `writeBatch(db)`.
