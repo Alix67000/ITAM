@@ -11,6 +11,7 @@ import { ContractModal } from './ContractModal';
 import { LicenseModal } from './LicenseModal';
 import { SoftwareModal } from './SoftwareModal';
 import { PhoneLineModal } from './PhoneLineModal';
+import { WorkstationWizard } from './wizards/WorkstationWizard';
 
 interface GlobalCreateHubProps {
   isOpen: boolean;
@@ -102,17 +103,16 @@ export const GlobalCreateHub: React.FC<GlobalCreateHubProps> = ({ isOpen, onClos
 
                 <div className="mt-8 border-t border-slate-100 pt-6">
                   <button
-                    disabled
-                    className="w-full flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 opacity-70 cursor-not-allowed group"
+                    onClick={() => setActiveType('wizard')}
+                    className="w-full flex items-center justify-between p-5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 transition-all group shadow-sm hover:border-indigo-300"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Zap className="w-6 h-6" />
                       </div>
                       <div className="text-left">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-black text-slate-800">Poste Complet (Wizard)</h3>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">Bientôt</span>
+                          <h3 className="font-black text-slate-800 group-hover:text-indigo-600 transition-colors">Poste Complet (Wizard)</h3>
                         </div>
                         <p className="text-xs text-slate-500 mt-1 font-medium">Provisionner en 1 clic un collaborateur + PC + Mobile + Licences.</p>
                       </div>
@@ -141,6 +141,7 @@ export const GlobalCreateHub: React.FC<GlobalCreateHubProps> = ({ isOpen, onClos
       {activeType === 'license' && <LicenseModal isOpen={true} onClose={closeInner} onRefresh={() => {}} />}
       {activeType === 'software' && <SoftwareModal isOpen={true} onClose={closeInner} onRefresh={() => {}} />}
       {activeType === 'phone_line' && <PhoneLineModal isOpen={true} onClose={closeInner} onSuccess={() => {}} />}
+      {activeType === 'wizard' && <WorkstationWizard onClose={closeInner} />}
     </>
   );
 };
