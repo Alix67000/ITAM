@@ -67,6 +67,7 @@ export interface Contract {
   status: string;
   description: string;
   reference: string | null;
+  account_login?: string | null;
   account_email?: string | null;
   account_password?: string | null;
   created_at: string;

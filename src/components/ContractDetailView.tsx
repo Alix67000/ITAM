@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { 
   X, FileText, Calendar, Landmark, CreditCard, Box, 
   Edit2, Plus, ArrowRight, ShieldCheck, Clock, ExternalLink,
-  Phone, Users as UsersIcon, Printer, Eye, EyeOff, Mail, Lock
+  Phone, Users as UsersIcon, Printer, Eye, EyeOff, UserCircle, Lock
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { theme } from '../lib/theme';
@@ -299,7 +299,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
             </div>
 
             {/* Account Info (Forfait mobile or generic account) */}
-            {(contract.account_email || contract.account_password || contract.type === 'Forfait mobile') && (
+            {(contract.account_login || contract.account_email || contract.account_password || contract.type === 'Forfait mobile') && (
                <div className={theme.detailSection}>
                   <div className={theme.detailSectionHeader}>
                     <h3 className={theme.detailSectionTitle}>
@@ -309,11 +309,11 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm">
-                          <Mail className="w-5 h-5" />
+                          <UserCircle className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">Email du compte</p>
-                          <p className="text-sm font-black text-slate-900 truncate">{contract.account_email || 'Non renseigné'}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">Identifiant</p>
+                          <p className="text-sm font-black text-slate-900 truncate">{contract.account_login || contract.account_email || 'Non renseigné'}</p>
                         </div>
                      </div>
                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">

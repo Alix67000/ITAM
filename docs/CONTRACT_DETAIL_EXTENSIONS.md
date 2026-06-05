@@ -4,7 +4,7 @@ Ce document complète l'intégration des fonctionnalités avancées (multiples a
 
 ## 1. Ce qui s'affiche dans la fiche contrat
 L'interface de la fiche détaillée s'adapte dynamiquement pour exposer de manière propre et lisible :
-- **Compte de gestion** : Si le contrat possède un email ou un mot de passe (ou qu'il est du type `Forfait mobile`), une section "Compte de gestion" apparaît. Elle affiche l'email et le mot de passe masqué.
+- **Compte de gestion** : Si le contrat possède un identifiant, un email ou un mot de passe (ou qu'il est du type `Forfait mobile`), une section "Compte de gestion" apparaît. Elle affiche l'identifiant de connexion et le mot de passe masqué. L'identifiant gère à la fois le nouveau champ `account_login` et l'ancien `account_email`.
 - **Associations multiples** : 
   - **Lignes associées** : Une liste des numéros et étiquettes des lignes assignées au contrat est générée si des lignes sont détectées.
   - **Imprimantes** : Si des imprimantes ont été explicitement associées, elles s'affichent sous ce bloc dédié. Les imprimantes associées sont explicitement exclues du bloc global générique "Matériel Couvert" pour éviter un doublon visuel (par exemple sur un contrat `Leasing imprimante`).

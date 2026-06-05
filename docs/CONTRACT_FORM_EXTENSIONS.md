@@ -9,7 +9,7 @@ Le champ "Type" intègre désormais les nouvelles options suivantes, sans altér
 
 ## 2. Logique d'affichage conditionnel
 L'interface de la modale évolue dynamiquement selon le type de contrat sélectionné :
-- **Si `Forfait mobile`** : La section d'identification du compte opérateur (Email & Mot de passe) s'affiche de manière proactive, ainsi que les panneaux d'association des « Lignes téléphoniques » et « Utilisateurs ».
+- **Si `Forfait mobile`** : La section d'identification du compte opérateur (Identifiant & Mot de passe) s'affiche de manière proactive, ainsi que les panneaux d'association des « Lignes téléphoniques » et « Utilisateurs ».
 - **Si `Leasing imprimante`** : Les panneaux d'association des « Imprimantes » et « Utilisateurs » s'affichent automatiquement.
 - **Autrement** : Ces sections restent masquées par défaut pour préserver la compacité visuelle de la fenêtre (pour des contrats classiques de Maintenance ou Assurance).
 
@@ -24,7 +24,7 @@ Nous avons implémenté des listes sélectionnables natives avec des cases à co
 Ces choix sont récupérés à l'ouverture (en mode Édition) et sauvegardés nativement lors de l'enregistrement.
 
 ## 4. Champs de compte opérateur
-Afin de centraliser l'accès, le formulaire permet de saisir un e-mail et un mot de passe optionnels.
+Afin de centraliser l'accès, le formulaire permet de saisir un identifiant de connexion (email, numéro d'abonné...) et un mot de passe optionnels.
 Le mot de passe de l'opérateur bénéficie d'une ergonomie sécurisée :
 - Il est masqué par défaut (`type="password"`).
 - Une icône "Oeil/Oeil barré" permet d'estamper ou masquer la valeur affichée en mode texte plein.

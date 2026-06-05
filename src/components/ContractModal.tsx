@@ -36,7 +36,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
     status: 'Actif',
     description: '',
     reference: '',
-    account_email: '',
+    account_login: '',
     account_password: ''
   });
 
@@ -59,7 +59,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
           ...contract,
           start_date: contract.start_date || '',
           end_date: contract.end_date || '',
-          account_email: contract.account_email || '',
+          account_login: contract.account_login || contract.account_email || '',
           account_password: contract.account_password || ''
         });
         
@@ -84,7 +84,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
           status: 'Actif',
           description: '',
           reference: '',
-          account_email: '',
+          account_login: '',
           account_password: ''
         });
         setSelectedPhoneLineIds([]);
@@ -128,7 +128,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
   const isMobilePlan = formData.type === 'Forfait mobile';
   const isPrinterLease = formData.type === 'Leasing imprimante';
   const showAssociations = showAdvanced || isMobilePlan || isPrinterLease;
-  const showAccountBox = showAdvanced || isMobilePlan;
+  const showAccountBox = showAdvanced || isMobilePlan || !!contract?.account_login || !!contract?.account_email;
 
   const toggleSelection = (id: string, current: string[], setter: React.Dispatch<React.SetStateAction<string[]>>) => {
     if (current.includes(id)) {
@@ -261,13 +261,13 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
             <div className={theme.formSectionTitle}>Compte de gestion (Espace Client)</div>
             <div className={theme.formGrid}>
               <div>
-                <label className={theme.formLabel}>Email du compte</label>
+                <label className={theme.formLabel}>Identifiant de connexion</label>
                 <input 
-                  type="email" 
-                  value={formData.account_email || ''}
-                  onChange={e => setFormData({ ...formData, account_email: e.target.value })}
+                  type="text" 
+                  value={formData.account_login || ''}
+                  onChange={e => setFormData({ ...formData, account_login: e.target.value })}
                   className={theme.inputBase}
-                  placeholder="ex: admin@societe.com"
+                  placeholder="Email, pseudo, N° client..."
                 />
               </div>
               <div>

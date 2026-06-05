@@ -21,7 +21,8 @@ Liste complète autorisée dans les formulaires (`ContractModal`, `ContractDetai
 
 ## 2. Nouveaux champs ajoutés au contrat
 Le modèle TypeScript `Contract` (`src/services/api.ts`) inclut désormais des identifiants d'accès liés au compte du contrat :
-- `account_email?: string | null`
+- `account_login?: string | null` (remplace théoriquement et fonctionnellement `account_email` pour plus de flexibilité : numéro de compte, pseudo, etc.)
+- `account_email?: string | null` (conservé pour rétrocompatibilité avec les anciens contrats créés avant cette mise à jour)
 - `account_password?: string | null`
 
 Ces champs permettent de stocker les informations de connexion aux comptes (ex: espace client opérateur). La sécurisation par règles Firestore a également été mise à jour dans `isValidContract` (`firestore.rules`).
