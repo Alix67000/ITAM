@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api, Location } from '../services/api';
 import { Save } from 'lucide-react';
 import { Modal } from './ui/Modal';
+import { theme } from '../lib/theme';
+import { cn } from '../lib/utils';
 
 interface LocationModalProps {
   isOpen: boolean;
@@ -69,25 +71,25 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom de l'entité</label>
+        <div className="space-y-6">
+          <div>
+            <label className={theme.formLabel}>Nom de l'entité</label>
             <input 
               required 
               type="text" 
               value={formData.name || ''} 
               onChange={e => setFormData({...formData, name: e.target.value})} 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white" 
+              className={theme.inputBase} 
               placeholder="ex: Emmaüs Scherwiller" 
             />
           </div>
           
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Entité Parente</label>
+          <div>
+            <label className={theme.formLabel}>Entité Parente</label>
             <select 
               value={formData.parent_id || ''} 
               onChange={e => setFormData({...formData, parent_id: e.target.value || null})}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+              className={theme.inputBase}
             >
               <option value="">Aucune (Entité principale)</option>
               {locations
@@ -97,29 +99,29 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
                 ))
               }
             </select>
-            <p className="text-[9px] text-slate-400 mt-1 italic ml-1">Permet de structurer vos sites en arborescence.</p>
+            <p className="text-[9px] text-slate-400 mt-1 italic ml-1 font-medium">Permet de structurer vos sites en arborescence.</p>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Adresse / Détails</label>
+          <div>
+            <label className={theme.formLabel}>Adresse / Détails</label>
             <textarea 
               value={formData.address || ''} 
               onChange={e => setFormData({...formData, address: e.target.value})} 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white resize-none" 
+              className={cn(theme.inputBase, "resize-none")} 
               placeholder="Adresse physique, étage..."
               rows={3}
             />
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="px-6 py-3 text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest">
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+          <button type="button" onClick={onClose} className={theme.btnSecondary}>
             Annuler
           </button>
           <button 
             type="submit" 
             disabled={loading || !formData.name}
-            className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50"
+            className={theme.btnPrimary}
           >
             {loading ? '...' : <><Save className="w-4 h-4" /> Enregistrer</>}
           </button>

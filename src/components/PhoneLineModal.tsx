@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api, PhoneLine, User, Location, Contract, Supplier } from '../services/api';
 import { Phone, Save } from 'lucide-react';
 import { Modal } from './ui/Modal';
+import { theme } from '../lib/theme';
+import { cn } from '../lib/utils';
 
 interface PhoneLineModalProps {
   isOpen: boolean;
@@ -78,41 +80,41 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
       subtitle={phoneLine ? `Édition de ${phoneLine.label}` : 'Gestion des abonnements et attributions'}
       maxWidth="2xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className={theme.formGrid}>
           {/* Basic Info */}
-          <div className="space-y-4">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Informations de base</h4>
-             <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom de la ligne</label>
+          <div className="space-y-6">
+             <div className={theme.formSectionTitle}>Informations de base</div>
+             <div>
+                <label className={theme.formLabel}>Nom de la ligne</label>
                 <input 
                   required
                   type="text" 
                   value={formData.label || ''}
                   onChange={e => setFormData({ ...formData, label: e.target.value })}
                   placeholder="ex: Mobile Alex Dev"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">N° de téléphone</label>
+              <div>
+                <label className={theme.formLabel}>N° de téléphone</label>
                 <input 
                   required
                   type="text" 
                   value={formData.number || ''}
                   onChange={e => setFormData({ ...formData, number: e.target.value })}
                   placeholder="ex: 06 00 00 00 00"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Statut</label>
+              <div>
+                <label className={theme.formLabel}>Statut</label>
                 <select 
                   value={formData.status}
                   onChange={e => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="Actif">Actif</option>
                   <option value="Inactif">Inactif</option>
@@ -123,14 +125,14 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
           </div>
 
           {/* Attribution & Links */}
-          <div className="space-y-4">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Attribution & Liens</h4>
-             <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Utilisateur</label>
+          <div className="space-y-6">
+             <div className={theme.formSectionTitle}>Attribution & Liens</div>
+             <div>
+                <label className={theme.formLabel}>Utilisateur</label>
                 <select 
                   value={formData.assigned_user_id || ''}
                   onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value || null })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="">Non assigné</option>
                   {users.map(u => (
@@ -139,12 +141,12 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Entité / Site</label>
+              <div>
+                <label className={theme.formLabel}>Entité / Site</label>
                 <select 
                   value={formData.location_id || ''}
                   onChange={e => setFormData({ ...formData, location_id: e.target.value || null })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="">Sélectionner...</option>
                   {locations.map(l => (
@@ -153,12 +155,12 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Contrat lié</label>
+              <div>
+                <label className={theme.formLabel}>Contrat lié</label>
                 <select 
                   value={formData.contract_id || ''}
                   onChange={e => setFormData({ ...formData, contract_id: e.target.value || null })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="">Aucun contrat</option>
                   {contracts.map(c => (
@@ -167,12 +169,12 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur / Opérateur</label>
+              <div>
+                <label className={theme.formLabel}>Fournisseur / Opérateur</label>
                 <select 
                   value={formData.supplier_id || ''}
                   onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="">Sélectionner...</option>
                   {suppliers.map(s => (
@@ -183,29 +185,29 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Commentaires libres</label>
+        <div>
+          <label className={theme.formLabel}>Commentaires libres</label>
           <textarea 
             value={formData.comments || ''}
             onChange={e => setFormData({ ...formData, comments: e.target.value })}
             rows={3}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white resize-none"
+            className={cn(theme.inputBase, "resize-none")}
             placeholder="Détails du forfait, options (5G, International...)"
           />
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
           <button 
             type="button" 
             onClick={onClose}
-            className="px-6 py-3 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest"
+            className={theme.btnSecondary}
           >
             Annuler
           </button>
           <button 
             type="submit" 
             disabled={loading || !formData.label || !formData.number}
-            className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:grayscale"
+            className={theme.btnPrimary}
           >
             {loading ? '...' : <><Save className="w-4 h-4" /> {phoneLine ? 'Mettre à jour' : 'Enregistrer la ligne'}</>}
           </button>

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, License, Asset, Supplier } from '../../services/api';
+import { theme } from '../../lib/theme';
+import { cn } from '../../lib/utils';
 import { Save, Search, Check, Laptop, Smartphone, Monitor, Printer, HardDrive, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -118,63 +120,63 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className={theme.formGrid}>
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Identification</h4>
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>Identification</div>
             
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Libellé</label>
+            <div>
+              <label className={theme.formLabel}>Libellé</label>
               <input
                 required
                 type="text"
                 value={formData.label || ''}
                 onChange={e => setFormData({ ...formData, label: e.target.value })}
                 placeholder="ex: Office 365 Bus."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Logiciel (Catalogue)</label>
+            <div>
+              <label className={theme.formLabel}>Logiciel (Catalogue)</label>
               <input
                 required
                 type="text"
                 value={formData.software || ''}
                 onChange={e => setFormData({ ...formData, software: e.target.value })}
                 placeholder="ex: Microsoft Office"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Clé de licence</label>
+            <div>
+              <label className={theme.formLabel}>Clé de licence</label>
               <input
                 type="text"
                 value={formData.license_key || ''}
                 onChange={e => setFormData({ ...formData, license_key: e.target.value })}
                 placeholder="XXXXX-XXXXX..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                className={cn(theme.inputBase, "font-mono")}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Total Sièges</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Total Sièges</label>
                 <input
                   type="number"
                   value={formData.total_seats}
                   onChange={e => setFormData({ ...formData, total_seats: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Type</label>
+              <div>
+                <label className={theme.formLabel}>Type</label>
                 <select
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="Souscription">Souscription</option>
                   <option value="Perpétuelle">Perpétuelle</option>
@@ -182,22 +184,22 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Date d'expiration</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Date d'expiration</label>
                 <input
                   type="date"
                   value={formData.end_date || ''}
                   onChange={e => setFormData({ ...formData, end_date: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur</label>
+              <div>
+                <label className={theme.formLabel}>Fournisseur</label>
                 <select
                   value={formData.supplier_id || ''}
                   onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="">Sélectionner</option>
                   {allSuppliers.map(sup => (
@@ -210,20 +212,20 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Affectations</h4>
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>Affectations</div>
             
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Utilisateurs ({linkedUsers.length})</label>
+            <div>
+              <label className={theme.formLabel}>Utilisateurs ({linkedUsers.length})</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className={theme.searchIcon} />
                 <input
                   type="text"
                   value={searchUser}
                   onChange={e => { setSearchUser(e.target.value); setIsUserListOpen(true); }}
                   onFocus={() => { setIsUserListOpen(true); setIsAssetListOpen(false); }}
                   placeholder="Lier à un utilisateur..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className={theme.searchInput}
                 />
                 <AnimatePresence>
                   {isUserListOpen && searchUser && (
@@ -247,17 +249,17 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Matériels ({linkedAssets.length})</label>
+            <div className="pt-2">
+              <label className={theme.formLabel}>Matériels ({linkedAssets.length})</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className={theme.searchIcon} />
                 <input
                   type="text"
                   value={searchAsset}
                   onChange={e => { setSearchAsset(e.target.value); setIsAssetListOpen(true); }}
                   onFocus={() => { setIsAssetListOpen(true); setIsUserListOpen(false); }}
                   placeholder="Lier à un asset..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className={theme.searchInput}
                 />
                 <AnimatePresence>
                   {isAssetListOpen && searchAsset && (
@@ -284,19 +286,19 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
-        <button type="button" onClick={onCancel} className="px-8 py-3 text-sm font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">
+      <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 pb-2">
+        <button type="button" onClick={onCancel} className={theme.btnSecondary}>
           Annuler
         </button>
         <button 
           type="submit" 
           disabled={isSaving || !formData.label}
-          className="flex items-center gap-3 px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all disabled:opacity-50"
+          className={theme.btnPrimary}
         >
           {isSaving ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <><Save className="w-5 h-5" /> Enregistrer</>
+            <><Save className="w-4 h-4" /> Enregistrer</>
           )}
         </button>
       </div>

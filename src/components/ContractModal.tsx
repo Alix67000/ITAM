@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api, Contract, Supplier } from '../services/api';
 import { Save } from 'lucide-react';
 import { Modal } from './ui/Modal';
+import { theme } from '../lib/theme';
+import { cn } from '../lib/utils';
 
 interface ContractModalProps {
   isOpen: boolean;
@@ -77,37 +79,37 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Identification</h4>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Libellé du contrat</label>
+        <div className={theme.formGrid}>
+          <div className="space-y-6">
+            <div className={theme.formSectionTitle}>Identification</div>
+            <div>
+              <label className={theme.formLabel}>Libellé du contrat</label>
               <input 
                 required
                 type="text" 
                 value={formData.label || ''}
                 onChange={e => setFormData({ ...formData, label: e.target.value })}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
                 placeholder="ex: Leasing Dell 2024"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Référence interne</label>
+            <div>
+              <label className={theme.formLabel}>Référence interne</label>
               <input 
                 type="text" 
                 value={formData.reference || ''}
                 onChange={e => setFormData({ ...formData, reference: e.target.value })}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
                 placeholder="ex: CONTR-9988"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Type</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Type</label>
                 <select 
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="Abonnement">Abonnement</option>
                   <option value="Maintenance">Maintenance</option>
@@ -116,12 +118,12 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
                   <option value="Logiciel">Logiciel</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Statut</label>
+              <div>
+                <label className={theme.formLabel}>Statut</label>
                 <select 
                   value={formData.status}
                   onChange={e => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="Actif">Actif</option>
                   <option value="Inactif">Inactif</option>
@@ -132,14 +134,14 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Engagement & Coût</h4>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur</label>
+          <div className="space-y-6">
+            <div className={theme.formSectionTitle}>Engagement & Coût</div>
+            <div>
+              <label className={theme.formLabel}>Fournisseur</label>
               <select 
                 value={formData.supplier_id || ''}
                 onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
               >
                 <option value="">Sélectionner</option>
                 {suppliers.map(sup => (
@@ -147,58 +149,58 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Début</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Début</label>
                 <input 
                   type="date" 
                   value={formData.start_date || ''}
                   onChange={e => setFormData({ ...formData, start_date: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fin</label>
+              <div>
+                <label className={theme.formLabel}>Fin</label>
                 <input 
                   type="date" 
                   value={formData.end_date || ''}
                   onChange={e => setFormData({ ...formData, end_date: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 />
               </div>
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Prix Total (HT)</label>
+            <div>
+              <label className={theme.formLabel}>Prix Total (HT)</label>
               <input 
                 type="number" 
                 value={formData.price || 0}
                 onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
                 placeholder="0.00"
               />
             </div>
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Notes / Conditions particulières</label>
+        <div>
+          <label className={theme.formLabel}>Notes / Conditions particulières</label>
           <textarea 
             value={formData.description || ''}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white resize-none"
+            className={cn(theme.inputBase, "resize-none")}
             placeholder="Détails du contrat..."
           />
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="px-6 py-3 text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest">
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+          <button type="button" onClick={onClose} className={theme.btnSecondary}>
             Annuler
           </button>
           <button 
             type="submit" 
             disabled={loading || !formData.label}
-            className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50"
+            className={theme.btnPrimary}
           >
             {loading ? '...' : <><Save className="w-4 h-4" /> {contract ? 'Mettre à jour' : 'Créer le contrat'}</>}
           </button>

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api, Supplier } from '../services/api';
 import { Save, Building2, User, Phone } from 'lucide-react';
 import { Modal } from './ui/Modal';
+import { theme } from '../lib/theme';
+import { cn } from '../lib/utils';
 
 interface SupplierModalProps {
   isOpen: boolean;
@@ -59,59 +61,59 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom de l'entreprise</label>
+        <div className="space-y-6">
+          <div>
+            <label className={theme.formLabel}>Nom de l'entreprise</label>
             <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Building2 className={theme.searchIcon} />
               <input 
                 required 
                 type="text" 
                 value={formData.name || ''} 
                 onChange={e => setFormData({ ...formData, name: e.target.value })} 
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white" 
+                className={cn(theme.inputBase, "pl-10")} 
                 placeholder="ex: Dell France" 
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Contact Principal</label>
+          <div>
+            <label className={theme.formLabel}>Contact Principal</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <User className={theme.searchIcon} />
               <input 
                 type="text" 
                 value={formData.contact || ''} 
                 onChange={e => setFormData({ ...formData, contact: e.target.value })} 
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white" 
+                className={cn(theme.inputBase, "pl-10")} 
                 placeholder="ex: Jean Dupont" 
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Téléphone</label>
+          <div>
+            <label className={theme.formLabel}>Téléphone</label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Phone className={theme.searchIcon} />
               <input 
                 type="tel" 
                 value={formData.phone || ''} 
                 onChange={e => setFormData({ ...formData, phone: e.target.value })} 
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:bg-white" 
+                className={cn(theme.inputBase, "pl-10")} 
                 placeholder="ex: 01 23 45 67 89" 
               />
             </div>
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="px-6 py-3 text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest">
+        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+          <button type="button" onClick={onClose} className={theme.btnSecondary}>
             Annuler
           </button>
           <button 
             type="submit" 
             disabled={loading || !formData.name}
-            className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50"
+            className={theme.btnPrimary}
           >
             {loading ? '...' : <><Save className="w-4 h-4" /> {supplier ? 'Mettre à jour' : 'Créer'}</>}
           </button>

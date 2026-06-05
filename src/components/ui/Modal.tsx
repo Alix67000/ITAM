@@ -2,6 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 
 interface ModalProps {
   isOpen: boolean;
@@ -32,39 +33,40 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+        <div className={theme.modalBackdrop}>
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className={theme.modalOverlay}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2 }}
             className={cn(
-              "relative w-full bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]",
+              "relative bg-white w-full rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]",
               maxWidthClass
             )}
           >
             {/* Header */}
-            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
-              <div className="space-y-1">
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">{title}</h2>
-                {subtitle && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{subtitle}</p>}
+            <div className={theme.modalHeader}>
+              <div className={theme.modalTitleBox}>
+                <h2 className={theme.modalTitle}>{title}</h2>
+                {subtitle && <p className={theme.modalSubtitle}>{subtitle}</p>}
               </div>
               <button 
                 onClick={onClose}
-                className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all font-bold"
+                className={theme.modalCloseBtn}
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div className={theme.modalBody}>
               {children}
             </div>
           </motion.div>

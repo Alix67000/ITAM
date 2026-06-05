@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api, Asset, Supplier, User } from '../../services/api';
+import { theme } from '../../lib/theme';
+import { cn } from '../../lib/utils';
 import { Package, Search, Check, Save, Laptop, Smartphone, Monitor, Printer, HardDrive, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -110,55 +112,55 @@ export const SoftwareForm: React.FC<SoftwareFormProps> = ({ initialData, onSubmi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className={theme.formGrid}>
         {/* Left Column: General Info */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Informations catalogue</h4>
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>Informations catalogue</div>
             
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom du logiciel</label>
+            <div>
+              <label className={theme.formLabel}>Nom du logiciel</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Adobe Photoshop, Office 365..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Éditeur</label>
+            <div>
+              <label className={theme.formLabel}>Éditeur</label>
               <input
                 type="text"
                 value={formData.publisher}
                 onChange={e => setFormData({ ...formData, publisher: e.target.value })}
                 placeholder="Adobe, Microsoft..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Type</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Type</label>
                 <select
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="Perpétuelle">Perpétuelle</option>
                   <option value="Abonnement">Abonnement</option>
                   <option value="SaaS">SaaS</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Statut</label>
+              <div>
+                <label className={theme.formLabel}>Statut</label>
                 <select
                   value={formData.status}
                   onChange={e => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                  className={theme.inputBase}
                 >
                   <option value="Actif">Actif</option>
                   <option value="Obsolète">Obsolète</option>
@@ -167,12 +169,12 @@ export const SoftwareForm: React.FC<SoftwareFormProps> = ({ initialData, onSubmi
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur</label>
+            <div>
+              <label className={theme.formLabel}>Fournisseur</label>
               <select
                 value={formData.supplier_id || ''}
                 onChange={e => setFormData({ ...formData, supplier_id: e.target.value })}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white"
+                className={theme.inputBase}
               >
                 <option value="">Aucun fournisseur</option>
                 {suppliers.map(s => (
@@ -185,21 +187,21 @@ export const SoftwareForm: React.FC<SoftwareFormProps> = ({ initialData, onSubmi
 
         {/* Right Column: Affectations */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Affectations</h4>
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>Affectations</div>
             
             {/* Users */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Utilisateurs ({linkedUsers.length})</label>
+            <div>
+              <label className={theme.formLabel}>Utilisateurs ({linkedUsers.length})</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className={theme.searchIcon} />
                 <input
                   type="text"
                   value={searchUser}
                   onChange={e => { setSearchUser(e.target.value); setIsUserListOpen(true); }}
                   onFocus={() => { setIsUserListOpen(true); setIsAssetListOpen(false); }}
                   placeholder="Rechercher un utilisateur..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className={theme.searchInput}
                 />
                 <AnimatePresence>
                   {isUserListOpen && searchUser && (
@@ -234,17 +236,17 @@ export const SoftwareForm: React.FC<SoftwareFormProps> = ({ initialData, onSubmi
             </div>
 
             {/* Assets */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Matériels ({linkedAssets.length})</label>
+            <div className="pt-2">
+              <label className={theme.formLabel}>Matériels ({linkedAssets.length})</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className={theme.searchIcon} />
                 <input
                   type="text"
                   value={searchAsset}
                   onChange={e => { setSearchAsset(e.target.value); setIsAssetListOpen(true); }}
                   onFocus={() => { setIsAssetListOpen(true); setIsUserListOpen(false); }}
                   placeholder="Rechercher un matériel..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className={theme.searchInput}
                 />
                 <AnimatePresence>
                   {isAssetListOpen && searchAsset && (
@@ -287,34 +289,34 @@ export const SoftwareForm: React.FC<SoftwareFormProps> = ({ initialData, onSubmi
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-2">
-        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Notes / Description</label>
+      <div className={cn(theme.formSection, "md:col-span-2")}>
+        <label className={theme.formLabel}>Notes / Description</label>
         <textarea
           rows={3}
           value={formData.description}
           onChange={e => setFormData({ ...formData, description: e.target.value })}
           placeholder="Détails supplémentaires, informations de licence, etc..."
-          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:bg-white resize-none"
+          className={cn(theme.inputBase, "resize-none")}
         />
       </div>
 
-      <div className="mt-8 pt-8 border-t border-slate-200 flex items-center justify-end gap-4">
+      <div className="mt-8 pt-8 flex items-center justify-end gap-3 pb-8">
         <button
           type="button"
           onClick={onCancel}
-          className="px-8 py-3 text-sm font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
+          className={theme.btnSecondary}
         >
           Annuler
         </button>
         <button
           type="submit"
           disabled={isSaving || !formData.name}
-          className="flex items-center gap-3 px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:transform-none"
+          className={theme.btnPrimary}
         >
           {isSaving ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <><Save className="w-5 h-5" /> {initialData ? 'Mettre à jour' : 'Enregistrer le logiciel'}</>
+            <><Save className="w-4 h-4" /> Enregistrer</>
           )}
         </button>
       </div>

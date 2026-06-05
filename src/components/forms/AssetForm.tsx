@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, Asset, User, Location, Contract, License, Supplier } from '../../services/api';
 import { cn } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 import { Save, Cpu, Smartphone, Monitor, Printer, HardDrive, MousePointer2, Network, Box, Key, FileText, Calendar, Package } from 'lucide-react';
 
 interface AssetFormProps {
@@ -97,40 +98,41 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Identité Section */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 text-slate-900 border-b border-slate-50 pb-3">
+        <div className={theme.formSection}>
+          <div className={theme.formSectionTitle}>
             <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            <h3 className="text-xs font-black uppercase tracking-widest">Identité de l'Asset</h3>
+            Identité de l'Asset
           </div>
           
           <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nom / Libellé</label>
+            <div>
+              <label className={theme.formLabel}>Nom / Libellé</label>
               <input 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                className={theme.inputBase}
                 value={formData.label || ''}
                 onChange={e => setFormData({ ...formData, label: e.target.value })}
                 placeholder="Ex: PC-042"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">N° Série</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>N° Série</label>
                 <input 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  className={cn(theme.inputBase, "font-mono")}
                   value={formData.serial || ''}
                   onChange={e => setFormData({ ...formData, serial: e.target.value })}
                   placeholder="SN..."
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">N° Inventaire</label>
+              <div>
+                <label className={theme.formLabel}>N° Inventaire</label>
                 <input 
                   readOnly={isCreate}
                   className={cn(
-                    "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono outline-none transition-all",
-                    isCreate ? "text-blue-600 bg-blue-50/50 border-blue-100 cursor-not-allowed" : "focus:bg-white focus:border-blue-500"
+                    theme.inputBase,
+                    "font-mono",
+                    isCreate && "text-indigo-600 bg-indigo-50/50 border-indigo-100 cursor-not-allowed"
                   )}
                   value={formData.inventory_number || ''}
                   onChange={e => !isCreate && setFormData({ ...formData, inventory_number: e.target.value })}
@@ -140,7 +142,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Classification</label>
+              <label className={theme.formLabel}>Classification</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                  {types.map(t => (
                    <button
@@ -150,7 +152,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                      className={cn(
                        "flex items-center gap-2 px-3 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tight border transition-all",
                        formData.type === t 
-                        ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100" 
+                        ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100" 
                         : "bg-white border-slate-100 text-slate-500 hover:border-slate-200"
                      )}
                    >
@@ -161,10 +163,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               </div>
             </div>
 
-            <div className="space-y-1 pt-2">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Type précis / Modèle (Subtype)</label>
+            <div className="pt-2">
+              <label className={theme.formLabel}>Type précis / Modèle (Subtype)</label>
               <input 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                className={theme.inputBase}
                 value={formData.subtype || ''}
                 onChange={e => setFormData({ ...formData, subtype: e.target.value })}
                 placeholder="Ex: Latitude 5420, iPhone 13, HP LaserJet..."
@@ -174,17 +176,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
         </div>
 
         {/* Cycle de Vie Section */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 text-slate-900 border-b border-slate-50 pb-3">
+        <div className={theme.formSection}>
+          <div className={theme.formSectionTitle}>
             <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-            <h3 className="text-xs font-black uppercase tracking-widest">Cycle de Vie</h3>
+            Cycle de Vie
           </div>
           
           <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">État à l'acquisition</label>
+            <div>
+              <label className={theme.formLabel}>État à l'acquisition</label>
               <select 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
+                className={theme.inputBase}
                 value={formData.condition || 'neuf'}
                 onChange={e => setFormData({ ...formData, condition: e.target.value })}
               >
@@ -194,21 +196,21 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Date de fabrication</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Date de fabrication</label>
                 <input 
                   type="date"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  className={theme.inputBase}
                   value={formData.manufacture_date || ''}
                   onChange={e => setFormData({ ...formData, manufacture_date: e.target.value })}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Mise en service</label>
+              <div>
+                <label className={theme.formLabel}>Mise en service</label>
                 <input 
                   type="date"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  className={theme.inputBase}
                   value={formData.commissioning_date || ''}
                   onChange={e => setFormData({ ...formData, commissioning_date: e.target.value })}
                 />
@@ -218,36 +220,36 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
         </div>
 
         {/* Financier & Garantie Section */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 text-slate-100 border-b border-indigo-50/10 pb-3">
+        <div className={theme.formSection}>
+          <div className={theme.formSectionTitle}>
              <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-             <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Finance & Garantie</h3>
+             Finance & Garantie
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Valeur d'achat (€)</label>
+            <div>
+              <label className={theme.formLabel}>Valeur d'achat (€)</label>
               <input 
                 type="number"
                 step="0.01"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono font-bold focus:bg-white focus:border-blue-500 outline-none transition-all"
+                className={cn(theme.inputBase, "font-mono")}
                 value={formData.value_euros || ''}
                 onChange={e => setFormData({ ...formData, value_euros: Number(e.target.value) })}
                 placeholder="0.00"
               />
             </div>
 
-            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex-1">
                 <p className="text-xs font-bold text-slate-900">Sous garantie ?</p>
-                <p className="text-[10px] text-slate-400 font-medium">Activer pour définir une date de fin</p>
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">Activer pour définir une date de fin</p>
               </div>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, has_warranty: !formData.has_warranty })}
                 className={cn(
-                  "w-12 h-6 rounded-full transition-all relative",
-                  formData.has_warranty ? "bg-blue-600" : "bg-slate-300"
+                  "w-12 h-6 rounded-full transition-all relative outline-none focus:ring-2 focus:ring-indigo-100 focus:ring-offset-1",
+                  formData.has_warranty ? "bg-indigo-600" : "bg-slate-300"
                 )}
               >
                 <div className={cn(
@@ -258,12 +260,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
             </div>
 
             {formData.has_warranty && (
-              <div className="space-y-1 animate-in zoom-in-95 duration-200">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fin de garantie</label>
+              <div className="animate-in zoom-in-95 duration-200 pt-2">
+                <label className={theme.formLabel}>Fin de garantie</label>
                 <input 
                   type="date"
                   required={formData.has_warranty}
-                  className="w-full bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm font-bold text-blue-700 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  className={cn(theme.inputBase, "text-indigo-700 bg-indigo-50/50 border-indigo-100")}
                   value={formData.warranty_end || ''}
                   onChange={e => setFormData({ ...formData, warranty_end: e.target.value })}
                 />
@@ -273,18 +275,18 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
         </div>
 
         {/* Affectation Section */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 text-slate-900 border-b border-slate-50 pb-3">
+        <div className={theme.formSection}>
+          <div className={theme.formSectionTitle}>
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <h3 className="text-xs font-black uppercase tracking-widest">Affectation & Statut</h3>
+            Affectation & Statut
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Lieu</label>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Lieu</label>
                 <select 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
+                  className={theme.inputBase}
                   value={formData.location_id || ''}
                   onChange={e => setFormData({ ...formData, location_id: e.target.value || null })}
                 >
@@ -292,10 +294,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Utilisateur</label>
+              <div>
+                <label className={theme.formLabel}>Utilisateur</label>
                 <select 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
+                  className={theme.inputBase}
                   value={formData.assigned_user_id || ''}
                   onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value || null })}
                 >
@@ -305,8 +307,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">État actuel</label>
+            <div>
+              <label className={theme.formLabel}>État actuel</label>
               <div className="flex flex-wrap gap-2">
                 {statuses.map(s => (
                   <button
@@ -326,10 +328,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
               </div>
             </div>
 
-            <div className="space-y-1 pt-2">
-                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider ml-1">Fournisseur</label>
+            <div className="pt-2">
+                <label className={theme.formLabel}>Fournisseur</label>
                 <select 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
+                  className={theme.inputBase}
                   value={formData.supplier_id || ''}
                   onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
                 >
@@ -384,13 +386,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
         )}
 
         {/* Spécifications Section (Full width) */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 text-slate-900 border-b border-slate-50 pb-3">
+        <div className={cn(theme.formSection, "lg:col-span-2")}>
+          <div className={theme.formSectionTitle}>
             <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            <h3 className="text-xs font-black uppercase tracking-widest">Description & Spécifications Techniques</h3>
+            Description & Spécifications Techniques
           </div>
           <textarea 
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-medium focus:bg-white focus:border-indigo-500 outline-none transition-all min-h-[150px] resize-none"
+            className={cn(theme.inputBase, "min-h-[150px] resize-none")}
             value={formData.specs || ''}
             onChange={e => setFormData({ ...formData, specs: e.target.value })}
             placeholder="Détails techniques (CPU, RAM, OS, Modèle précis...) ou description libre de l'asset"
@@ -398,11 +400,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 md:p-8 bg-slate-50/80 backdrop-blur-md border-t border-slate-200 z-[110] flex items-center justify-between">
+      <div className={theme.modalFooter}>
         <button 
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest"
+          className={theme.btnSecondary}
         >
           Annuler
         </button>
@@ -426,10 +428,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
             onSubmit(formData, extraData);
           }}
           disabled={isSaving || !formData.label}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-10 py-4 rounded-2xl text-sm font-black shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:grayscale disabled:translate-y-0"
+          className={theme.btnPrimary}
         >
           {isSaving ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-          ENREGISTRER L'ASSET
+          Enregistrer
         </button>
       </div>
     </div>
