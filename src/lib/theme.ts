@@ -8,7 +8,7 @@ export const theme = {
   pageSubtitle: "text-sm text-slate-500 ml-[52px]",
   
   // Cartes & Panels
-  card: "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden",
+  card: "bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden",
   cardHeader: "px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50",
   cardTitle: "text-lg font-bold text-slate-800",
   
@@ -25,7 +25,7 @@ export const theme = {
   searchIcon: "absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors",
 
   // Badges (base)
-  badge: "px-2 py-0.5 rounded-[5px] text-[10px] font-bold uppercase tracking-wider w-max border",
+  badge: "px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest w-max border",
   badgePrimary: "bg-indigo-50 text-indigo-700 border-indigo-100/50",
   badgeSuccess: "bg-emerald-50 text-emerald-700 border-emerald-100/50",
   badgeWarning: "bg-amber-50 text-amber-700 border-amber-100/50",

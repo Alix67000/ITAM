@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api, Stats, computeStats, Asset, User, Location, Contract, License, PhoneLine } from '../services/api';
-import { Laptop, Users, MapPin, AlertCircle, TrendingUp, Clock, ShieldAlert, PieChart as PieIcon, BarChart3, LineChart as LineIcon, FileText, ChevronRight, Plus, FileDown } from 'lucide-react';
+import { Laptop, Users, MapPin, AlertCircle, TrendingUp, Clock, ShieldAlert, PieChart as PieIcon, BarChart3, LineChart as LineIcon, FileText, ChevronRight, Plus, FileDown, Edit2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -8,8 +8,10 @@ import {
  } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { exportFleetSummaryToPDF } from '../services/pdfService';
+import { cn } from '../lib/utils';
+import { theme } from '../lib/theme';
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+const COLORS = ['#4f46e5', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
 interface DashboardProps {
   onNavigate?: (tab: string) => void;
@@ -82,17 +84,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} 
           onClick={() => navigate('/assets')}
-          className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group overflow-hidden relative cursor-pointer"
+          className={cn(theme.card, "p-6 hover:shadow-xl hover:border-indigo-100 transition-all group relative cursor-pointer")}
         >
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
+          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform duration-500" />
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest relative">Parc Matériel</p>
           <div className="flex items-end justify-between mt-4 relative">
             <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.counts.assets}</h3>
-            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+            <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
               <Laptop className="w-6 h-6" />
             </div>
           </div>
-          <p className="text-[10px] text-blue-600 font-bold mt-6 flex items-center gap-1 uppercase tracking-tighter whitespace-nowrap">
+          <p className="text-[10px] text-indigo-600 font-bold mt-6 flex items-center gap-1 uppercase tracking-tighter whitespace-nowrap">
              <TrendingUp className="w-3 h-3" /> Géré en temps réel
           </p>
         </motion.div>
