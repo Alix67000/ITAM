@@ -63,7 +63,7 @@ export const theme = {
   formGrid: "grid grid-cols-1 md:grid-cols-2 gap-5",
   
   // Modales
-  modalBackdrop: "fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6",
+  modalBackdrop: "fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-6",
   modalOverlay: "absolute inset-0 bg-slate-900/40 backdrop-blur-sm",
   modalPanel: "relative bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200",
   modalHeader: "flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-white shadow-sm z-10",
