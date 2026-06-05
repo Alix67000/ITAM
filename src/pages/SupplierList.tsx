@@ -4,6 +4,8 @@ import { Plus, Search, Building2, User, Phone, Edit2, Trash2 } from 'lucide-reac
 import { motion, AnimatePresence } from 'motion/react';
 import { SupplierModal } from '../components/SupplierModal';
 import { useAuth } from '../services/authContext';
+import { cn } from '../lib/utils';
+import { theme } from '../lib/theme';
 
 export const SupplierList: React.FC = () => {
   const { canEdit, canDelete, isViewer } = useAuth();
@@ -60,11 +62,146 @@ export const SupplierList: React.FC = () => {
     (s.contact && s.contact.toLowerCase().includes(search.toLowerCase()))
   );
 
-  if (loading && suppliers.length === 0) return <div className="text-sm font-sans text-slate-400 p-12 text-center animate-pulse italic">Chargement des fournisseurs...</div>;
-
   return (
     <div className="space-y-6">
-      {/* Confirmation Modal */}
+      <SupplierModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onRefresh={fetchSuppliers} 
+        supplier={selectedSupplier} 
+      />
+
+      <div className={theme.pageHeader}>
+        <div className="space-y-1">
+          <div className={theme.pageTitleBox}>
+             <div className={theme.pageTitleIcon}>
+                 <Building2 className="w-5 h-5" />
+             </div>
+             <h2 className={theme.pageTitleText}>
+               Fournisseurs
+             </h2>
+          </div>
+          <p className={theme.pageSubtitle}>Gestion de vos partenaires et prestataires de services.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative group flex-1 md:w-[280px]">
+            <Search className={theme.searchIcon} />
+            <input 
+              type="text" 
+              placeholder="Rechercher..." 
+              className={theme.searchInput}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button 
+            disabled={isViewer}
+            onClick={handleCreate} 
+            className={theme.btnPrimary}
+          >
+            <Plus className="w-4 h-4 text-indigo-100" /> Nouveau Fournisseur
+          </button>
+        </div>
+      </div>
+
+      <div className={cn(theme.card, "flex flex-col min-h-[400px]")}>
+        <table className="w-full text-left border-collapse hidden md:table">
+          <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
+            <tr>
+              <th className="px-6 lg:px-8 py-5">Entreprise</th>
+              <th className="px-6 lg:px-8 py-5">Contact</th>
+              <th className="px-6 lg:px-8 py-5">Téléphone</th>
+              <th className="px-6 lg:px-8 py-5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-sm">
+            {loading ? (
+               <tr><td colSpan={4}><div className={theme.loadingPanel}><div className={theme.loadingSpinner} />Chargement...</div></td></tr>
+            ) : filtered.length === 0 ? (
+               <tr><td colSpan={4}><div className={theme.emptyPanel}><div className={theme.emptyIconBox}><Building2 className="w-8 h-8" /></div><p className={theme.emptyText}>Aucun fournisseur trouvé.</p></div></td></tr>
+            ) : filtered.map((s, idx) => (
+              <motion.tr 
+                key={s.id}
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: idx * 0.05 }} 
+                onClick={() => handleEdit(s)}
+                className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
+              >
+                <td className="px-6 lg:px-8 py-4 lg:py-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black text-lg">
+                      {s.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-base">{s.name}</div>
+                  </div>
+                </td>
+                <td className="px-6 lg:px-8 py-4 lg:py-6 text-slate-600">
+                   <div className="flex items-center gap-2 font-medium">
+                     <User className="w-4 h-4 text-slate-400" />
+                     {s.contact || <span className="text-slate-400 italic font-normal">Non renseigné</span>}
+                   </div>
+                </td>
+                <td className="px-6 lg:px-8 py-4 lg:py-6 text-slate-600">
+                   <div className="flex items-center gap-2">
+                     <Phone className="w-4 h-4 text-slate-400" />
+                     {s.phone ? <span className="font-mono text-xs">{s.phone}</span> : <span className="text-slate-400 italic">Non renseigné</span>}
+                   </div>
+                </td>
+                <td className="px-6 lg:px-8 py-4 lg:py-6 text-right">
+                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                       <button 
+                         disabled={!canEdit}
+                         onClick={(e) => { e.stopPropagation(); handleEdit(s); }} 
+                         className={theme.btnIconGhost}
+                         title="Modifier"
+                       >
+                         <Edit2 className="w-4 h-4" />
+                       </button>
+                       <button 
+                         disabled={!canDelete}
+                         onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} 
+                         className={theme.btnIconDanger}
+                         title="Supprimer"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                    </div>
+                </td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Mobile View */}
+        <div className="md:hidden divide-y divide-slate-100">
+             {loading ? (
+                <div className={theme.loadingPanel}><div className={theme.loadingSpinner} />Chargement...</div>
+             ) : filtered.length === 0 ? (
+                <div className={theme.emptyPanel}><div className={theme.emptyIconBox}><Building2 className="w-8 h-8" /></div><p className={theme.emptyText}>Aucun fournisseur trouvé.</p></div>
+             ) : filtered.map((s) => (
+                <div key={s.id} onClick={() => handleEdit(s)} className="p-5 active:bg-slate-50 transition-colors flex gap-4">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0 font-black text-lg">
+                     {s.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                     <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{s.name}</h3>
+                     </div>
+                     <div className="flex items-center gap-2 font-medium text-xs text-slate-500">
+                       <User className="w-3.5 h-3.5 text-slate-400" />
+                       {s.contact || <span className="italic">Non renseigné</span>}
+                     </div>
+                     <div className="flex items-center gap-2 text-xs text-slate-500">
+                       <Phone className="w-3.5 h-3.5 text-slate-400" />
+                       {s.phone ? <span className="font-mono">{s.phone}</span> : <span className="italic">Non renseigné</span>}
+                     </div>
+                  </div>
+                </div>
+             ))}
+        </div>
+      </div>
+
       <AnimatePresence>
         {isConfirmOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -86,113 +223,6 @@ export const SupplierList: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-
-      <SupplierModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onRefresh={fetchSuppliers} 
-        supplier={selectedSupplier} 
-      />
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
-        <div className="space-y-1.5 flex-1">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                 <Building2 className="w-5 h-5" />
-             </div>
-             Fournisseurs
-          </h2>
-          <p className="text-sm font-medium text-slate-500 pl-13">Gestion de vos partenaires et prestataires de services.</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <div className="relative group flex-1 sm:flex-initial">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Rechercher..." 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 min-w-[240px]"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <button 
-            disabled={isViewer}
-            onClick={handleCreate} 
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:grayscale group whitespace-nowrap"
-          >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Nouveau Fournisseur
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
-            <tr className="border-b border-slate-100">
-              <th className="px-8 py-5">Entreprise</th>
-              <th className="px-8 py-5">Contact</th>
-              <th className="px-8 py-5">Téléphone</th>
-              <th className="px-8 py-5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50/50 text-sm">
-            {filtered.map((s, idx) => (
-              <motion.tr 
-                key={s.id}
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: idx * 0.05 }} 
-                onClick={() => handleEdit(s)}
-                className="hover:bg-slate-50 transition-colors group cursor-pointer"
-              >
-                <td className="px-8 py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-[0.75rem] flex items-center justify-center font-black text-lg">
-                      {s.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{s.name}</div>
-                  </div>
-                </td>
-                <td className="px-8 py-6 text-slate-600">
-                   <div className="flex items-center gap-2 font-medium">
-                     <User className="w-4 h-4 text-slate-400" />
-                     {s.contact || <span className="text-slate-400 italic font-normal">Non renseigné</span>}
-                   </div>
-                </td>
-                <td className="px-8 py-6 text-slate-600">
-                   <div className="flex items-center gap-2">
-                     <Phone className="w-4 h-4 text-slate-400" />
-                     {s.phone ? <span className="font-mono text-xs">{s.phone}</span> : <span className="text-slate-400 italic">Non renseigné</span>}
-                   </div>
-                </td>
-                <td className="px-8 py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                       <button 
-                         disabled={!canEdit}
-                         onClick={() => handleEdit(s)} 
-                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
-                         title="Modifier"
-                       >
-                         <Edit2 className="w-4 h-4" />
-                       </button>
-                       <button 
-                         disabled={!canDelete}
-                         onClick={() => handleDelete(s.id)} 
-                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" 
-                         title="Supprimer"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                    </div>
-                </td>
-              </motion.tr>
-            ))}
-            {filtered.length === 0 && !loading && (
-               <tr><td colSpan={4} className="px-8 py-20 text-center text-slate-400 italic text-sm">Aucun fournisseur trouvé.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { Plus, Search, MapPin, Navigation, Edit2, Trash2, AlertCircle } from 'lu
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../services/authContext';
 import { LocationModal } from '../components/LocationModal';
+import { cn } from '../lib/utils';
+import { theme } from '../lib/theme';
 
 export const LocationList: React.FC = () => {
   const { canEdit, canDelete, isViewer } = useAuth();
@@ -78,7 +80,7 @@ export const LocationList: React.FC = () => {
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{loc.name}</h3>
                 {loc.children && loc.children.length > 0 && (
-                  <span className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-md text-[10px] font-black uppercase tracking-widest border border-slate-100">
+                  <span className={theme.badgeNeutral}>
                     {loc.children.length} {loc.children.length > 1 ? 'sites' : 'site'}
                   </span>
                 )}
@@ -92,14 +94,14 @@ export const LocationList: React.FC = () => {
             <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                <button 
                  onClick={(e) => { e.stopPropagation(); handleOpenModal(loc); }}
-                 className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                 className={theme.btnIconGhost}
                >
                   <Edit2 className="w-4 h-4" />
                </button>
                <button 
                  disabled={!canDelete}
                  onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} 
-                 className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all" 
+                 className={theme.btnIconDanger}
                >
                 <Trash2 className="w-4 h-4" />
                </button>
@@ -137,44 +139,25 @@ export const LocationList: React.FC = () => {
         location={selectedLoc} 
       />
 
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {deleteConfirmId && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirmId(null)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8 border border-slate-200">
-               <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                 <AlertCircle className="w-8 h-8" />
-               </div>
-               <div className="text-center space-y-2 mb-8">
-                <h3 className="font-black text-slate-900 text-xl tracking-tight">Supprimer l'entité ?</h3>
-                <p className="text-sm text-slate-500 font-medium">
-                  Les utilisateurs et matériels rattachés n'auront plus d'entité associée.
-                </p>
-               </div>
-               <div className="flex gap-3">
-                  <button onClick={() => setDeleteConfirmId(null)} className="flex-1 py-3 text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">Annuler</button>
-                  <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-2xl text-xs font-bold hover:bg-red-700 transition shadow-lg shadow-red-100">Supprimer</button>
-               </div>
-            </motion.div>
+      <div className={theme.pageHeader}>
+        <div className="space-y-1">
+          <div className={theme.pageTitleBox}>
+             <div className={theme.pageTitleIcon}>
+                 <MapPin className="w-5 h-5" />
+             </div>
+             <h2 className={theme.pageTitleText}>
+               Entités & Sites
+             </h2>
           </div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
-        <div className="space-y-1.5">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <MapPin className="w-6 h-6 text-indigo-600" /> Entités & Sites
-          </h2>
-          <p className="text-sm font-medium text-slate-500">Gestion hiérarchique de l'organisation et des sites.</p>
+          <p className={theme.pageSubtitle}>Gestion hiérarchique de l'organisation et des sites.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <div className="relative group flex-1 sm:flex-initial">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative group flex-1 md:w-[280px]">
+             <Search className={theme.searchIcon} />
             <input 
               type="text" 
               placeholder="Filtrer..." 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 min-w-[240px]"
+              className={theme.searchInput}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -182,15 +165,18 @@ export const LocationList: React.FC = () => {
           <button 
             disabled={isViewer}
             onClick={() => handleOpenModal()} 
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:grayscale group whitespace-nowrap"
+            className={theme.btnPrimary}
           >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Nouveau Site
+            <Plus className="w-4 h-4 text-indigo-100" /> Nouveau Site
           </button>
         </div>
       </div>
 
-      <div className="space-y-2">
-        {search ? (
+      <div className="space-y-2 min-h-[400px]">
+        {loading ? (
+            <div className={cn(theme.card, "p-12")}><div className={theme.loadingPanel}><div className={theme.loadingSpinner} />Chargement des sites...</div></div>
+        ) : search ? (
+           filtered.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((loc, idx) => (
               <motion.div 
@@ -205,8 +191,8 @@ export const LocationList: React.FC = () => {
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                     <button onClick={(e) => { e.stopPropagation(); handleOpenModal(loc); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
-                     <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                     <button onClick={(e) => { e.stopPropagation(); handleOpenModal(loc); }} className={theme.btnIconGhost}><Edit2 className="w-4 h-4" /></button>
+                     <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className={theme.btnIconDanger}><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors mb-2">{loc.name}</h3>
@@ -216,14 +202,44 @@ export const LocationList: React.FC = () => {
               </motion.div>
             ))}
           </div>
+           ) : (
+                <div className={cn(theme.card, "p-12")}><div className={theme.emptyPanel}><div className={theme.emptyIconBox}><MapPin className="w-8 h-8" /></div><p className={theme.emptyText}>Aucun site ne correspond à cette recherche.</p></div></div>
+           )
         ) : (
+          locations.length > 0 ? (
           <div className="space-y-1">
             {treeData.map((loc, idx) => (
               <LocationItem key={loc.id} loc={loc} depth={0} index={idx} />
             ))}
           </div>
+          ) : (
+             <div className={cn(theme.card, "p-12")}><div className={theme.emptyPanel}><div className={theme.emptyIconBox}><MapPin className="w-8 h-8" /></div><p className={theme.emptyText}>Aucun site n'est enregistré pour le moment.</p></div></div>
+          )
         )}
       </div>
+
+      <AnimatePresence>
+        {deleteConfirmId && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirmId(null)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 border border-slate-200">
+               <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                 <AlertCircle className="w-8 h-8" />
+               </div>
+               <div className="text-center space-y-2 mb-8">
+                <h3 className="font-black text-slate-900 text-xl tracking-tight">Supprimer l'entité ?</h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                  Les utilisateurs et matériels rattachés n'auront plus d'entité associée.
+                </p>
+               </div>
+               <div className="flex gap-3">
+                  <button onClick={() => setDeleteConfirmId(null)} className="flex-1 py-3 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-700 rounded-xl transition-colors">Annuler</button>
+                  <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition shadow-lg shadow-red-100">Supprimer</button>
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -455,10 +455,10 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         )}
       </AnimatePresence>
 
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-500 tracking-[0.15em]">
-            <tr className="border-b border-slate-100">
+      <div className={cn(theme.card, "flex flex-col min-h-[400px]")}>
+        <table className="w-full text-left border-collapse hidden md:table">
+          <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
+            <tr>
               <th className="px-8 py-5 text-left">N° Inventaire</th>
               <th className="px-8 py-5">Asset / Cycle de vie</th>
               <th className="px-8 py-5">Affectation</th>
