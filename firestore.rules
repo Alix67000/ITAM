@@ -85,6 +85,8 @@ function isValidContract(d) {
   return d.label is string && d.label.size() > 0 && d.label.size() <= 200
     && (!('description' in d) || isMediumText(d.description))
     && (!('reference' in d) || isShortText(d.reference))
+    && (!('account_email' in d) || isShortText(d.account_email))
+    && (!('account_password' in d) || isShortText(d.account_password))
     && (!('price' in d) || d.price is number);
 }
 

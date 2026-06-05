@@ -67,6 +67,8 @@ export interface Contract {
   status: string;
   description: string;
   reference: string | null;
+  account_email?: string | null;
+  account_password?: string | null;
   created_at: string;
   assets_count?: number;
 }
@@ -789,6 +791,102 @@ export const api = {
       }));
       return assets.filter(a => a !== null) as Asset[];
     } catch (e) { return []; }
+  },
+
+  getContractPhoneLines: async (contractId: string): Promise<PhoneLine[]> => {
+    try {
+      const q = query(collection(db, 'phone_lines'), where('contract_id', '==', contractId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() } as PhoneLine));
+    } catch (e) { return []; }
+  },
+
+  syncContractPhoneLines: async (contractId: string, phoneLineIds: string[]) => {
+    try {
+      const currentLines = await api.getContractPhoneLines(contractId);
+      const currentIds = currentLines.map(l => l.id);
+
+      const toRemove = currentIds.filter(id => !phoneLineIds.includes(id));
+      await Promise.all(toRemove.map(id => updateDoc(doc(db, 'phone_lines', id), { contract_id: null })));
+
+      const toAdd = phoneLineIds.filter(id => !currentIds.includes(id));
+      await Promise.all(toAdd.map(id => updateDoc(doc(db, 'phone_lines', id), { contract_id: contractId })));
+      
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.UPDATE, 'phone_lines'); }
+  },
+
+  getContractUsers: async (contractId: string): Promise<User[]> => {
+    try {
+      const q = query(collection(db, 'relations'), 
+        where('from_type', '==', 'contract'), 
+        where('from_id', '==', contractId), 
+        where('to_type', '==', 'user'), 
+        where('relation_type', '==', 'contract_user')
+      );
+      const snap = await getDocs(q);
+      const userIds = snap.docs.map(d => d.data().to_id);
+      if (userIds.length === 0) return [];
+      
+      const users = await Promise.all(userIds.map(async (uid: string) => {
+        const d = await getDoc(doc(db, 'users', uid));
+        return d.exists() ? { id: d.id, ...d.data() } as User : null;
+      }));
+      return users.filter(u => u !== null) as User[];
+    } catch (e) { return []; }
+  },
+
+  syncContractUsers: async (contractId: string, userIds: string[]) => {
+    try {
+      const q = query(collection(db, 'relations'), 
+        where('from_type', '==', 'contract'), 
+        where('from_id', '==', contractId), 
+        where('to_type', '==', 'user'), 
+        where('relation_type', '==', 'contract_user')
+      );
+      const snap = await getDocs(q);
+      
+      const currentRelations = snap.docs.map(d => ({ docId: d.id, userId: d.data().to_id }));
+      const currentIds = currentRelations.map(r => r.userId);
+
+      const toRemove = currentRelations.filter(r => !userIds.includes(r.userId));
+      await Promise.all(toRemove.map(r => deleteDoc(doc(db, 'relations', r.docId))));
+
+      const toAdd = userIds.filter(id => !currentIds.includes(id));
+      await Promise.all(toAdd.map(id => addDoc(collection(db, 'relations'), {
+        from_type: 'contract',
+        from_id: contractId,
+        to_type: 'user',
+        to_id: id,
+        relation_type: 'contract_user',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })));
+      return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'relations'); }
+  },
+
+  getContractPrinters: async (contractId: string): Promise<Asset[]> => {
+    try {
+      const assets = await api.getContractAssets(contractId);
+      return assets.filter(a => a.type === 'Imprimante');
+    } catch (e) { return []; }
+  },
+
+  syncContractPrinters: async (contractId: string, printerIds: string[]) => {
+    try {
+       const allAssets = await api.getContractAssets(contractId);
+       const currentPrinters = allAssets.filter(a => a.type === 'Imprimante');
+       const currentPrinterIds = currentPrinters.map(p => p.id);
+
+       const toRemove = currentPrinterIds.filter(id => !printerIds.includes(id));
+       await Promise.all(toRemove.map(id => api.removeContractFromAsset(id, contractId)));
+
+       const toAdd = printerIds.filter(id => !currentPrinterIds.includes(id));
+       await Promise.all(toAdd.map(id => api.assignContractToAsset(id, contractId)));
+       return { success: true };
+    } catch (e) { handleFirestoreError(e, OperationType.WRITE, 'asset_contracts'); }
   },
 
   getAssetSoftwares: async (assetId: string): Promise<any[]> => {

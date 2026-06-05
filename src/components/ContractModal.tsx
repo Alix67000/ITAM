@@ -114,8 +114,13 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
                   <option value="Abonnement">Abonnement</option>
                   <option value="Maintenance">Maintenance</option>
                   <option value="Leasing">Leasing</option>
+                  <option value="Location">Location</option>
                   <option value="Garantie">Garantie</option>
+                  <option value="Assurance">Assurance</option>
+                  <option value="Support">Support</option>
                   <option value="Logiciel">Logiciel</option>
+                  <option value="Forfait mobile">Forfait mobile</option>
+                  <option value="Leasing imprimante">Leasing imprimante</option>
                 </select>
               </div>
               <div>
