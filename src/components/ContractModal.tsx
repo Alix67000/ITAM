@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { api, Contract, Supplier } from '../services/api';
-import { Save } from 'lucide-react';
+import { api, Contract, Supplier, PhoneLine, User, Asset } from '../services/api';
+import { Save, Eye, EyeOff, Settings2, Users as UsersIcon, Printer, Phone } from 'lucide-react';
 import { Modal } from './ui/Modal';
 import { theme } from '../lib/theme';
 import { cn } from '../lib/utils';
@@ -14,7 +14,18 @@ interface ContractModalProps {
 
 export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, onRefresh, contract }) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [phoneLines, setPhoneLines] = useState<PhoneLine[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [printers, setPrinters] = useState<Asset[]>([]);
+  
+  const [selectedPhoneLineIds, setSelectedPhoneLineIds] = useState<string[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [selectedPrinterIds, setSelectedPrinterIds] = useState<string[]>([]);
+  
   const [loading, setLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState<Partial<Contract>>({
     label: '',
     type: 'Maintenance',
@@ -24,17 +35,43 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
     price: 0,
     status: 'Actif',
     description: '',
-    reference: ''
+    reference: '',
+    account_email: '',
+    account_password: ''
   });
 
   useEffect(() => {
     if (isOpen) {
+      // Load referentials
       api.getSuppliers().then(setSuppliers);
+      Promise.all([
+        api.getPhoneLines(),
+        api.getUsers(),
+        api.getAssets({ fetchAll: true })
+      ]).then(([pLines, usrs, assetsData]) => {
+        setPhoneLines(pLines);
+        setUsers(usrs);
+        setPrinters(assetsData.assets.filter((a: Asset) => a.type === 'Imprimante'));
+      });
+
       if (contract) {
         setFormData({
           ...contract,
           start_date: contract.start_date || '',
-          end_date: contract.end_date || ''
+          end_date: contract.end_date || '',
+          account_email: contract.account_email || '',
+          account_password: contract.account_password || ''
+        });
+        
+        // Load current associations
+        Promise.all([
+          api.getContractPhoneLines(contract.id),
+          api.getContractUsers(contract.id),
+          api.getContractPrinters(contract.id)
+        ]).then(([cLines, cUsers, cPrinters]) => {
+           setSelectedPhoneLineIds(cLines.map(l => l.id));
+           setSelectedUserIds(cUsers.map(u => u.id));
+           setSelectedPrinterIds(cPrinters.map(p => p.id));
         });
       } else {
         setFormData({
@@ -46,8 +83,15 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
           price: 0,
           status: 'Actif',
           description: '',
-          reference: ''
+          reference: '',
+          account_email: '',
+          account_password: ''
         });
+        setSelectedPhoneLineIds([]);
+        setSelectedUserIds([]);
+        setSelectedPrinterIds([]);
+        setShowAdvanced(false);
+        setShowPassword(false);
       }
     }
   }, [isOpen, contract]);
@@ -56,11 +100,22 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
     e.preventDefault();
     setLoading(true);
     try {
-      if (contract?.id) {
-        await api.updateContract(contract.id, formData);
+      let contractId = contract?.id;
+      if (contractId) {
+        await api.updateContract(contractId, formData);
       } else {
-        await api.createContract(formData);
+        const res = await api.createContract(formData);
+        if (res?.id) contractId = res.id;
       }
+      
+      if (contractId) {
+        await Promise.all([
+          api.syncContractPhoneLines(contractId, selectedPhoneLineIds),
+          api.syncContractUsers(contractId, selectedUserIds),
+          api.syncContractPrinters(contractId, selectedPrinterIds)
+        ]);
+      }
+
       onRefresh();
       onClose();
     } catch (err) {
@@ -70,13 +125,26 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
     }
   };
 
+  const isMobilePlan = formData.type === 'Forfait mobile';
+  const isPrinterLease = formData.type === 'Leasing imprimante';
+  const showAssociations = showAdvanced || isMobilePlan || isPrinterLease;
+  const showAccountBox = showAdvanced || isMobilePlan;
+
+  const toggleSelection = (id: string, current: string[], setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+    if (current.includes(id)) {
+      setter(current.filter(x => x !== id));
+    } else {
+      setter([...current, id]);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={contract ? 'Modifier le Contrat' : 'Nouveau Contrat'}
       subtitle={contract ? `Référence: ${contract.reference}` : 'Gestion des engagements et leasings'}
-      maxWidth="2xl"
+      maxWidth="3xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className={theme.formGrid}>
@@ -187,28 +255,128 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
           </div>
         </div>
 
+        {/* Compte Opérateur */}
+        {showAccountBox && (
+          <div className="space-y-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+            <div className={theme.formSectionTitle}>Compte de gestion (Espace Client)</div>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Email du compte</label>
+                <input 
+                  type="email" 
+                  value={formData.account_email || ''}
+                  onChange={e => setFormData({ ...formData, account_email: e.target.value })}
+                  className={theme.inputBase}
+                  placeholder="ex: admin@societe.com"
+                />
+              </div>
+              <div>
+                <label className={theme.formLabel}>Mot de passe</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.account_password || ''}
+                    onChange={e => setFormData({ ...formData, account_password: e.target.value })}
+                    className={theme.inputBase}
+                    placeholder="••••••••••••"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Associations Multiples */}
+        {showAssociations && (
+          <div className="space-y-4 pt-4 border-t border-slate-100">
+            <div className={theme.formSectionTitle}>Liaisons & Attributions</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Lignes */}
+              {(isMobilePlan || showAdvanced) && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><Phone className="w-3.5 h-3.5"/> Lignes</label>
+                  <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+                    {phoneLines.map(l => (
+                      <label key={l.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer group transition-colors">
+                        <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-600 border-slate-300" checked={selectedPhoneLineIds.includes(l.id)} onChange={() => toggleSelection(l.id, selectedPhoneLineIds, setSelectedPhoneLineIds)} />
+                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{l.number} <span className="opacity-50">({l.label})</span></span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Utilisateurs */}
+              {(isMobilePlan || isPrinterLease || showAdvanced) && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><UsersIcon className="w-3.5 h-3.5"/> Utilisateurs</label>
+                  <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+                    {users.map(u => (
+                      <label key={u.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer group transition-colors">
+                        <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-600 border-slate-300" checked={selectedUserIds.includes(u.id)} onChange={() => toggleSelection(u.id, selectedUserIds, setSelectedUserIds)} />
+                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{u.first_name} {u.last_name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Imprimantes */}
+              {(isPrinterLease || showAdvanced) && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><Printer className="w-3.5 h-3.5"/> Imprimantes</label>
+                  <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+                    {printers.map(p => (
+                      <label key={p.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer group transition-colors">
+                        <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-600 border-slate-300" checked={selectedPrinterIds.includes(p.id)} onChange={() => toggleSelection(p.id, selectedPrinterIds, setSelectedPrinterIds)} />
+                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{p.brand} {p.model}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div>
           <label className={theme.formLabel}>Notes / Conditions particulières</label>
           <textarea 
             value={formData.description || ''}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
+            rows={2}
             className={cn(theme.inputBase, "resize-none")}
             placeholder="Détails du contrat..."
           />
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
-          <button type="button" onClick={onClose} className={theme.btnSecondary}>
-            Annuler
-          </button>
+        <div className="pt-6 border-t border-slate-100 flex items-center justify-between mt-6 pb-2">
           <button 
-            type="submit" 
-            disabled={loading || !formData.label}
-            className={theme.btnPrimary}
+            type="button" 
+            onClick={() => setShowAdvanced(!showAdvanced)} 
+            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors"
           >
-            {loading ? '...' : <><Save className="w-4 h-4" /> {contract ? 'Mettre à jour' : 'Créer le contrat'}</>}
+            <Settings2 className="w-3.5 h-3.5" />
+            {showAdvanced ? "Masquer les options avancées" : "Afficher les associations"}
           </button>
+          
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className={theme.btnSecondary}>
+              Annuler
+            </button>
+            <button 
+              type="submit" 
+              disabled={loading || !formData.label}
+              className={theme.btnPrimary}
+            >
+              {loading ? '...' : <><Save className="w-4 h-4" /> {contract ? 'Mettre à jour' : 'Enregistrer'}</>}
+            </button>
+          </div>
         </div>
       </form>
     </Modal>

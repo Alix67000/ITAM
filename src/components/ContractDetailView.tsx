@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { api, Contract, Asset, Supplier } from '../services/api';
+import { api, Contract, Asset, Supplier, PhoneLine, User } from '../services/api';
 import { cn } from '../lib/utils';
 import { 
   X, FileText, Calendar, Landmark, CreditCard, Box, 
-  Edit2, Plus, ArrowRight, ShieldCheck, Clock, ExternalLink
+  Edit2, Plus, ArrowRight, ShieldCheck, Clock, ExternalLink,
+  Phone, Users as UsersIcon, Printer, Eye, EyeOff, Mail, Lock
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { theme } from '../lib/theme';
@@ -21,7 +22,13 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
   const [contract, setContract] = useState<Contract | null>(null);
   const [linkedAssets, setLinkedAssets] = useState<Asset[]>([]);
   const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
+  
+  const [linkedPhones, setLinkedPhones] = useState<PhoneLine[]>([]);
+  const [linkedUsers, setLinkedUsers] = useState<User[]>([]);
+  const [linkedPrinters, setLinkedPrinters] = useState<Asset[]>([]);
+  
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedContract, setEditedContract] = useState<Partial<Contract>>({});
@@ -37,12 +44,21 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
           setContract(found);
           setEditedContract(found);
           
-          const [assets, suppliers] = await Promise.all([
+          const [assets, suppliers, phones, users, printers] = await Promise.all([
             api.getContractAssets(contractId),
-            api.getSuppliers()
+            api.getSuppliers(),
+            api.getContractPhoneLines(contractId),
+            api.getContractUsers(contractId),
+            api.getContractPrinters(contractId)
           ]);
-          setLinkedAssets(assets);
+          
+          // Séparer les imprimantes des autres assets pour éviter les doublons visuels
+          setLinkedAssets(assets.filter(a => !printers.find(p => p.id === a.id)));
+          
           setAllSuppliers(suppliers);
+          setLinkedPhones(phones);
+          setLinkedUsers(users);
+          setLinkedPrinters(printers);
         }
       } catch (error) {
         console.error('Error fetching contract details:', error);
@@ -281,6 +297,124 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                  </div>
               </div>
             </div>
+
+            {/* Account Info (Forfait mobile or generic account) */}
+            {(contract.account_email || contract.account_password || contract.type === 'Forfait mobile') && (
+               <div className={theme.detailSection}>
+                  <div className={theme.detailSectionHeader}>
+                    <h3 className={theme.detailSectionTitle}>
+                       <Lock className="w-4 h-4 text-indigo-500" /> Compte de gestion
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm">
+                          <Mail className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">Email du compte</p>
+                          <p className="text-sm font-black text-slate-900 truncate">{contract.account_email || 'Non renseigné'}</p>
+                        </div>
+                     </div>
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm">
+                            <Lock className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Mot de passe</p>
+                            <p className="text-sm font-black text-slate-900 font-mono mt-0.5 tracking-wider truncate">
+                              {contract.account_password ? (showPassword ? contract.account_password : '••••••••••••') : 'Non renseigné'}
+                            </p>
+                          </div>
+                        </div>
+                        {contract.account_password && (
+                          <button 
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                          >
+                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        )}
+                     </div>
+                  </div>
+               </div>
+            )}
+
+            {/* Dynamic Multi-Associations */}
+            {(linkedPhones.length > 0 || linkedUsers.length > 0 || linkedPrinters.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Lignes Téléphoniques */}
+                {linkedPhones.length > 0 && (
+                   <div className={theme.detailSection}>
+                      <div className={theme.detailSectionHeader}>
+                        <h3 className={theme.detailSectionTitle}>
+                           <Phone className="w-4 h-4 text-emerald-500" /> Lignes associées ({linkedPhones.length})
+                        </h3>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        {linkedPhones.map(l => (
+                          <div key={l.id} className="p-3 bg-slate-50 flex items-center justify-between rounded-xl border border-slate-100">
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{l.number}</p>
+                              <p className="text-[10px] uppercase font-bold text-slate-400">{l.label}</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-300" />
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                )}
+                
+                {/* Imprimantes associées */}
+                {linkedPrinters.length > 0 && (
+                   <div className={theme.detailSection}>
+                      <div className={theme.detailSectionHeader}>
+                        <h3 className={theme.detailSectionTitle}>
+                           <Printer className="w-4 h-4 text-orange-500" /> Imprimantes ({linkedPrinters.length})
+                        </h3>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        {linkedPrinters.map(p => (
+                          <div key={p.id} className="p-3 bg-slate-50 flex items-center justify-between rounded-xl border border-slate-100">
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{p.brand} {p.model}</p>
+                              <p className="text-[10px] uppercase font-bold text-slate-400">{p.serial}</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-300" />
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                )}
+
+                {/* Utilisateurs associés */}
+                {linkedUsers.length > 0 && (
+                   <div className={theme.detailSection}>
+                      <div className={theme.detailSectionHeader}>
+                        <h3 className={theme.detailSectionTitle}>
+                           <UsersIcon className="w-4 h-4 text-blue-500" /> Utilisateurs gérés ({linkedUsers.length})
+                        </h3>
+                      </div>
+                      <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+                        {linkedUsers.map(u => (
+                          <div key={u.id} className="p-3 bg-slate-50 flex items-center justify-between rounded-xl border border-slate-100">
+                            <div className="flex items-center gap-3">
+                               <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-600 uppercase">
+                                  {u.first_name?.[0]}{u.last_name?.[0]}
+                               </div>
+                               <div>
+                                 <p className="text-sm font-bold text-slate-900">{u.first_name} {u.last_name}</p>
+                                 <p className="text-[10px] uppercase font-bold text-slate-400">{u.email}</p>
+                               </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                )}
+              </div>
+            )}
 
             {/* Linked Assets Grid */}
             <div className={theme.detailSection}>
