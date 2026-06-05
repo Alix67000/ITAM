@@ -40,7 +40,20 @@ export const theme = {
   // États
   loadingPanel: "p-16 text-center text-slate-400 text-sm font-medium flex flex-col items-center",
   loadingSpinner: "w-8 h-8 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4",
+  // État vide
   emptyPanel: "p-16 flex flex-col items-center justify-center text-center",
   emptyIconBox: "w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mb-4",
   emptyText: "text-slate-500 font-medium text-sm",
+
+  // Vues Détail (Detail Views)
+  detailHeader: "bg-white border-b border-slate-200 sticky top-0 z-[50] px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-sm",
+  detailHeaderIconBox: "w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-sm border",
+  detailMainGrid: "flex flex-col lg:grid lg:grid-cols-12 gap-8",
+  detailContent: "lg:col-span-8 space-y-8 order-2 lg:order-1",
+  detailSidebar: "lg:col-span-4 space-y-6 order-1 lg:order-2",
+  detailSection: "bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-6",
+  detailSectionHeader: "flex items-center justify-between border-b border-slate-50 pb-4",
+  detailSectionTitle: "text-xs font-black text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2",
+  detailMetaLabel: "text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block",
+  detailMetaValue: "font-bold text-slate-900 text-sm md:text-base",
 };

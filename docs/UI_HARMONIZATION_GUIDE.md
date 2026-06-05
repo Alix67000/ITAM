@@ -21,8 +21,8 @@ L'harmonisation ne doit en aucun cas casser la logique métier ou effectuer de m
 1. **Pose de la base** : (Fait) Création de `theme.ts` et ajustement de `Layout.tsx`.
 2. **Harmonisation Douce** : (Fait) Intégration sur `UserList.tsx`.
 3. **Migration des Listes Métier** : (Fait) Application de la charte unifiée sur `AssetList`, `ContractList`, `LicenseList`, `SupplierList`, `LocationList`, `PhoneLineList`. Les en-têtes de page, barres de recherche, tableaux et modales de confirmation ont été standardisés.
+4. **Harmonisation des Vues Détail** : (Fait) Application de la charte (`detailHeader`, `detailSection`, etc.) sur `AssetDetailView`, `ContractDetailView`, `LicenseDetailView` et `RelationViewer`.
 
 ## 4. Prochaines Étapes Logiques
-- Reprendre les "wizards" et formulaires de création/édition en pleine page ou modale (ex: `AssetCreateView`, `UserModal`, `AssetModal`) pour standardiser leurs en-têtes, boutons d'action et champs de formulaire.
-- Standardiser la vue "Résumé/Détail" d'un actif (`AssetDetailView`) avec les mêmes conventions visuelles de grid et sections.
-- Épurer les barres d'outils avancées (filtres complémentaires) avec les inputs unifiés.
+- Reprendre les formulaires de création/édition en pleine page ou modale (ex: `AssetCreateView`, `UserModal`, `AssetModal`) pour standardiser leurs en-têtes, boutons d'action et champs de formulaire.
+- Harmoniser le reste des vues (ex: Rapports ou formulaires simples).

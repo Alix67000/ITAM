@@ -6,6 +6,8 @@ import {
   ArrowRight, UserCheck, HardDrive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { theme } from '../lib/theme';
+import { cn } from '../lib/utils';
 import { LicenseForm } from './forms/LicenseForm';
 import { useToast } from '../services/toastContext';
 import { RelationViewer } from './RelationViewer';
@@ -107,37 +109,44 @@ export const LicenseDetailView: React.FC<LicenseDetailViewProps> = ({ licenseId,
   const supplier = suppliers.find(s => s.id === license.supplier_id);
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-20 bg-slate-50 min-h-screen">
       {/* Header with back button */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100">
-        <div className="flex items-center gap-4">
+      <div className={theme.detailHeader}>
+        <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button 
             onClick={onClose}
-            className="p-3 bg-slate-50 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all font-medium flex items-center justify-center transition-transform hover:-translate-x-1"
+            className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all font-medium flex items-center justify-center"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="h-8 w-[1px] bg-slate-200 mx-2" />
-          <div>
-            <div className="flex items-center gap-3 mb-1.5">
-               <h1 className="text-2xl font-black text-slate-900 tracking-tight">{license.label}</h1>
-               <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${
-                 license.status === 'Actif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-500'
-               }`}>
-                 {license.status}
-               </span>
+          <div className="h-6 md:h-8 w-[1px] bg-slate-200" />
+          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+            <div className={cn(theme.detailHeaderIconBox, "bg-indigo-50 text-indigo-600 border-indigo-100")}>
+               <ShieldCheck className="w-6 h-6" />
             </div>
-            <p className="text-xs uppercase font-black text-slate-500 tracking-[0.1em] flex items-center gap-2">
-              <Package className="w-4 h-4" /> {license.software}
-            </p>
+            <div className="min-w-0 flex-1">
+               <h1 className="text-base md:text-2xl font-black text-slate-900 tracking-tight truncate">{license.label}</h1>
+               <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                 <span className={cn(
+                   theme.badge,
+                   license.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100'
+                 )}>
+                   {license.status}
+                 </span>
+                 <span className="hidden sm:inline">•</span>
+                 <span className="truncate flex items-center gap-1">
+                   <Package className="w-3.5 h-3.5" /> {license.software}
+                 </span>
+               </div>
+            </div>
           </div>
         </div>
         
         {!isEditing && (
-          <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsEditing(true)}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm w-full md:w-auto"
+              className={theme.btnSecondary}
             >
               <Edit2 className="w-4 h-4" /> Modifier
             </button>
@@ -145,207 +154,219 @@ export const LicenseDetailView: React.FC<LicenseDetailViewProps> = ({ licenseId,
         )}
       </div>
 
-      <AnimatePresence mode="wait">
-        {isEditing ? (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white p-10 rounded-[3rem] shadow-xl border border-slate-100"
-          >
-            <LicenseForm 
-              initialData={license}
-              onSubmit={handleUpdate}
-              onCancel={() => setIsEditing(false)}
-              isSaving={isSaving}
-            />
-          </motion.div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-          >
-            {/* Main Details */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* License Key Hero */}
-              <div className="bg-slate-900 text-white p-8 md:p-10 rounded-[2rem] relative overflow-hidden group shadow-xl">
-                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
-                   <ShieldCheck className="w-64 h-64 text-white" />
-                </div>
-                <div className="relative z-10 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Clé de Licence Officielle</span>
-                    <div className="h-[1px] flex-1 bg-white/10" />
-                  </div>
-                  <div className="text-2xl md:text-3xl font-mono font-bold tracking-widest break-all">
-                    {license.license_key || 'AUCUNE-CLE-ENREGISTREE'}
-                  </div>
-                  <div className="flex flex-wrap gap-8 pt-6 border-t border-white/10">
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-black uppercase tracking-[0.15em] opacity-40">Type d'acquisition</span>
-                      <div className="font-bold flex items-center gap-2 text-sm">
-                        <ArrowRight className="w-4 h-4 text-indigo-400" /> {license.type}
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-black uppercase tracking-[0.15em] opacity-40">Date d'expiration</span>
-                      <div className="font-bold flex items-center gap-2 text-sm">
-                        <Clock className="w-4 h-4 text-indigo-400" /> {license.end_date ? new Date(license.end_date).toLocaleDateString() : 'Perpétuelle'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Assignments Section */}
-              <div className="bg-white p-8 md:p-10 rounded-[2rem] border border-slate-100 shadow-sm space-y-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 p-6 rounded-[1.5rem] border border-slate-100 gap-6">
-                   <div className="flex items-center gap-5">
-                      <div className={`w-14 h-14 rounded-[1rem] flex items-center justify-center border ${isFull ? 'bg-red-50 border-red-100 text-red-500' : 'bg-emerald-50 border-emerald-100 text-emerald-500'}`}>
-                         {isFull ? <ShieldAlert className="w-7 h-7" /> : <ShieldCheck className="w-7 h-7" />}
-                      </div>
-                      <div className="space-y-0.5">
-                         <div className="text-[10px] font-black uppercase text-slate-500 tracking-[0.15em]">Occupation des sièges</div>
-                         <div className="text-2xl font-black text-slate-900 tracking-tight">{usedSeats} / {license.total_seats} Sièges</div>
-                      </div>
-                   </div>
-                   <div className="w-full sm:w-48 space-y-2.5">
-                      <div className="flex justify-between text-[10px] font-black uppercase tracking-tight text-slate-500">
-                         <span className={isFull ? 'text-red-500' : 'text-emerald-600'}>{Math.round(ratio)}%</span>
-                         <span>Capacité</span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                         <div className={`h-full rounded-full transition-all duration-1000 ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${ratio}%` }} />
-                      </div>
-                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.15em] flex items-center gap-2 pb-4 border-b border-slate-50">
-                      <UserCheck className="w-4 h-4" /> Utilisateurs Assignés ({linkedUsers.length})
-                    </h3>
-                    <div className="space-y-3">
-                      {linkedUsers.length > 0 ? linkedUsers.map(user => (
-                        <div key={user.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-[1.25rem] transition-all group shadow-sm">
-                          <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-black group-hover:scale-110 transition-transform">{user.name.charAt(0)}</div>
-                          <div>
-                            <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{user.name}</div>
-                            <div className="text-[10px] text-slate-500 font-medium">{user.email || 'Pas d\'email'}</div>
-                          </div>
-                        </div>
-                      )) : (
-                        <p className="text-sm text-slate-400 font-medium p-4 text-center bg-slate-50 rounded-[1.25rem] border border-slate-100 border-dashed">Aucun utilisateur lié</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.15em] flex items-center gap-2 pb-4 border-b border-slate-50">
-                      <HardDrive className="w-4 h-4" /> Matériels Liés ({linkedAssets.length})
-                    </h3>
-                    <div className="space-y-3">
-                      {linkedAssets.length > 0 ? linkedAssets.map(asset => {
-                        const assetUser = allUsers.find(u => String(u.id) === String(asset.assigned_user_id));
-                        
-                        return (
-                          <div key={asset.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-[1.25rem] transition-all group shadow-sm">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 bg-white text-slate-500 rounded-xl flex items-center justify-center transition-all border border-slate-200 group-hover:border-indigo-200 group-hover:text-indigo-600 shadow-sm">
-                                <Package className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{asset.label}</div>
-                                <div className="text-[10px] text-slate-500 font-medium">{asset.serial || asset.inventory_number}</div>
-                              </div>
-                            </div>
-                            {assetUser && (
-                              <div className="text-right flex flex-col items-end gap-1">
-                                <div className="text-[9px] font-black uppercase text-slate-400 tracking-[0.15em]">Utilisateur</div>
-                                <div className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-md">{assetUser.name}</div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      }) : (
-                        <p className="text-sm text-slate-400 font-medium p-4 text-center bg-slate-50 rounded-[1.25rem] border border-slate-100 border-dashed">Aucun matériel lié</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar Details */}
-            <div className="space-y-6">
-              {/* Supplier Info */}
-              <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-6">
-                 <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.15em] border-b border-slate-50 pb-4">Fournisseur</h3>
-                 {supplier ? (
-                   <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                         <div className="w-14 h-14 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center border border-slate-100">
-                            <Building2 className="w-6 h-6" />
-                         </div>
-                         <div className="space-y-0.5">
-                            <div className="font-bold text-slate-900 text-base">{supplier.name}</div>
-                            <div className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Partenaire agréé</div>
-                         </div>
-                      </div>
-                      <div className="space-y-2.5 pt-4">
-                         {supplier.website && (
-                           <div className="text-sm font-medium text-slate-600 flex items-center gap-2 truncate">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" /> {supplier.website}
-                           </div>
-                         )}
-                         <div className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Contact principal lié
-                         </div>
-                      </div>
-                   </div>
-                 ) : (
-                   <div className="text-center py-10 space-y-3">
-                      <div className="w-12 h-12 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mx-auto">
-                        <Building2 className="w-6 h-6" />
-                      </div>
-                      <p className="text-sm text-slate-400 font-medium tracking-tight">Aucun fournisseur rattaché</p>
-                   </div>
-                 )}
-              </div>
-
-              {/* Maintenance / Support */}
-              <div className="bg-indigo-600 text-white p-8 rounded-[2rem] shadow-xl shadow-indigo-100 space-y-6 relative overflow-hidden">
-                 <div className="absolute -bottom-6 -right-6 opacity-10">
-                    <ShieldCheck className="w-32 h-32" />
-                 </div>
-                 <div className="relative z-10 space-y-5">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.15em] opacity-60">Support & Conformité</h3>
-                    <div className="space-y-4">
-                       <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                          <span className="text-sm font-bold tracking-tight">Support Standard Actif</span>
-                       </div>
-                       <div className="p-4 bg-white/10 rounded-2xl border border-white/20">
-                          <p className="text-[11px] leading-relaxed opacity-90 font-medium">
-                            "Cette licence est régulièrement auditée par notre service informatique pour garantir le respect des quotas d'installation."
-                          </p>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-
-              <RelationViewer
-                entityType="license"
-                entityId={licenseId}
-                title="Relations métier"
-                className="border-slate-100 shadow-sm rounded-[2rem]"
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
+        <AnimatePresence mode="wait">
+          {isEditing ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className={theme.detailSection}
+            >
+              <LicenseForm 
+                initialData={license}
+                onSubmit={handleUpdate}
+                onCancel={() => setIsEditing(false)}
+                isSaving={isSaving}
               />
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={theme.detailMainGrid}
+            >
+              {/* Main Details */}
+              <div className={theme.detailContent}>
+                {/* License Key Hero */}
+                <div className="bg-slate-900 text-white p-8 md:p-10 rounded-[2rem] border border-slate-800 relative overflow-hidden group shadow-xl">
+                  <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
+                     <ShieldCheck className="w-64 h-64 text-white" />
+                  </div>
+                  <div className="relative z-10 space-y-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Clé de Licence Officielle</span>
+                      <div className="h-[1px] flex-1 bg-white/10" />
+                    </div>
+                    <div className="text-2xl md:text-3xl font-mono font-bold tracking-widest break-all">
+                      {license.license_key || 'AUCUNE-CLE-ENREGISTREE'}
+                    </div>
+                    <div className="flex flex-wrap gap-8 pt-6 border-t border-white/10">
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em] opacity-40">Type d'acquisition</span>
+                        <div className="font-bold flex items-center gap-2 text-sm">
+                          <ArrowRight className="w-4 h-4 text-indigo-400" /> {license.type}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em] opacity-40">Date d'expiration</span>
+                        <div className="font-bold flex items-center gap-2 text-sm">
+                          <Clock className="w-4 h-4 text-indigo-400" /> {license.end_date ? new Date(license.end_date).toLocaleDateString() : 'Perpétuelle'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                {/* Assignments Section */}
+                <div className={theme.detailSection}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 p-6 rounded-2xl border border-slate-100 gap-6">
+                     <div className="flex items-center gap-5">
+                        <div className={`w-14 h-14 rounded-[1rem] flex items-center justify-center border ${isFull ? 'bg-red-50 border-red-100 text-red-500' : 'bg-emerald-50 border-emerald-100 text-emerald-500'}`}>
+                           {isFull ? <ShieldAlert className="w-7 h-7" /> : <ShieldCheck className="w-7 h-7" />}
+                        </div>
+                        <div className="space-y-0.5">
+                           <div className="text-[10px] font-black uppercase text-slate-500 tracking-[0.15em]">Occupation des sièges</div>
+                           <div className="text-2xl font-black text-slate-900 tracking-tight">{usedSeats} / {license.total_seats} Sièges</div>
+                        </div>
+                     </div>
+                     <div className="w-full sm:w-48 space-y-2.5">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-tight text-slate-500">
+                           <span className={isFull ? 'text-red-500' : 'text-emerald-600'}>{Math.round(ratio)}%</span>
+                           <span>Capacité</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                           <div className={`h-full rounded-full transition-all duration-1000 ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${ratio}%` }} />
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div className="space-y-6">
+                      <div className={theme.detailSectionHeader}>
+                        <h3 className={theme.detailSectionTitle}>
+                          <UserCheck className="w-4 h-4" /> Utilisateurs Assignés ({linkedUsers.length})
+                        </h3>
+                      </div>
+                      <div className="space-y-3">
+                        {linkedUsers.length > 0 ? linkedUsers.map(user => (
+                          <div key={user.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-2xl transition-all group shadow-sm cursor-pointer">
+                            <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-black group-hover:scale-110 transition-transform">{user.name.charAt(0)}</div>
+                            <div>
+                              <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{user.name}</div>
+                              <div className="text-[10px] text-slate-500 font-medium">{user.email || 'Pas d\'email'}</div>
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
+                            <p className={theme.emptyText}>Aucun utilisateur lié</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className={theme.detailSectionHeader}>
+                        <h3 className={theme.detailSectionTitle}>
+                          <HardDrive className="w-4 h-4" /> Matériels Liés ({linkedAssets.length})
+                        </h3>
+                      </div>
+                      <div className="space-y-3">
+                        {linkedAssets.length > 0 ? linkedAssets.map(asset => {
+                          const assetUser = allUsers.find(u => String(u.id) === String(asset.assigned_user_id));
+                          
+                          return (
+                            <div key={asset.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-2xl transition-all group shadow-sm cursor-pointer">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-white text-slate-500 rounded-xl flex items-center justify-center transition-all border border-slate-200 group-hover:border-indigo-200 group-hover:text-indigo-600 shadow-sm">
+                                  <Package className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{asset.label}</div>
+                                  <div className="text-[10px] text-slate-500 font-medium">{asset.serial || asset.inventory_number}</div>
+                                </div>
+                              </div>
+                              {assetUser && (
+                                <div className="text-right flex flex-col items-end gap-1">
+                                  <div className="text-[9px] font-black uppercase text-slate-400 tracking-[0.15em]">Utilisateur</div>
+                                  <div className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-md">{assetUser.name}</div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }) : (
+                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
+                            <p className={theme.emptyText}>Aucun matériel lié</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar Details */}
+              <div className={theme.detailSidebar}>
+                {/* Supplier Info */}
+                <div className={theme.detailSection}>
+                   <div className={theme.detailSectionHeader}>
+                     <h3 className={theme.detailSectionTitle}>Fournisseur</h3>
+                   </div>
+                   {supplier ? (
+                     <div className="space-y-4 mt-4">
+                        <div className="flex items-center gap-4">
+                           <div className="w-14 h-14 bg-slate-50 text-slate-500 rounded-2xl flex items-center justify-center border border-slate-100">
+                              <Building2 className="w-6 h-6" />
+                           </div>
+                           <div className="space-y-0.5">
+                              <div className="font-bold text-slate-900 text-base">{supplier.name}</div>
+                              <div className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Partenaire agréé</div>
+                           </div>
+                        </div>
+                        <div className="space-y-2.5 pt-4">
+                           {supplier.website && (
+                             <div className="text-sm font-medium text-slate-600 flex items-center gap-2 truncate">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> <a href={supplier.website.startsWith('http') ? supplier.website : `https://${supplier.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 hover:underline">{supplier.website}</a>
+                             </div>
+                           )}
+                           <div className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Ce fournisseur est actif
+                           </div>
+                        </div>
+                     </div>
+                   ) : (
+                     <div className="text-center py-8 mt-4 space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                        <div className="w-10 h-10 bg-white text-slate-300 rounded-xl flex items-center justify-center mx-auto shadow-sm">
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                        <p className={theme.emptyText}>Aucun fournisseur rattaché</p>
+                     </div>
+                   )}
+                </div>
+
+                {/* Maintenance / Support */}
+                <div className={cn(theme.detailSection, "bg-indigo-600 text-white shadow-xl shadow-indigo-100/50 space-y-6 relative overflow-hidden border-indigo-500")}>
+                   <div className="absolute -bottom-6 -right-6 opacity-10">
+                      <ShieldCheck className="w-32 h-32" />
+                   </div>
+                   <div className="relative z-10 space-y-5">
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.15em] opacity-60">Support & Conformité</h3>
+                      <div className="space-y-4">
+                         <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                            <span className="text-sm font-bold tracking-tight">Support Standard Actif</span>
+                         </div>
+                         <div className="p-4 bg-white/10 rounded-2xl border border-white/20">
+                            <p className="text-[11px] leading-relaxed opacity-90 font-medium">
+                              "Cette licence est régulièrement auditée par notre service informatique pour garantir le respect des quotas."
+                            </p>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <RelationViewer
+                  entityType="license"
+                  entityId={licenseId}
+                  title="Relations métier"
+                  className={cn(theme.detailSection, "p-0 overflow-hidden border-none shadow-none")}
+                />
+
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { theme } from '../lib/theme';
+import { cn } from '../lib/utils';
 import { relationService } from '../services/relationService';
 import { EntityType, NormalizedRelation } from '../services/relationTypes';
 import { 
@@ -99,32 +101,32 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
 
   if (loading) {
     return (
-      <div className={`p-6 border border-slate-200 rounded-xl bg-white flex flex-col items-center justify-center ${className}`}>
-        <Loader2 className="w-6 h-6 text-slate-400 mb-2 animate-spin" />
-        <p className="text-sm text-slate-500">Chargement des relations...</p>
+      <div className={cn("p-6 flex flex-col items-center justify-center", className)}>
+        <Loader2 className="w-6 h-6 text-indigo-400 mb-2 animate-spin" />
+        <p className={theme.emptyText}>Chargement des relations...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={`p-6 border border-red-100 rounded-xl bg-red-50 text-red-600 flex items-center gap-3 ${className}`}>
-         <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+      <div className={cn("p-6 border border-red-100 rounded-2xl bg-red-50 text-red-600 flex items-center gap-3", className)}>
+         <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
            <Link2 className="w-4 h-4" />
          </div>
-         <p className="text-sm font-medium">{error}</p>
+         <p className="text-sm font-bold tracking-tight">{error}</p>
       </div>
     );
   }
 
   if (relations.length === 0) {
     return (
-      <div className={`p-8 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center text-center ${className}`}>
-        <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-3">
-          <Link2 className="w-6 h-6 text-slate-400" />
+      <div className={cn("p-8 border border-dashed border-slate-200 bg-slate-50/50 rounded-2xl flex flex-col items-center text-center", className)}>
+        <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center mb-3">
+          <Link2 className="w-5 h-5 text-slate-400" />
         </div>
-        <h3 className="font-medium text-slate-700 mb-1">{title}</h3>
-        <p className="text-sm text-slate-500">Aucune relation trouvée pour cette fiche.</p>
+        <h3 className="font-bold text-slate-800 text-sm tracking-tight mb-1">{title}</h3>
+        <p className={theme.emptyText}>Aucune relation métier trouvée.</p>
       </div>
     );
   }
@@ -139,13 +141,14 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
   }, {} as Record<EntityType, NormalizedRelation[]>);
 
   return (
-    <div className={`bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm ${className}`}>
-      <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-        <ArrowRightLeft className="w-4 h-4 text-slate-500" />
-        <h3 className="font-semibold text-slate-800">{title}</h3>
+    <div className={cn(theme.detailSection, className)}>
+      <div className={cn(theme.detailSectionHeader, "px-6 py-4 -mx-6 -mt-6 border-b border-slate-100 bg-slate-50/50 rounded-t-3xl")}>
+        <h3 className={theme.detailSectionTitle}>
+          <ArrowRightLeft className="w-4 h-4 text-slate-500" /> {title}
+        </h3>
       </div>
       
-      <div className="p-5 flex flex-col gap-6">
+      <div className="pt-6 flex flex-col gap-6">
         {(Object.keys(grouped) as EntityType[]).map(type => {
           const groupIcons = getEntityIcon(type);
           const Icon = groupIcons;
@@ -166,30 +169,33 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
                      <div 
                         key={rel.id}
                         onClick={() => clickable && handleNav(relatedEntity.type, relatedEntity.id)}
-                        className={`flex items-center justify-between p-3 border border-slate-200 rounded-lg group ${clickable ? 'cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm transition-all' : 'bg-slate-50/50'}`}
+                        className={cn(
+                          "flex items-center justify-between p-4 border border-slate-100 rounded-2xl group transition-all",
+                          clickable ? 'cursor-pointer hover:border-indigo-200 hover:bg-slate-50 hover:shadow-sm bg-white' : 'bg-slate-50/50'
+                        )}
                      >
                         <div className="flex flex-col min-w-0 pr-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-slate-900 truncate">
+                          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
                             <span className="truncate">{relatedEntity.label || 'Non nommé'}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             {rel.direction === 'incoming' && (
-                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded" title="Entrant">Entrant</span>
+                              <span className="text-[10px] uppercase font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md tracking-wider" title="Entrant">Entrant</span>
                             )}
-                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full capitalize">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md tracking-wider capitalize">
                               {rel.relation_type.replace(/_/g, ' ')}
                             </span>
                             {rel.direction === 'outgoing' && (
-                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded" title="Sortant">Sortant</span>
+                              <span className="text-[10px] uppercase font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md tracking-wider" title="Sortant">Sortant</span>
                             )}
                             {rel.origin === 'generic' && (
-                              <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">Générique</span>
+                              <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md tracking-wider">Générique</span>
                             )}
                           </div>
                         </div>
                         
                         {clickable && (
-                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 flex-shrink-0" />
+                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 flex-shrink-0 transition-transform group-hover:translate-x-1" />
                         )}
                      </div>
                    );

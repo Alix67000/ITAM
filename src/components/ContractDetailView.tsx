@@ -6,6 +6,7 @@ import {
   Edit2, Plus, ArrowRight, ShieldCheck, Clock, ExternalLink
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { theme } from '../lib/theme';
 import { useToast } from '../services/toastContext';
 import { RelationViewer } from './RelationViewer';
 
@@ -102,7 +103,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
       className="bg-slate-50 min-h-screen"
     >
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-[100] px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-sm">
+      <div className={theme.detailHeader}>
         <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button 
             onClick={onClose}
@@ -112,7 +113,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
           </button>
           <div className="h-6 md:h-8 w-[1px] bg-slate-200" />
           <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-             <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-950 rounded-xl md:rounded-2xl flex items-center justify-center text-indigo-400 flex-shrink-0">
+             <div className={cn(theme.detailHeaderIconBox, "bg-indigo-50 text-indigo-600 border-indigo-100")}>
                <ShieldCheck className="w-6 h-6" />
              </div>
              <div className="min-w-0 flex-1">
@@ -123,7 +124,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                      <span className="truncate">{contract.reference}</span>
                      <span className="hidden sm:inline">•</span>
                      <span className={cn(
-                       "px-2 py-0.5 rounded-full border text-[8px] md:text-[10px]",
+                       theme.badge,
                        getStatusColor(contract.status)
                      )}>
                        {contract.status}
@@ -133,19 +134,19 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                ) : (
                  <div className="space-y-2">
                     <input 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-sm font-bold"
+                      className={theme.inputBase}
                       value={editedContract.label}
                       onChange={e => setEditedContract({ ...editedContract, label: e.target.value })}
                     />
                     <div className="flex gap-2">
                       <input 
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-[10px] font-mono"
+                        className={cn(theme.inputBase, "flex-1 py-1 px-3 text-xs")}
                         value={editedContract.reference}
                         onChange={e => setEditedContract({ ...editedContract, reference: e.target.value })}
                         placeholder="Référence"
                       />
                       <select 
-                        className="bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-[10px] font-bold"
+                        className={cn(theme.inputBase, "py-1 px-3 text-xs")}
                         value={editedContract.status}
                         onChange={e => setEditedContract({ ...editedContract, status: e.target.value })}
                       >
@@ -164,7 +165,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
           {!isEditing ? (
             <button 
               onClick={() => setIsEditing(true)}
-              className="p-2 md:px-6 md:py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center gap-2"
+              className={theme.btnSecondary}
             >
               <Edit2 className="w-4 h-4" /> <span className="hidden md:inline">Modifier</span>
             </button>
@@ -172,14 +173,14 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
             <div className="flex gap-2">
                <button 
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 text-slate-500 font-bold uppercase text-[10px]"
+                className="px-4 py-2 text-slate-500 font-bold uppercase text-[10px] hover:text-slate-700"
               >
                 Annuler
               </button>
               <button 
                 onClick={handleGlobalSave}
                 disabled={isSaving}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 flex items-center gap-2"
+                className={theme.btnPrimary}
               >
                 {isSaving && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                 Sauver
@@ -190,13 +191,13 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+        <div className={theme.detailMainGrid}>
           
-          {/* Main Content (2/3) */}
-          <div className="lg:col-span-8 space-y-8">
+          {/* Main Content */}
+          <div className={theme.detailContent}>
             
             {/* General Info Card */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-8">
+            <div className={theme.detailSection}>
               <div className="flex items-center gap-3">
                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                    <FileText className="w-5 h-5" />
@@ -206,12 +207,12 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
 
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
                  <div className="space-y-1">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Type de Contrat</p>
+                   <p className={theme.detailMetaLabel}>Type de Contrat</p>
                    {!isEditing ? (
-                     <p className="font-bold text-slate-900">{contract.type}</p>
+                     <p className={theme.detailMetaValue}>{contract.type}</p>
                    ) : (
                      <select 
-                       className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-bold"
+                       className={cn(theme.inputBase, "py-1.5 px-3 text-sm")}
                        value={editedContract.type}
                        onChange={e => setEditedContract({ ...editedContract, type: e.target.value })}
                      >
@@ -226,30 +227,30 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                  </div>
 
                  <div className="space-y-1">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Coût Annuel / Total</p>
+                   <p className={theme.detailMetaLabel}>Coût Annuel / Total</p>
                    {!isEditing ? (
                      <p className="font-bold text-indigo-600 text-lg">{contract.price?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</p>
                    ) : (
                      <div className="relative">
                        <input 
                          type="number"
-                         className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-bold pl-6"
+                         className={cn(theme.inputBase, "py-1.5 pl-8 pr-3 text-sm")}
                          value={editedContract.price}
                          onChange={e => setEditedContract({ ...editedContract, price: Number(e.target.value) })}
                        />
-                       <CreditCard className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+                       <CreditCard className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                      </div>
                    )}
                  </div>
 
                  <div className="space-y-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date de Début</p>
+                    <p className={theme.detailMetaLabel}>Date de Début</p>
                     {!isEditing ? (
-                      <p className="font-bold text-slate-900">{new Date(contract.start_date).toLocaleDateString('fr-FR')}</p>
+                      <p className={theme.detailMetaValue}>{new Date(contract.start_date).toLocaleDateString('fr-FR')}</p>
                     ) : (
                       <input 
                         type="date"
-                        className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-bold"
+                        className={cn(theme.inputBase, "py-1.5 px-3 text-sm")}
                         value={editedContract.start_date?.split('T')[0]}
                         onChange={e => setEditedContract({ ...editedContract, start_date: e.target.value })}
                       />
@@ -257,10 +258,10 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                  </div>
 
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date de Fin</p>
+                    <p className={theme.detailMetaLabel}>Date de Fin</p>
                     {!isEditing ? (
                       <p className={cn(
-                        "font-bold",
+                        theme.detailMetaValue,
                         new Date(contract.end_date) < new Date() ? 'text-red-500' : 'text-slate-900'
                       )}>
                         {new Date(contract.end_date).toLocaleDateString('fr-FR')}
@@ -268,7 +269,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                     ) : (
                       <input 
                         type="date"
-                        className="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-sm font-bold"
+                        className={cn(theme.inputBase, "py-1.5 px-3 text-sm")}
                         value={editedContract.end_date?.split('T')[0]}
                         onChange={e => setEditedContract({ ...editedContract, end_date: e.target.value })}
                       />
@@ -278,19 +279,16 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
             </div>
 
             {/* Linked Assets Grid */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
-                     <Box className="w-5 h-5" />
-                   </div>
-                   <h2 className="text-xl font-black text-slate-900 tracking-tight">Matériel Couvert ({linkedAssets.length})</h2>
-                </div>
+            <div className={theme.detailSection}>
+              <div className={theme.detailSectionHeader}>
+                <h3 className={theme.detailSectionTitle}>
+                   <Box className="w-4 h-4 text-orange-500" /> Matériel Couvert ({linkedAssets.length})
+                </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {linkedAssets.length > 0 ? linkedAssets.map(asset => (
-                   <div key={asset.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                   <div key={asset.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all cursor-pointer">
                       <div className="flex items-center gap-4">
                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 shadow-sm transition-colors">
                            <Box className="w-5 h-5" />
@@ -303,8 +301,8 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                       <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400 transition-transform group-hover:translate-x-1" />
                    </div>
                 )) : (
-                  <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 italic text-sm">
-                    Aucun matériel n'est spécifiquement rattaché à ce contrat.
+                  <div className="col-span-full py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
+                    <p className={theme.emptyText}>Aucun matériel n'est spécifiquement rattaché à ce contrat.</p>
                   </div>
                 )}
               </div>
@@ -312,11 +310,11 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
 
           </div>
 
-          {/* Sidebar (1/3) */}
-          <div className="lg:col-span-4 space-y-8">
+          {/* Sidebar */}
+          <div className={theme.detailSidebar}>
             
             {/* Supplier Quick Card */}
-            <div className="bg-indigo-950 rounded-3xl p-8 border border-indigo-900 shadow-xl text-white space-y-8 relative overflow-hidden">
+            <div className={cn(theme.detailSection, "bg-indigo-950 border-indigo-900 shadow-xl text-white relative overflow-hidden")}>
                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full" />
                
                <div className="space-y-2 relative">
@@ -358,13 +356,13 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
             </div>
 
             {/* Action Card Placeholder */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+            <div className={theme.detailSection}>
                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Actions de gestion</h3>
                <div className="flex flex-col gap-3">
-                  <button className="w-full py-4 bg-slate-50 text-slate-600 rounded-2xl text-xs font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                  <button className="w-full py-4 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
                     <CreditCard className="w-4 h-4" /> Gérer la facturation
                   </button>
-                  <button className="w-full py-4 bg-slate-50 text-slate-600 rounded-2xl text-xs font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                  <button className="w-full py-4 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
                     <Landmark className="w-4 h-4" /> Consulter les CGV
                   </button>
                </div>
@@ -374,7 +372,7 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
               entityType="contract"
               entityId={contractId}
               title="Relations métier"
-              className="border-slate-200 shadow-sm rounded-3xl"
+              className={cn(theme.detailSection, "p-0 overflow-hidden border-none shadow-none")}
             />
 
           </div>

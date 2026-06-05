@@ -7,6 +7,7 @@ import {
   MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2, Package
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { theme } from '../lib/theme';
 import { AssetForm } from './forms/AssetForm';
 import { useToast } from '../services/toastContext';
 
@@ -221,7 +222,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   return (
     <div className="bg-slate-50 min-h-screen pb-20 md:pb-0 font-sans">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-[100] px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-sm">
+      <div className={theme.detailHeader}>
         <div className="flex items-center gap-2 md:gap-4 flex-1">
           <button 
             onClick={onClose}
@@ -232,14 +233,14 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           <div className="h-6 md:h-8 w-[1px] bg-slate-200" />
           <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
              <div className={cn(
-               "w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-sm border",
+               theme.detailHeaderIconBox,
                asset.status === 'En service' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'
              )}>
                 {getAssetIcon(asset.type, "w-6 h-6")}
              </div>
              <div className="min-w-0 flex-1 space-y-0.5">
                 <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight truncate">{asset.label}</h1>
-                <div className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] flex items-center flex-wrap gap-2">
+                <div className="flex items-center flex-wrap gap-2 text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em]">
                   <span className="truncate">S/N: {asset.serial || '---'}</span>
                   {asset.inventory_number && (
                     <>
@@ -249,9 +250,9 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                   )}
                   <span className="hidden sm:inline opacity-30">•</span>
                   <span className={cn(
-                    "px-2 py-0.5 rounded-md font-black tracking-widest",
-                    asset.status === 'En service' ? 'bg-emerald-50 text-emerald-600' : 
-                    asset.status === 'Panne' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
+                    theme.badge,
+                    asset.status === 'En service' ? theme.badgeSuccess : 
+                    asset.status === 'Panne' ? theme.badgeDanger : theme.badgeWarning
                   )}>
                     {asset.status}
                   </span>
@@ -261,82 +262,86 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         </div>
         <button 
           onClick={() => setIsEditing(true)}
-          className="px-4 py-2 md:px-6 md:py-3 bg-white border border-slate-200 shadow-sm text-slate-700 rounded-xl text-xs md:text-sm font-bold tracking-wide hover:bg-slate-50 transition-all flex items-center gap-2"
+          className={theme.btnSecondary}
         >
           <Edit2 className="w-4 h-4" /> Modifier
         </button>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+        <div className={theme.detailMainGrid}>
           
           {/* Main Column */}
-          <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
+          <div className={theme.detailContent}>
             
             {/* Life Cycle & Finance Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-6">
-                <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.15em]">Cycle de Vie</h2>
+              <div className={theme.detailSection}>
+                <div className={theme.detailSectionHeader}>
+                  <h2 className={theme.detailSectionTitle}>
+                    <div className="w-2 h-2 rounded-full bg-blue-500" /> Cycle de Vie
+                  </h2>
                 </div>
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">État</label>
-                    <p className="font-bold text-slate-900 capitalize text-sm">{asset.condition || 'neuf'}</p>
+                    <label className={theme.detailMetaLabel}>État</label>
+                    <p className={cn(theme.detailMetaValue, "capitalize")}>{asset.condition || 'neuf'}</p>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Âge estimé</label>
-                    <p className="font-bold text-slate-900 text-sm">
+                    <label className={theme.detailMetaLabel}>Âge estimé</label>
+                    <p className={theme.detailMetaValue}>
                       {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
                     </p>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Fabrication</label>
-                    <p className="font-bold text-slate-900 text-sm">{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
+                    <label className={theme.detailMetaLabel}>Fabrication</label>
+                    <p className={theme.detailMetaValue}>{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Mise en service</label>
-                    <p className="font-bold text-slate-900 text-sm">{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
+                    <label className={theme.detailMetaLabel}>Mise en service</label>
+                    <p className={theme.detailMetaValue}>{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-6">
-                <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.15em]">Finance & Garantie</h2>
+              <div className={theme.detailSection}>
+                <div className={theme.detailSectionHeader}>
+                  <h2 className={theme.detailSectionTitle}>
+                    <div className="w-2 h-2 rounded-full bg-amber-500" /> Finance & Garantie
+                  </h2>
                 </div>
                 <div className="space-y-6">
                   <div className="flex justify-between items-end border-b border-slate-50 pb-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Valeur d'acquisition</label>
+                      <label className={theme.detailMetaLabel}>Valeur d'acquisition</label>
                       <p className="text-3xl font-black text-slate-900 font-mono tracking-tight">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
                     </div>
                   </div>
                   <div className={cn(
-                    "p-5 rounded-2xl flex items-center justify-between border",
+                    "p-4 rounded-xl flex items-center justify-between border",
                     asset.has_warranty ? "bg-emerald-50/50 text-emerald-700 border-emerald-100" : "bg-slate-50/50 text-slate-500 border-slate-100"
                   )}>
                     <div className="space-y-1">
                       <p className="text-[10px] font-black uppercase tracking-[0.1em]">Couverture Garantie</p>
                       <p className="text-sm font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
                     </div>
-                    <Key className={cn("w-6 h-6", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
+                    <Key className={cn("w-5 h-5", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Tech Specs Summary */}
-            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm space-y-8">
-              <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.15em] border-b border-slate-50 pb-4">Détails Techniques</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8">
+            <div className={theme.detailSection}>
+              <div className={theme.detailSectionHeader}>
+                <h2 className={theme.detailSectionTitle}>Détails Techniques</h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-6">
                 {specsIsJson ? (
                   Object.entries(specs).map(([key, value]) => (
                     <div key={key} className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">{key}</label>
-                      <p className="font-bold text-slate-900 text-sm md:text-base">{String(value) || '---'}</p>
+                      <label className={theme.detailMetaLabel}>{key}</label>
+                      <p className={theme.detailMetaValue}>{String(value) || '---'}</p>
                     </div>
                   ))
                 ) : (
@@ -345,24 +350,24 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                   </div>
                 )}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Type précis</label>
-                  <p className="font-bold text-slate-900 text-sm md:text-base">{asset.subtype || '---'}</p>
+                  <label className={theme.detailMetaLabel}>Type précis</label>
+                  <p className={theme.detailMetaValue}>{asset.subtype || '---'}</p>
                 </div>
               </div>
             </div>
 
             {/* Software, Licenses, Contracts Sections (Simplified) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Licenses */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <Key className="w-3 h-3" /> Licences ({licenses.length})
+              <div className={theme.detailSection}>
+                <div className={theme.detailSectionHeader}>
+                  <h3 className={theme.detailSectionTitle}>
+                    <Key className="w-4 h-4" /> Licences ({licenses.length})
                   </h3>
-                  <button onClick={() => setShowLicenseAdd(!showLicenseAdd)} className="p-1.5 hover:bg-slate-50 rounded-lg"><Plus className="w-3 h-3" /></button>
+                  <button onClick={() => setShowLicenseAdd(!showLicenseAdd)} className={theme.btnIconGhost}><Plus className="w-4 h-4" /></button>
                 </div>
                 {showLicenseAdd && (
-                  <select onChange={(e) => handleLinkLicense(e.target.value)} className="w-full p-2 text-xs border rounded-lg">
+                  <select onChange={(e) => handleLinkLicense(e.target.value)} className={cn(theme.inputBase, "p-2 text-xs")}>
                     <option value="">Lier une licence...</option>
                     {allLicenses.map(l => <option key={l.id} value={l.id}>{l.label} ({l.software})</option>)}
                   </select>
@@ -371,22 +376,25 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                   {licenses.map(lic => (
                     <div key={lic.id} className="p-3 bg-slate-50 rounded-xl text-xs font-bold text-slate-700 border border-slate-100 flex justify-between">
                       <span>{lic.label}</span>
-                      <span className="text-[8px] opacity-50">{lic.software}</span>
+                      <span className="text-[9px] opacity-60 font-black tracking-widest uppercase">{lic.software}</span>
                     </div>
                   ))}
+                  {licenses.length === 0 && !showLicenseAdd && (
+                     <div className="text-center py-4 text-xs font-medium text-slate-400 italic">Aucune licence</div>
+                  )}
                 </div>
               </div>
 
               {/* Contracts */}
-              <div className="bg-indigo-900 rounded-3xl p-6 border border-indigo-800 shadow-xl text-white space-y-4">
-                <div className="flex items-center justify-between border-b border-indigo-800/50 pb-3">
-                  <h3 className="text-[10px] font-black text-indigo-300 uppercase tracking-widest flex items-center gap-2">
-                    <FileText className="w-3 h-3" /> Contrats ({contracts.length})
+              <div className={theme.detailSection}>
+                <div className={theme.detailSectionHeader}>
+                  <h3 className={theme.detailSectionTitle}>
+                    <FileText className="w-4 h-4" /> Contrats ({contracts.length})
                   </h3>
-                  <button onClick={() => setShowContractAdd(!showContractAdd)} className="p-1.5 hover:bg-white/10 rounded-lg"><Plus className="w-3 h-3" /></button>
+                  <button onClick={() => setShowContractAdd(!showContractAdd)} className={theme.btnIconGhost}><Plus className="w-4 h-4" /></button>
                 </div>
                 {showContractAdd && (
-                  <select onChange={(e) => handleLinkContract(e.target.value)} className="w-full p-2 text-xs border rounded-lg bg-indigo-950 text-white">
+                  <select onChange={(e) => handleLinkContract(e.target.value)} className={cn(theme.inputBase, "p-2 text-xs")}>
                     <option value="">Lier un contrat...</option>
                     {allContracts.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
@@ -399,37 +407,40 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     
                     return (
                       <div key={c.id} className={cn(
-                        "p-3 rounded-xl border flex flex-col gap-1",
-                        isExpired ? "bg-red-900/50 border-red-700/50 text-red-200" : 
-                        isExpiring ? "bg-amber-900/50 border-amber-700/50 text-amber-200" : 
-                        "bg-indigo-800/50 border-indigo-700 text-white font-bold"
+                        "p-3 rounded-xl border flex flex-col gap-1.5",
+                        isExpired ? "bg-red-50 border-red-200 text-red-900" : 
+                        isExpiring ? "bg-amber-50 border-amber-200 text-amber-900" : 
+                        "bg-slate-50 border-slate-200 text-slate-900"
                       )}>
                         <div className="flex justify-between items-start">
                           <span className="text-xs font-bold">{c.label}</span>
                           {(isExpiring || isExpired) && (
                             <span className={cn(
-                               "text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase",
-                               isExpired ? "bg-red-800/50" : "bg-amber-800/50"
+                               theme.badge,
+                               isExpired ? theme.badgeDanger : theme.badgeWarning
                             )}>
                               {isExpired ? 'Expiré' : `Expire dans ${diffDays}j`}
                             </span>
                           )}
                         </div>
-                        <div className="flex justify-between text-[10px] opacity-70">
+                        <div className="flex justify-between text-[10px] font-medium opacity-60">
                           <span>{c.reference || c.type}</span>
                           <span>{new Date(c.end_date).toLocaleDateString('fr-FR')}</span>
                         </div>
                       </div>
                     );
                   })}
+                  {contracts.length === 0 && !showContractAdd && (
+                     <div className="text-center py-4 text-xs font-medium text-slate-400 italic">Aucun contrat</div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Peripherals */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-               <div className="flex items-center justify-between border-b border-slate-50 pb-4">
-                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className={theme.detailSection}>
+               <div className={theme.detailSectionHeader}>
+                 <h3 className={theme.detailSectionTitle}>
                    <Monitor className="w-4 h-4 text-blue-500" /> Matériels rattachés ({combinedAssets.length})
                  </h3>
                </div>
@@ -440,31 +451,28 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                      return (
                        <div 
                           key={child.id} 
-                          className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4 hover:border-blue-200 hover:bg-blue-50/10 transition-all group cursor-pointer"
+                          className="p-4 bg-white border border-slate-200 rounded-xl flex items-start gap-3 hover:border-indigo-300 hover:bg-slate-50 transition-all group cursor-pointer"
                           onClick={() => {
                             navigate(`/assets/${child.id}`);
                           }}
                         >
-                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm border border-slate-50 transition-colors">
-                           {getAssetIcon(child.type, "w-6 h-6")}
+                         <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors border border-slate-100">
+                           {getAssetIcon(child.type, "w-5 h-5")}
                          </div>
                          <div className="min-w-0 flex-1 space-y-1">
                            <div className="flex items-center justify-between gap-2">
                              <div className="text-sm font-bold text-slate-900 truncate">{child.label}</div>
+                           </div>
+                           <div className="flex items-center gap-2">
                              <span className={cn(
-                               "px-2 py-0.5 rounded-full text-[8px] font-black uppercase",
-                               child.status === 'En service' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                               theme.badge,
+                               child.status === 'En service' ? theme.badgeSuccess : theme.badgeWarning
                              )}>
                                {child.status}
                              </span>
-                           </div>
-                           <div className="flex flex-col gap-0.5">
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
                                {child.subtype || child.type}
                              </div>
-                             {child.serial && (
-                               <div className="text-[9px] font-mono text-slate-400">S/N: {child.serial}</div>
-                             )}
                            </div>
                          </div>
                        </div>
@@ -472,15 +480,15 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                    })}
                  </div>
                ) : (
-                 <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-100 rounded-3xl">
-                    <Settings className="w-10 h-10 text-slate-100 mb-2" />
-                    <p className="text-[11px] font-bold text-slate-300 uppercase tracking-[0.2em]">Aucun matériel lié</p>
+                 <div className="flex flex-col items-center justify-center py-10 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                    <Settings className="w-8 h-8 text-slate-300 mb-2" />
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aucun matériel lié</p>
                  </div>
                )}
             </div>
 
             {/* Events Section */}
-            <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-100 shadow-sm relative overflow-hidden group mt-6">
+            <div className={cn(theme.detailSection, "relative overflow-hidden group mt-6")}>
                <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity">
                  <Calendar className="w-48 h-48 text-indigo-500" />
                </div>
@@ -594,21 +602,21 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           </div>
 
           {/* Sidebar Column */}
-          <div className="lg:col-span-4 space-y-6 order-1 lg:order-2">
-            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center gap-6 text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-[2rem] flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-indigo-200">
+          <div className={theme.detailSidebar}>
+            <div className={cn(theme.detailSection, "flex flex-col items-center gap-6 text-center")}>
+              <div className="w-24 h-24 bg-indigo-50 rounded-[2rem] flex items-center justify-center text-indigo-600 text-4xl font-black shadow-inner border border-indigo-100">
                 {assignedUser ? assignedUser.name.charAt(0) : '?'}
               </div>
               <div className="space-y-1.5 w-full">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Utilisateur Assigné</p>
+                <p className={theme.detailMetaLabel}>Utilisateur Assigné</p>
                 <h4 className="text-xl font-bold text-slate-900 tracking-tight">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
               </div>
               
-              <div className="w-full pt-6 border-t border-slate-50">
-                 <div className="flex items-center gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-6 h-6 text-slate-500" /></div>
+              <div className="w-full pt-4 mt-2 border-t border-slate-100">
+                 <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-5 h-5 text-slate-500" /></div>
                     <div className="text-left space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Emplacement</p>
+                      <p className={theme.detailMetaLabel}>Emplacement</p>
                       <p className="text-sm font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
                     </div>
                  </div>
