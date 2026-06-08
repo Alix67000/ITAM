@@ -221,34 +221,33 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20 md:pb-0 font-sans">
-      {/* Header */}
       <div className={theme.detailHeader}>
-        <div className="flex items-center gap-2 md:gap-4 flex-1">
+        <div className="flex items-center gap-3 flex-1">
           <button 
             onClick={onClose}
-            className="p-2 md:p-3 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all font-medium flex items-center justify-center"
+            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center"
           >
-            <X className="w-5 h-5 md:w-6 md:h-6" />
+            <X className="w-5 h-5" />
           </button>
-          <div className="h-6 md:h-8 w-[1px] bg-slate-200" />
-          <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+          <div className="h-6 w-[1px] bg-slate-200" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
              <div className={cn(
                theme.detailHeaderIconBox,
                asset.status === 'En service' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'
              )}>
-                {getAssetIcon(asset.type, "w-6 h-6")}
+                {getAssetIcon(asset.type, "w-5 h-5")}
              </div>
-             <div className="min-w-0 flex-1 space-y-0.5">
-                <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight truncate">{asset.label}</h1>
-                <div className="flex items-center flex-wrap gap-2 text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em]">
+             <div className="min-w-0 flex-1 space-y-0">
+                <h1 className="text-base font-black text-slate-900 tracking-tight truncate">{asset.label}</h1>
+                <div className="flex items-center flex-wrap gap-1.5 text-[9px] font-bold text-slate-500 uppercase tracking-[0.1em]">
                   <span className="truncate">S/N: {asset.serial || '---'}</span>
                   {asset.inventory_number && (
                     <>
-                      <span className="hidden sm:inline opacity-30">•</span>
-                      <span className="text-blue-600 font-black tracking-widest">{asset.inventory_number}</span>
+                      <span className="opacity-30">•</span>
+                      <span className="text-blue-600 font-black">{asset.inventory_number}</span>
                     </>
                   )}
-                  <span className="hidden sm:inline opacity-30">•</span>
+                  <span className="opacity-30">•</span>
                   <span className={cn(
                     theme.badge,
                     asset.status === 'En service' ? theme.badgeSuccess : 
@@ -262,9 +261,9 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         </div>
         <button 
           onClick={() => setIsEditing(true)}
-          className={theme.btnSecondary}
+          className={cn(theme.btnSecondary, "py-1.5 px-3 text-xs")}
         >
-          <Edit2 className="w-4 h-4" /> Modifier
+          <Edit2 className="w-3.5 h-3.5" /> Modifier
         </button>
       </div>
 
@@ -274,82 +273,82 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           {/* Main Column */}
           <div className={theme.detailContent}>
             
-            {/* Life Cycle & Finance Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className={theme.detailSection}>
-                <div className={theme.detailSectionHeader}>
-                  <h2 className={theme.detailSectionTitle}>
-                    <div className="w-2 h-2 rounded-full bg-blue-500" /> Cycle de Vie
-                  </h2>
-                </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className={theme.detailMetaLabel}>État</label>
-                    <p className={cn(theme.detailMetaValue, "capitalize")}>{asset.condition || 'neuf'}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className={theme.detailMetaLabel}>Âge estimé</label>
-                    <p className={theme.detailMetaValue}>
-                      {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
-                    </p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className={theme.detailMetaLabel}>Fabrication</label>
-                    <p className={theme.detailMetaValue}>{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className={theme.detailMetaLabel}>Mise en service</label>
-                    <p className={theme.detailMetaValue}>{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
-                  </div>
-                </div>
-              </div>
+             {/* Life Cycle & Finance Summary */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+               <div className={theme.detailSection}>
+                 <div className={theme.detailSectionHeader}>
+                   <h2 className={theme.detailSectionTitle}>
+                     Cycle de Vie
+                   </h2>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-0.5">
+                     <label className={theme.detailMetaLabel}>État</label>
+                     <p className={cn(theme.detailMetaValue, "capitalize")}>{asset.condition || 'neuf'}</p>
+                   </div>
+                   <div className="space-y-0.5">
+                     <label className={theme.detailMetaLabel}>Âge estimé</label>
+                     <p className={theme.detailMetaValue}>
+                       {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
+                     </p>
+                   </div>
+                   <div className="space-y-0.5">
+                     <label className={theme.detailMetaLabel}>Fabrication</label>
+                     <p className={theme.detailMetaValue}>{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
+                   </div>
+                   <div className="space-y-0.5">
+                     <label className={theme.detailMetaLabel}>Mise en service</label>
+                     <p className={theme.detailMetaValue}>{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
+                   </div>
+                 </div>
+               </div>
 
-              <div className={theme.detailSection}>
-                <div className={theme.detailSectionHeader}>
-                  <h2 className={theme.detailSectionTitle}>
-                    <div className="w-2 h-2 rounded-full bg-amber-500" /> Finance & Garantie
-                  </h2>
-                </div>
-                <div className="space-y-6">
-                  <div className="flex justify-between items-end border-b border-slate-50 pb-4">
-                    <div className="space-y-1.5">
-                      <label className={theme.detailMetaLabel}>Valeur d'acquisition</label>
-                      <p className="text-3xl font-black text-slate-900 font-mono tracking-tight">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
-                    </div>
-                  </div>
-                  <div className={cn(
-                    "p-4 rounded-xl flex items-center justify-between border",
-                    asset.has_warranty ? "bg-emerald-50/50 text-emerald-700 border-emerald-100" : "bg-slate-50/50 text-slate-500 border-slate-100"
-                  )}>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.1em]">Couverture Garantie</p>
-                      <p className="text-sm font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
-                    </div>
-                    <Key className={cn("w-5 h-5", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
-                  </div>
-                </div>
-              </div>
-            </div>
+               <div className={theme.detailSection}>
+                 <div className={theme.detailSectionHeader}>
+                   <h2 className={theme.detailSectionTitle}>
+                     Finance & Garantie
+                   </h2>
+                 </div>
+                 <div className="space-y-3">
+                   <div className="flex justify-between items-end border-b border-slate-50 pb-3">
+                     <div className="space-y-0.5">
+                       <label className={theme.detailMetaLabel}>Valeur d'acquisition</label>
+                       <p className="text-2xl font-black text-slate-900 font-mono tracking-tight">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                     </div>
+                   </div>
+                   <div className={cn(
+                     "p-3 rounded-lg flex items-center justify-between border",
+                     asset.has_warranty ? "bg-emerald-50/50 text-emerald-700 border-emerald-100" : "bg-slate-50/50 text-slate-500 border-slate-100"
+                   )}>
+                     <div className="space-y-0.5">
+                       <p className="text-[9px] font-black uppercase tracking-[0.1em]">Couverture Garantie</p>
+                       <p className="text-xs font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
+                     </div>
+                     <Key className={cn("w-4 h-4", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
+                   </div>
+                 </div>
+               </div>
+             </div>
 
             {/* Tech Specs Summary */}
             <div className={theme.detailSection}>
               <div className={theme.detailSectionHeader}>
                 <h2 className={theme.detailSectionTitle}>Détails Techniques</h2>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {specsIsJson ? (
                   Object.entries(specs).map(([key, value]) => (
-                    <div key={key} className="space-y-1.5">
+                    <div key={key} className="space-y-0.5">
                       <label className={theme.detailMetaLabel}>{key}</label>
                       <p className={theme.detailMetaValue}>{String(value) || '---'}</p>
                     </div>
                   ))
                 ) : (
                   <div className="col-span-full">
-                    <p className="text-sm font-medium text-slate-600 whitespace-pre-wrap">{asset.specs || 'Aucune spécification technique détaillée'}</p>
+                    <p className="text-xs font-medium text-slate-600 whitespace-pre-wrap">{asset.specs || 'Aucune spécification technique détaillée'}</p>
                   </div>
                 )}
-                <div className="space-y-1.5">
+                <div className="space-y-0.5">
                   <label className={theme.detailMetaLabel}>Type précis</label>
                   <p className={theme.detailMetaValue}>{asset.subtype || '---'}</p>
                 </div>
@@ -372,15 +371,15 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     {allLicenses.map(l => <option key={l.id} value={l.id}>{l.label} ({l.software})</option>)}
                   </select>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {licenses.map(lic => (
-                    <div key={lic.id} className="p-3 bg-slate-50 rounded-xl text-xs font-bold text-slate-700 border border-slate-100 flex justify-between">
+                    <div key={lic.id} className="p-2 bg-slate-50 rounded-lg text-xs font-bold text-slate-700 border border-slate-100 flex justify-between">
                       <span>{lic.label}</span>
                       <span className="text-[9px] opacity-60 font-black tracking-widest uppercase">{lic.software}</span>
                     </div>
                   ))}
                   {licenses.length === 0 && !showLicenseAdd && (
-                     <div className="text-center py-4 text-xs font-medium text-slate-400 italic">Aucune licence</div>
+                     <div className="text-center py-2 text-xs font-medium text-slate-400 italic">Aucune licence</div>
                   )}
                 </div>
               </div>
@@ -399,7 +398,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     {allContracts.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {contracts.map(c => {
                     const diffDays = Math.ceil((new Date(c.end_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
                     const isExpiring = diffDays > 0 && diffDays <= 30;
@@ -407,7 +406,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     
                     return (
                       <div key={c.id} className={cn(
-                        "p-3 rounded-xl border flex flex-col gap-1.5",
+                        "p-2 rounded-lg border flex flex-col gap-1",
                         isExpired ? "bg-red-50 border-red-200 text-red-900" : 
                         isExpiring ? "bg-amber-50 border-amber-200 text-amber-900" : 
                         "bg-slate-50 border-slate-200 text-slate-900"
@@ -423,7 +422,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                             </span>
                           )}
                         </div>
-                        <div className="flex justify-between text-[10px] font-medium opacity-60">
+                        <div className="flex justify-between text-[9px] font-medium opacity-60">
                           <span>{c.reference || c.type}</span>
                           <span>{new Date(c.end_date).toLocaleDateString('fr-FR')}</span>
                         </div>
@@ -431,7 +430,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     );
                   })}
                   {contracts.length === 0 && !showContractAdd && (
-                     <div className="text-center py-4 text-xs font-medium text-slate-400 italic">Aucun contrat</div>
+                     <div className="text-center py-2 text-xs font-medium text-slate-400 italic">Aucun contrat</div>
                   )}
                 </div>
               </div>
@@ -446,31 +445,31 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                </div>
                
                {combinedAssets.length > 0 ? (
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                    {combinedAssets.map(child => {
                      return (
                        <div 
                           key={child.id} 
-                          className="p-4 bg-white border border-slate-200 rounded-xl flex items-start gap-3 hover:border-indigo-300 hover:bg-slate-50 transition-all group cursor-pointer"
+                          className="p-3 bg-white border border-slate-200 rounded-lg flex items-start gap-2 hover:border-indigo-300 hover:bg-slate-50 transition-all group cursor-pointer"
                           onClick={() => {
                             navigate(`/assets/${child.id}`);
                           }}
                         >
-                         <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors border border-slate-100">
-                           {getAssetIcon(child.type, "w-5 h-5")}
+                         <div className="w-8 h-8 bg-slate-50 rounded-md flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors border border-slate-100">
+                           {getAssetIcon(child.type, "w-4 h-4")}
                          </div>
-                         <div className="min-w-0 flex-1 space-y-1">
+                         <div className="min-w-0 flex-1 space-y-0">
                            <div className="flex items-center justify-between gap-2">
-                             <div className="text-sm font-bold text-slate-900 truncate">{child.label}</div>
+                             <div className="text-xs font-bold text-slate-900 truncate">{child.label}</div>
                            </div>
-                           <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-1.5">
                              <span className={cn(
                                theme.badge,
                                child.status === 'En service' ? theme.badgeSuccess : theme.badgeWarning
                              )}>
                                {child.status}
                              </span>
-                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">
                                {child.subtype || child.type}
                              </div>
                            </div>
@@ -480,9 +479,9 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                    })}
                  </div>
                ) : (
-                 <div className="flex flex-col items-center justify-center py-10 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                    <Settings className="w-8 h-8 text-slate-300 mb-2" />
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aucun matériel lié</p>
+                 <div className="flex flex-col items-center justify-center py-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <Settings className="w-6 h-6 text-slate-300 mb-1" />
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Aucun matériel lié</p>
                  </div>
                )}
             </div>
@@ -493,22 +492,22 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                  <Calendar className="w-48 h-48 text-indigo-500" />
                </div>
                
-               <div className="flex items-center justify-between mb-8 relative">
-                 <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
-                     <Calendar className="w-6 h-6" />
+               <div className="flex items-center justify-between mb-5 relative">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
+                     <Calendar className="w-5 h-5" />
                    </div>
                    <div>
-                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">Journal d'événements</h2>
-                     <p className="text-xs text-slate-400 font-medium">Historique des modifications</p>
+                     <h2 className="text-base font-bold text-slate-900 tracking-tight">Journal d'événements</h2>
+                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Historique des modifications</p>
                    </div>
                  </div>
                  <button 
                    onClick={() => setShowEventAdd(true)}
-                   className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-200"
+                   className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-200"
                  >
-                   <Plus className="w-4 h-4" />
-                   <span className="hidden sm:inline">Ajouter</span>
+                   <Plus className="w-3.5 h-3.5" />
+                   Ajouter
                  </button>
                </div>
 

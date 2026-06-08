@@ -118,27 +118,26 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
       animate={{ opacity: 1, x: 0 }}
       className="bg-slate-50 min-h-screen"
     >
-      {/* Header */}
-      <div className={theme.detailHeader}>
-        <div className="flex items-center gap-2 md:gap-4 flex-1">
+       <div className={theme.detailHeader}>
+        <div className="flex items-center gap-2 flex-1">
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all"
+            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center"
           >
-            <X className="w-5 h-5 md:w-6 md:h-6" />
+            <X className="w-5 h-5" />
           </button>
-          <div className="h-6 md:h-8 w-[1px] bg-slate-200" />
-          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+          <div className="h-6 w-[1px] bg-slate-200" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
              <div className={cn(theme.detailHeaderIconBox, "bg-indigo-50 text-indigo-600 border-indigo-100")}>
-               <ShieldCheck className="w-6 h-6" />
+               <ShieldCheck className="w-5 h-5" />
              </div>
              <div className="min-w-0 flex-1">
                {!isEditing ? (
                  <>
-                   <h1 className="text-base md:text-2xl font-black text-slate-900 tracking-tight truncate">{contract.label}</h1>
-                   <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">
+                   <h1 className="text-base font-black text-slate-900 tracking-tight truncate">{contract.label}</h1>
+                   <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                      <span className="truncate">{contract.reference}</span>
-                     <span className="hidden sm:inline">•</span>
+                     <span className="opacity-30">•</span>
                      <span className={cn(
                        theme.badge,
                        getStatusColor(contract.status)
@@ -148,30 +147,13 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                    </div>
                  </>
                ) : (
-                 <div className="space-y-2">
+                 // Edit mode...
+                 <div className="space-y-1">
                     <input 
-                      className={theme.inputBase}
+                      className={cn(theme.inputBase, "py-1 px-2 text-xs")}
                       value={editedContract.label}
                       onChange={e => setEditedContract({ ...editedContract, label: e.target.value })}
                     />
-                    <div className="flex gap-2">
-                      <input 
-                        className={cn(theme.inputBase, "flex-1 py-1 px-3 text-xs")}
-                        value={editedContract.reference}
-                        onChange={e => setEditedContract({ ...editedContract, reference: e.target.value })}
-                        placeholder="Référence"
-                      />
-                      <select 
-                        className={cn(theme.inputBase, "py-1 px-3 text-xs")}
-                        value={editedContract.status}
-                        onChange={e => setEditedContract({ ...editedContract, status: e.target.value })}
-                      >
-                        <option value="Actif">Actif</option>
-                        <option value="Inactif">Inactif</option>
-                        <option value="Expiré">Expiré</option>
-                        <option value="Résilie">Résilie</option>
-                      </select>
-                    </div>
                  </div>
                )}
              </div>
@@ -181,27 +163,16 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
           {!isEditing ? (
             <button 
               onClick={() => setIsEditing(true)}
-              className={theme.btnSecondary}
+              className={cn(theme.btnSecondary, "py-1.5 px-3 text-xs")}
             >
-              <Edit2 className="w-4 h-4" /> <span className="hidden md:inline">Modifier</span>
+              <Edit2 className="w-3.5 h-3.5" /> Modifier
             </button>
           ) : (
-            <div className="flex gap-2">
-               <button 
-                onClick={() => setIsEditing(false)}
-                className="px-4 py-2 text-slate-500 font-bold uppercase text-[10px] hover:text-slate-700"
-              >
-                Annuler
-              </button>
-              <button 
-                onClick={handleGlobalSave}
-                disabled={isSaving}
-                className={theme.btnPrimary}
-              >
-                {isSaving && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                Sauver
-              </button>
-            </div>
+            // Save buttons...
+             <div className="flex gap-1">
+                <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 text-slate-500 font-bold uppercase text-[9px] hover:text-slate-700">Annuler</button>
+                <button onClick={handleGlobalSave} disabled={isSaving} className={cn(theme.btnPrimary, "py-1.5 px-3 text-xs")}>Sauver</button>
+             </div>
           )}
         </div>
       </div>
