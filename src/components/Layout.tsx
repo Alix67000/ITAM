@@ -326,7 +326,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         </header>
 
         <div className="flex-1 overflow-y-auto w-full relative bg-slate-50/50">
-          <div className={cn("p-4 md:p-6 lg:p-8 h-full w-full", theme.pageContainer)}>
+          <div className={cn("p-4 md:p-6 h-full w-full", theme.pageContainer)}>
             {children}
           </div>
         </div>

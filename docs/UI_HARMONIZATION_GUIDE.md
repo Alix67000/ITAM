@@ -28,12 +28,12 @@ L'application a bénéficié d'une **refonte harmonisée UX/UI complète** et d'
 - ✅ **Vue Détail Compacte** : Layout scindé (Header Sticky, Sidebar latérale, Sections "Cards") pour `AssetDetailView`, `ContractDetailView`, `LicenseDetailView` et `RelationViewer`. Le design global a été compacté au maximum (espacements réduits, headers plus denses) pour se rapprocher d'un outil métier performant et limiter le scroll.
 - ✅ **Polish Final Global** :
   - **Layout (Sidebar & Mobile Nav)** : Les marqueurs actifs (`bg-indigo-50 text-indigo-700 font-bold`), l'UI utilisateur (initiales logo, ombres) et la safe-area sur mobile ont été harmonisées.
-  - **Dashboard** : Simplification des widgets `bg-white p-6 rounded-[2rem]` pour s'aligner exactement sur `theme.card` là où c'était possible, ou uniformiser les radius.
-  - **États Vides / Loading** : Ajustements des bordures et placeholders pour minimiser la fracture visuelle.
+  - **Dashboard** : Simplification des widgets. Remplacement massif des paddings excessifs (`p-8` -> `p-6` ou `p-6` -> `p-5`) et des `rounded-[2rem]` abusifs par des `rounded-2xl` conformes au reste de l'application via `theme.card`.
+  - **États Vides / Loading** : Ajustements des paddings et placeholders (`p-16` -> `p-12`) pour minimiser la fracture visuelle.
+  - **Paddings Globaux** : Réduction du rembourrage des headers (`p-6` -> `p-4 md:p-5 lg:p-6`) et du container principal de l'application pour gagner en densité.
 
 ## 4. Prochaines étapes de polish
-- **Dashboard** : Rendre les cartes de métriques et listes d'alerte plus compactes.
-- **Paramètres Locaux** : Éventuellement proposer un toggle global pour basculer la densité d'UI globale si le besoin s'en fait sentir.
+- **Paramètres Locaux** : Éventuellement proposer un toggle global pour basculer la densité d'UI globale si le besoin s'en fait sentir d'un point de vue accessibilité.
 
 ## 5. Garde-fous préservés
 - Le routage et la logique Firestore ont été préservés as-is.
