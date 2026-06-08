@@ -401,10 +401,10 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                           <div key={u.id} className="p-3 bg-slate-50 flex items-center justify-between rounded-xl border border-slate-100">
                             <div className="flex items-center gap-3">
                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-600 uppercase">
-                                  {u.first_name?.[0]}{u.last_name?.[0]}
+                                  {u.name?.[0] || 'U'}
                                </div>
                                <div>
-                                 <p className="text-sm font-bold text-slate-900">{u.first_name} {u.last_name}</p>
+                                 <p className="text-sm font-bold text-slate-900">{u.name}</p>
                                  <p className="text-[10px] uppercase font-bold text-slate-400">{u.email}</p>
                                </div>
                             </div>

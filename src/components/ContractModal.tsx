@@ -320,7 +320,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
                     {users.map(u => (
                       <label key={u.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer group transition-colors">
                         <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-600 border-slate-300" checked={selectedUserIds.includes(u.id)} onChange={() => toggleSelection(u.id, selectedUserIds, setSelectedUserIds)} />
-                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{u.first_name} {u.last_name}</span>
+                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{u.name}</span>
                       </label>
                     ))}
                   </div>
