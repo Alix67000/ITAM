@@ -25,16 +25,16 @@ L'application a bénéficié d'une **refonte harmonisée UX/UI complète** et d'
 - ✅ **Création de la base UI** : Typographie, couleurs, radius centralisés.
 - ✅ **Migration des Listes Métier** : Toutes les listes (`AssetList`, `UserList`, etc.) utilisent `theme.card` et `theme.pageHeader` ainsi que le format responsif (Grilles desktop, Cartes mobiles) avec un design compact (`UserList` comme référence).
 - ✅ **Modales & Formulaires** : 100% des modales (ex: `PhoneLineModal`, `UserModal`, `SupplierModal`) utilisent les sous-composants centralisés (Header, labels "uppercase").
-- ✅ **Vue Détail Compacte** : Layout scindé (Header Sticky, Sidebar latérale, Sections "Cards") pour `AssetDetailView`, `ContractDetailView`, `LicenseDetailView` et `RelationViewer`. Le design global a été compacté (`theme.detailSection` revu à la baisse en padding/gap) pour maximiser l'information visible.
+- ✅ **Vue Détail Compacte** : Layout scindé (Header Sticky, Sidebar latérale, Sections "Cards") pour `AssetDetailView`, `ContractDetailView`, `LicenseDetailView` et `RelationViewer`. Le design global a été compacté au maximum (espacements réduits, headers plus denses) pour se rapprocher d'un outil métier performant et limiter le scroll.
 - ✅ **Polish Final Global** :
   - **Layout (Sidebar & Mobile Nav)** : Les marqueurs actifs (`bg-indigo-50 text-indigo-700 font-bold`), l'UI utilisateur (initiales logo, ombres) et la safe-area sur mobile ont été harmonisées.
   - **Dashboard** : Simplification des widgets `bg-white p-6 rounded-[2rem]` pour s'aligner exactement sur `theme.card` là où c'était possible, ou uniformiser les radius.
   - **États Vides / Loading** : Ajustements des bordures et placeholders pour minimiser la fracture visuelle.
 
 ## 4. Prochaines étapes de polish
-- Compactage final de l'interface de recherche globale.
-- Revue de densité des formulaires complexes de saisie.
-- Ajustement de la hiérarchie visuelle sur mobile pour améliorer encore le ratio "espace utile / écrans".
+- **Formulaires** : Compacter et densifier les formulaires d'édition (`AssetForm`, `ContractForm`, `LicenseForm`) pour qu'ils soient moins massifs.
+- **Modales de création** : Continuer la densification sur les modales plus complexes.
+- **Dashboard** : Rendre les cartes de métriques et listes d'alerte plus compactes.
 
 ## 5. Garde-fous préservés
 - Le routage et la logique Firestore ont été préservés as-is.

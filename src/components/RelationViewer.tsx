@@ -142,26 +142,26 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
 
   return (
     <div className={cn(theme.detailSection, className)}>
-      <div className={cn(theme.detailSectionHeader, "px-6 py-4 -mx-6 -mt-6 border-b border-slate-100 bg-slate-50/50 rounded-t-3xl")}>
+      <div className={theme.detailSectionHeader}>
         <h3 className={theme.detailSectionTitle}>
-          <ArrowRightLeft className="w-4 h-4 text-slate-500" /> {title}
+          <ArrowRightLeft className="w-3.5 h-3.5 text-slate-500" /> {title}
         </h3>
       </div>
       
-      <div className="pt-6 flex flex-col gap-6">
+      <div className="pt-5 flex flex-col gap-4">
         {(Object.keys(grouped) as EntityType[]).map(type => {
           const groupIcons = getEntityIcon(type);
           const Icon = groupIcons;
           const groupLabel = getEntityLabel(type);
           
           return (
-            <div key={type} className="flex flex-col gap-3">
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                 <Icon className="w-4 h-4" />
+            <div key={type} className="flex flex-col gap-2">
+               <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                 <Icon className="w-3.5 h-3.5" />
                  {groupLabel}s ({grouped[type].length})
                </div>
                
-               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+               <div className="grid grid-cols-1 gap-2">
                  {grouped[type].map(rel => {
                    const relatedEntity = rel.direction === 'incoming' ? rel.source : rel.target;
                    const clickable = isClickable(relatedEntity.type);
@@ -170,32 +170,32 @@ export const RelationViewer: React.FC<RelationViewerProps> = ({
                         key={rel.id}
                         onClick={() => clickable && handleNav(relatedEntity.type, relatedEntity.id)}
                         className={cn(
-                          "flex items-center justify-between p-4 border border-slate-100 rounded-2xl group transition-all",
+                          "flex items-center justify-between p-3 border border-slate-100 rounded-lg group transition-all",
                           clickable ? 'cursor-pointer hover:border-indigo-200 hover:bg-slate-50 hover:shadow-sm bg-white' : 'bg-slate-50/50'
                         )}
                      >
-                        <div className="flex flex-col min-w-0 pr-3">
-                          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
                             <span className="truncate">{relatedEntity.label || 'Non nommé'}</span>
                           </div>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1.5 mt-0.5">
                             {rel.direction === 'incoming' && (
-                              <span className="text-[10px] uppercase font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md tracking-wider" title="Entrant">Entrant</span>
+                              <span className="text-[9px] uppercase font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded tracking-widest" title="Entrant">Entrant</span>
                             )}
-                            <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md tracking-wider capitalize">
+                            <span className="text-[9px] uppercase font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-widest capitalize">
                               {rel.relation_type.replace(/_/g, ' ')}
                             </span>
                             {rel.direction === 'outgoing' && (
-                              <span className="text-[10px] uppercase font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md tracking-wider" title="Sortant">Sortant</span>
+                              <span className="text-[9px] uppercase font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded tracking-widest" title="Sortant">Sortant</span>
                             )}
                             {rel.origin === 'generic' && (
-                              <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md tracking-wider">Générique</span>
+                              <span className="text-[9px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded tracking-widest">Générique</span>
                             )}
                           </div>
                         </div>
                         
                         {clickable && (
-                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 flex-shrink-0 transition-transform group-hover:translate-x-1" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 flex-shrink-0 transition-transform group-hover:translate-x-1" />
                         )}
                      </div>
                    );

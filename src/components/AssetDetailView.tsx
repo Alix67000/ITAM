@@ -181,15 +181,15 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   if (isEditing) {
     return (
       <div className="bg-slate-50 min-h-screen">
-        <div className="bg-white border-b border-slate-200 sticky top-0 z-[100] px-4 md:px-8 py-4 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400">
-              <X className="w-6 h-6" />
+        <div className="bg-white border-b border-slate-200 sticky top-0 z-[100] px-4 md:px-8 py-3 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsEditing(false)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+              <X className="w-5 h-5" />
             </button>
-            <div className="h-8 w-[1px] bg-slate-200" />
+            <div className="h-6 w-[1px] bg-slate-200" />
             <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">Modifier l'Asset</h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{asset.label}</p>
+              <h1 className="text-base font-black text-slate-900 tracking-tight">Modifier l'Asset</h1>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{asset.label}</p>
             </div>
           </div>
         </div>
@@ -487,26 +487,25 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
             </div>
 
             {/* Events Section */}
-            <div className={cn(theme.detailSection, "relative overflow-hidden group mt-6")}>
-               <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity">
-                 <Calendar className="w-48 h-48 text-indigo-500" />
+            <div className={cn(theme.detailSection, "relative overflow-hidden group mt-5")}>
+               <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-10 transition-opacity">
+                 <Calendar className="w-32 h-32 text-indigo-500" />
                </div>
                
-               <div className="flex items-center justify-between mb-5 relative">
-                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
-                     <Calendar className="w-5 h-5" />
+               <div className="flex items-center justify-between mb-4 relative">
+                 <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500">
+                     <Calendar className="w-4 h-4" />
                    </div>
                    <div>
-                     <h2 className="text-base font-bold text-slate-900 tracking-tight">Journal d'événements</h2>
-                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Historique des modifications</p>
+                     <h2 className="text-sm font-bold text-slate-900 tracking-tight">Journal d'événements</h2>
                    </div>
                  </div>
                  <button 
                    onClick={() => setShowEventAdd(true)}
-                   className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-200"
+                   className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-md text-xs font-bold hover:bg-slate-800 transition shadow-sm"
                  >
-                   <Plus className="w-3.5 h-3.5" />
+                   <Plus className="w-3 h-3" />
                    Ajouter
                  </button>
                </div>
@@ -602,21 +601,21 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
 
           {/* Sidebar Column */}
           <div className={theme.detailSidebar}>
-            <div className={cn(theme.detailSection, "flex flex-col items-center gap-6 text-center")}>
-              <div className="w-24 h-24 bg-indigo-50 rounded-[2rem] flex items-center justify-center text-indigo-600 text-4xl font-black shadow-inner border border-indigo-100">
+            <div className={cn(theme.detailSection, "flex flex-col items-center gap-4 text-center")}>
+              <div className="w-16 h-16 bg-indigo-50 rounded-[1.5rem] flex items-center justify-center text-indigo-600 text-2xl font-black shadow-inner border border-indigo-100">
                 {assignedUser ? assignedUser.name.charAt(0) : '?'}
               </div>
-              <div className="space-y-1.5 w-full">
+              <div className="space-y-1 w-full">
                 <p className={theme.detailMetaLabel}>Utilisateur Assigné</p>
-                <h4 className="text-xl font-bold text-slate-900 tracking-tight">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
+                <h4 className="text-sm font-bold text-slate-900 tracking-tight">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
               </div>
               
-              <div className="w-full pt-4 mt-2 border-t border-slate-100">
-                 <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-5 h-5 text-slate-500" /></div>
-                    <div className="text-left space-y-1">
+              <div className="w-full pt-3 mt-1 border-t border-slate-100">
+                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-4 h-4 text-slate-500" /></div>
+                    <div className="text-left space-y-0.5">
                       <p className={theme.detailMetaLabel}>Emplacement</p>
-                      <p className="text-sm font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
+                      <p className="text-xs font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
                     </div>
                  </div>
               </div>
@@ -626,7 +625,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
               entityType="asset"
               entityId={assetId}
               title="Relations métier"
-              className="border-slate-100 shadow-sm rounded-[2rem]"
+              className="border-slate-100 shadow-sm"
             />
           </div>
 

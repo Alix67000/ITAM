@@ -206,79 +206,30 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Détails du Contrat</h2>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
-                 <div className="space-y-1">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                 <div className="space-y-0.5">
                    <p className={theme.detailMetaLabel}>Type de Contrat</p>
-                   {!isEditing ? (
-                     <p className={theme.detailMetaValue}>{contract.type}</p>
-                   ) : (
-                     <select 
-                       className={cn(theme.inputBase, "py-1.5 px-3 text-sm")}
-                       value={editedContract.type}
-                       onChange={e => setEditedContract({ ...editedContract, type: e.target.value })}
-                     >
-                       <option value="Abonnement">Abonnement</option>
-                       <option value="Maintenance">Maintenance</option>
-                       <option value="Leasing">Leasing</option>
-                       <option value="Location">Location</option>
-                       <option value="Garantie">Garantie</option>
-                       <option value="Assurance">Assurance</option>
-                       <option value="Support">Support</option>
-                       <option value="Logiciel">Logiciel</option>
-                       <option value="Forfait mobile">Forfait mobile</option>
-                       <option value="Leasing imprimante">Leasing imprimante</option>
-                     </select>
-                   )}
+                   <p className={theme.detailMetaValue}>{contract.type}</p>
                  </div>
 
-                 <div className="space-y-1">
+                 <div className="space-y-0.5">
                    <p className={theme.detailMetaLabel}>Coût Annuel / Total</p>
-                   {!isEditing ? (
-                     <p className="font-bold text-indigo-600 text-lg">{contract.price?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</p>
-                   ) : (
-                     <div className="relative">
-                       <input 
-                         type="number"
-                         className={cn(theme.inputBase, "py-1.5 pl-8 pr-3 text-sm")}
-                         value={editedContract.price}
-                         onChange={e => setEditedContract({ ...editedContract, price: Number(e.target.value) })}
-                       />
-                       <CreditCard className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                     </div>
-                   )}
+                   <p className="font-bold text-indigo-600 text-lg">{contract.price?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</p>
                  </div>
 
-                 <div className="space-y-1">
+                 <div className="space-y-0.5">
                     <p className={theme.detailMetaLabel}>Date de Début</p>
-                    {!isEditing ? (
-                      <p className={theme.detailMetaValue}>{new Date(contract.start_date).toLocaleDateString('fr-FR')}</p>
-                    ) : (
-                      <input 
-                        type="date"
-                        className={cn(theme.inputBase, "py-1.5 px-3 text-sm")}
-                        value={editedContract.start_date?.split('T')[0]}
-                        onChange={e => setEditedContract({ ...editedContract, start_date: e.target.value })}
-                      />
-                    )}
+                    <p className={theme.detailMetaValue}>{new Date(contract.start_date).toLocaleDateString('fr-FR')}</p>
                  </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <p className={theme.detailMetaLabel}>Date de Fin</p>
-                    {!isEditing ? (
-                      <p className={cn(
-                        theme.detailMetaValue,
-                        new Date(contract.end_date) < new Date() ? 'text-red-500' : 'text-slate-900'
-                      )}>
-                        {new Date(contract.end_date).toLocaleDateString('fr-FR')}
-                      </p>
-                    ) : (
-                      <input 
-                        type="date"
-                        className={cn(theme.inputBase, "py-1.5 px-3 text-sm")}
-                        value={editedContract.end_date?.split('T')[0]}
-                        onChange={e => setEditedContract({ ...editedContract, end_date: e.target.value })}
-                      />
-                    )}
+                    <p className={cn(
+                      theme.detailMetaValue,
+                      new Date(contract.end_date) < new Date() ? 'text-red-500' : 'text-slate-900'
+                    )}>
+                      {new Date(contract.end_date).toLocaleDateString('fr-FR')}
+                    </p>
                  </div>
               </div>
             </div>
@@ -438,40 +389,30 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
             
             {/* Supplier Quick Card */}
             <div className={cn(theme.detailSection, "bg-indigo-950 border-indigo-900 shadow-xl text-white relative overflow-hidden")}>
-               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full" />
+               <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 blur-2xl rounded-full" />
                
-               <div className="space-y-2 relative">
-                 <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Fournisseur / Prestataire</h3>
-                 {!isEditing ? (
-                   <div className="flex items-center justify-between">
-                     <h4 className="text-2xl font-black">{contract.supplier_name || 'Inconnu'}</h4>
-                     <ExternalLink className="w-5 h-5 text-indigo-400" />
-                   </div>
-                 ) : (
-                   <select 
-                      className="w-full bg-indigo-900/50 border border-indigo-800 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={editedContract.supplier_id || ''}
-                      onChange={e => setEditedContract({ ...editedContract, supplier_id: Number(e.target.value), supplier_name: e.target.options[e.target.selectedIndex].text })}
-                    >
-                      {allSuppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                 )}
+               <div className="space-y-1 relative">
+                 <h3 className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Fournisseur / Prestataire</h3>
+                 <div className="flex items-center justify-between">
+                   <h4 className="text-xl font-black">{contract.supplier_name || 'Inconnu'}</h4>
+                   <ExternalLink className="w-4 h-4 text-indigo-400" />
+                 </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-4 relative pt-6 border-t border-indigo-900/50">
+               <div className="grid grid-cols-2 gap-4 relative pt-4 border-t border-indigo-900/50 mt-4">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Status</p>
+                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Status</p>
                     <div className="flex items-center gap-2">
                       <div className={cn("w-2 h-2 rounded-full", contract.status === 'Actif' ? 'bg-emerald-400' : 'bg-red-400')} />
                       <span className="font-bold text-sm tracking-tight">{contract.status}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Validité</p>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-indigo-400" />
+                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Validité</p>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-indigo-400" />
                       <span className="font-bold text-sm tracking-tight">
-                        {Math.ceil((new Date(contract.end_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} jours
+                        {Math.ceil((new Date(contract.end_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} j
                       </span>
                     </div>
                   </div>
