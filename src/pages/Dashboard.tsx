@@ -213,7 +213,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                </div>
             </div>
           </div>
-          <div className="flex-1 relative">
+          <div className="h-[250px] w-full relative mt-auto">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={stats.charts.trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -244,7 +244,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </h4>
             <p className="text-xs text-slate-500 font-medium">Répartition par typologie</p>
           </div>
-          <div className="flex-1 relative min-h-[220px]">
+          <div className="h-[220px] w-full relative mt-auto">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie

@@ -10,7 +10,6 @@ import { theme } from '../lib/theme';
 import { cn } from '../lib/utils';
 import { LicenseForm } from './forms/LicenseForm';
 import { useToast } from '../services/toastContext';
-import { RelationViewer } from './RelationViewer';
 
 interface LicenseDetailViewProps {
   licenseId: string;
@@ -353,13 +352,6 @@ export const LicenseDetailView: React.FC<LicenseDetailViewProps> = ({ licenseId,
                       </div>
                    </div>
                 </div>
-
-                <RelationViewer
-                  entityType="license"
-                  entityId={licenseId}
-                  title="Relations métier"
-                  className={cn(theme.detailSection, "p-0 overflow-hidden border-none shadow-none")}
-                />
 
               </div>
             </motion.div>

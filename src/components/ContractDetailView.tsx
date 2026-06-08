@@ -9,7 +9,6 @@ import {
 import { motion } from 'motion/react';
 import { theme } from '../lib/theme';
 import { useToast } from '../services/toastContext';
-import { RelationViewer } from './RelationViewer';
 import { ContractForm } from './forms/ContractForm';
 
 interface ContractDetailViewProps {
@@ -432,13 +431,6 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
                </div>
             </div>
             
-            <RelationViewer
-              entityType="contract"
-              entityId={contractId}
-              title="Relations métier"
-              className={cn(theme.detailSection, "p-0 overflow-hidden border-none shadow-none")}
-            />
-
           </div>
 
         </div>

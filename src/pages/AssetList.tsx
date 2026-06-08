@@ -455,303 +455,565 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         )}
       </AnimatePresence>
 
-      <div className={cn(theme.card, "flex flex-col min-h-[400px]")}>
-        <table className="w-full text-left border-collapse hidden md:table">
-          <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4 text-left">N° Inventaire</th>
-              <th className="px-6 py-4">Asset</th>
-              <th className="px-6 py-4">Affectation</th>
-              <th className="px-6 py-4">Acquisition</th>
-              <th className="px-6 py-4">Finance & Garantie</th>
-              <th className="px-6 py-4 text-center">État</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
-            {[...displayedAssets].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => {
-              const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
-              const location = locations.find(l => String(l.id) === String(asset.location_id));
-              
-              return (
-                <motion.tr 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: idx * 0.02 }}
-                  key={`asset-${asset.id}`} 
-                  onClick={(e) => {
-                    const target = e.target as HTMLElement;
-                    if (target.closest('button')) return;
-                    navigate('/assets/' + asset.id);
-                  }}
-                  className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
+      {selectedUserFilter ? (
+        <div className="space-y-6">
+          {/* Section: Matériel assigné */}
+          <div className={cn(theme.card, "flex flex-col")}>
+            <div className={theme.cardHeader}>
+              <h3 className={theme.cardTitle}>Matériel assigné</h3>
+              <span className={theme.badge}>{displayedAssets.length} MATÉRIEL(S)</span>
+            </div>
+            
+            <table className="w-full text-left border-collapse hidden md:table">
+              <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-4 text-left">N° Inventaire</th>
+                  <th className="px-5 py-4">Asset</th>
+                  <th className="px-5 py-4">Acquisition</th>
+                  <th className="px-5 py-4">Finance & Garantie</th>
+                  <th className="px-5 py-4 text-center">État</th>
+                  <th className="px-5 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {[...displayedAssets].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: idx * 0.02 }}
+                    key={`asset-${asset.id}`} 
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button')) return;
+                      navigate('/assets/' + asset.id);
+                    }}
+                    className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex flex-col">
+                        <span className="font-mono font-bold text-indigo-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
+                        <span className="text-[10px] text-slate-400 uppercase font-bold">{asset.type}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                          {getTypeIcon(asset.type)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{asset.label}</div>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                            <span className="font-mono uppercase">{asset.subtype}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className={cn(
+                          "text-[10px] font-bold uppercase",
+                          asset.condition === 'neuf' ? 'text-emerald-600' : 'text-slate-600'
+                        )}>
+                          {asset.condition || 'neuf'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">{asset.serial || '---'}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 text-xs">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+                        <span className={cn("text-[10px] font-bold", asset.has_warranty ? "text-emerald-600" : "text-slate-400")}>
+                          {asset.has_warranty ? 'Sous garantie' : 'Sans garantie'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider", 
+                        asset.status === 'Stock' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'
+                      )}>
+                        {asset.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                        <button 
+                          disabled={!canDelete}
+                          onClick={(e) => { e.stopPropagation(); handleDelete(asset.id); }}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                    </td>
+                  </motion.tr>
+                ))}
+                {displayedAssets.length === 0 && !loading && (
+                   <tr>
+                     <td colSpan={6} className="px-5 py-12 text-center text-slate-400 italic text-sm">
+                       Aucun matériel assigné.
+                     </td>
+                   </tr>
+                )}
+              </tbody>
+            </table>
+
+            {/* Mobile Form: Assets */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {displayedAssets.map((asset) => (
+                <div 
+                  key={`asset-card-${asset.id}`}
+                  onClick={() => navigate('/assets/' + asset.id)}
+                  className="p-4 active:bg-slate-50 transition-colors flex gap-3"
                 >
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 flex-shrink-0">
+                    {getTypeIcon(asset.type)}
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{asset.label}</h3>
+                      <span className={cn(
+                        "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+                        asset.status === 'Stock' ? 'bg-indigo-100 text-indigo-700' : 
+                        asset.status === 'Panne' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                      )}>
+                        {asset.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                      <span className="uppercase">{asset.type}</span>
+                      {asset.serial && <span>• {asset.serial}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {displayedAssets.length === 0 && !loading && (
+                <div className="p-8 text-center text-slate-400 italic text-xs">
+                  Aucun matériel assigné.
+                </div>
+              )}
+            </div>
+            
+            {/* Pagination Controls inside Assets if needed */}
+            <div className="bg-slate-50 border-t border-slate-100 p-4 shrink-0 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-400">
+                Page {currentPage}
+              </span>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  Précédent
+                </button>
+                <button 
+                  onClick={handleNextPage}
+                  disabled={!finalHasMore}
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Lignes téléphoniques assignées */}
+          <div className={cn(theme.card, "flex flex-col")}>
+            <div className={theme.cardHeader}>
+              <h3 className={theme.cardTitle}>Lignes téléphoniques assignées</h3>
+              <span className={theme.badge}>{filteredPhoneLines.length} LIGNE(S)</span>
+            </div>
+            <table className="w-full text-left border-collapse hidden md:table">
+              <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-4 text-left">Ligne / Libellé</th>
+                  <th className="px-5 py-4">Numéro</th>
+                  <th className="px-5 py-4">Entité</th>
+                  <th className="px-5 py-4 text-center">Statut</th>
+                  <th className="px-5 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {filteredPhoneLines.map((line, idx) => {
+                  const location = locations.find(l => String(l.id) === String(line.location_id));
+                  return (
+                    <motion.tr 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      key={`phone-${line.id}`} 
+                      className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                      onClick={() => handleEditPhone(line)}
+                    >
+                      <td className="px-5 py-3">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{line.label}</span>
+                          <span className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Ligne Téléphonique</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 font-mono text-sm font-bold text-slate-600">
+                        {line.number}
+                      </td>
+                      <td className="px-5 py-3 text-slate-500 font-medium text-xs">
+                        {location?.name || <span className="opacity-40">---</span>}
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider", 
+                          line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                        )}>
+                          {line.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleEditPhone(line); }}
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          title="Modifier"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+                {filteredPhoneLines.length === 0 && !loading && (
+                   <tr>
+                     <td colSpan={5} className="px-5 py-12 text-center text-slate-400 italic text-sm">
+                       Aucune ligne téléphonique assignée.
+                     </td>
+                   </tr>
+                )}
+              </tbody>
+            </table>
+            
+            {/* Mobile Form: Phone Lines */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredPhoneLines.map((line) => (
+                <div 
+                  key={`phone-card-${line.id}`}
+                  onClick={() => handleEditPhone(line)}
+                  className="p-4 active:bg-slate-50 transition-colors flex gap-3"
+                >
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{line.label}</h3>
+                      <span className={cn(
+                        "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+                        line.status === 'Actif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                      )}>
+                        {line.status}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-indigo-500 font-mono font-bold tracking-tight">
+                      {line.number}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredPhoneLines.length === 0 && !loading && (
+                <div className="p-8 text-center text-slate-400 italic text-xs">
+                  Aucune ligne téléphonique assignée.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={cn(theme.card, "flex flex-col min-h-[400px]")}>
+          <table className="w-full text-left border-collapse hidden md:table">
+            <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-4 text-left">N° Inventaire</th>
+                <th className="px-6 py-4">Asset</th>
+                <th className="px-6 py-4">Affectation</th>
+                <th className="px-6 py-4">Acquisition</th>
+                <th className="px-6 py-4">Finance & Garantie</th>
+                <th className="px-6 py-4 text-center">État</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {[...displayedAssets].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => {
+                const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
+                const location = locations.find(l => String(l.id) === String(asset.location_id));
+                
+                return (
+                  <motion.tr 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: idx * 0.02 }}
+                    key={`asset-${asset.id}`} 
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button')) return;
+                      navigate('/assets/' + asset.id);
+                    }}
+                    className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
+                  >
+                    <td className="px-6 py-3">
+                      <div className="flex flex-col">
+                        <span className="font-mono font-bold text-indigo-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
+                        <span className="text-[10px] text-slate-400 uppercase font-bold">{asset.type}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                          {getTypeIcon(asset.type)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{asset.label}</div>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                            <span className="font-mono uppercase">{asset.subtype}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-3">
+                      {assignedUser ? (
+                        <div className="flex items-center gap-2">
+                           <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
+                             {assignedUser.name.charAt(0)}
+                           </div>
+                           <div className="flex flex-col">
+                             <span className="font-bold text-slate-900 text-xs">{assignedUser.name}</span>
+                           </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">Non affecté</span>
+                      )}
+                    </td>
+                  <td className="px-6 py-3">
+                    <div className="flex flex-col gap-0.5">
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase",
+                        asset.condition === 'neuf' ? 'text-emerald-600' : 'text-slate-600'
+                      )}>
+                        {asset.condition || 'neuf'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">{asset.serial || '---'}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-3">
                     <div className="flex flex-col">
-                      <span className="font-mono font-bold text-indigo-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold">{asset.type}</span>
+                      <span className="font-bold text-slate-900 text-xs">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+                      <span className={cn("text-[10px] font-bold", asset.has_warranty ? "text-emerald-600" : "text-slate-400")}>
+                        {asset.has_warranty ? 'Sous garantie' : 'Sans garantie'}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                        {getTypeIcon(asset.type)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{asset.label}</div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                          <span className="font-mono uppercase">{asset.subtype}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-3">
-                    {assignedUser ? (
-                      <div className="flex items-center gap-2">
-                         <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
-                           {assignedUser.name.charAt(0)}
-                         </div>
-                         <div className="flex flex-col">
-                           <span className="font-bold text-slate-900 text-xs">{assignedUser.name}</span>
-                         </div>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 italic text-xs">Non affecté</span>
-                    )}
-                  </td>
-                <td className="px-6 py-3">
-                  <div className="flex flex-col gap-0.5">
-                    <span className={cn(
-                      "text-[10px] font-bold uppercase",
-                      asset.condition === 'neuf' ? 'text-emerald-600' : 'text-slate-600'
-                    )}>
-                      {asset.condition || 'neuf'}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">{asset.serial || '---'}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-3">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 text-xs">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-                    <span className={cn("text-[10px] font-bold", asset.has_warranty ? "text-emerald-600" : "text-slate-400")}>
-                      {asset.has_warranty ? 'Sous garantie' : 'Sans garantie'}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-3 text-center">
-                  <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider", 
-                    asset.status === 'Stock' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'
-                  )}>
-                    {asset.status}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-right">
-                    <button 
-                      disabled={!canDelete}
-                      onClick={(e) => { e.stopPropagation(); handleDelete(asset.id); }}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                </td>
-              </motion.tr>
-            );
-          })}
-
-
-            {/* Display Phone Lines in the same list when applicable */}
-            {filteredPhoneLines.map((line, idx) => {
-              const assignedUser = users.find(u => String(u.id) === String(line.assigned_user_id));
-              const location = locations.find(l => String(l.id) === String(line.location_id));
-              
-              return (
-                <motion.tr 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: (filtered.length + idx) * 0.05 }}
-                  key={`phone-${line.id}`} 
-                  className="hover:bg-slate-50 transition-colors group border-l-4 border-l-indigo-400"
-                >
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                        <Phone className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">{line.label}</div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Ligne Téléphonique</div>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 font-mono text-sm font-bold text-slate-600">
-                    {line.number}
-                  </td>
-                  <td className="px-8 py-6 text-slate-500 font-medium text-sm">
-                    {location?.name || <span className="opacity-40">---</span>}
-                  </td>
-                  <td className="px-8 py-6">
-                    {assignedUser ? (
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                           {assignedUser.name.charAt(0)}
-                         </div>
-                         <span className="font-bold text-slate-900 text-sm">{assignedUser.name}</span>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 italic text-xs font-medium">Non affecté</span>
-                    )}
-                  </td>
-                <td className="px-8 py-6 text-center">
-                  <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] ${
-                    line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 
-                    'bg-slate-50 text-slate-600 border border-slate-200'
-                  }`}>
-                    {line.status}
-                  </span>
-                </td>
-                <td className="px-8 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                       {/* Actions (Delete only if needed) */}
-                    </div>
-                </td>
-              </motion.tr>
-            );
-          })}
-
-            {displayedAssets.length === 0 && filteredPhoneLines.length === 0 && !loading && (
-               <tr>
-                 <td colSpan={6} className="px-8 py-20 text-center text-slate-400 italic text-sm">
-                   Aucun matériel ou ligne ne correspond à votre recherche.
-                 </td>
-               </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* Mobile Card List - Mobile Only */}
-        <div className="md:hidden divide-y divide-slate-100 h-full">
-          {displayedAssets.map((asset) => {
-            const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
-            
-            return (
-              <div 
-                key={`asset-card-${asset.id}`}
-                onClick={() => navigate('/assets/' + asset.id)}
-                className="p-4 active:bg-slate-50 transition-colors flex gap-4"
-              >
-                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 flex-shrink-0">
-                  {getTypeIcon(asset.type)}
-                </div>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-slate-900 truncate pr-2">{asset.label}</h3>
-                    <span className={cn(
-                      "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
-                      asset.status === 'Stock' ? 'bg-blue-100 text-blue-700' : 
-                      asset.status === 'Panne' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                  <td className="px-6 py-3 text-center">
+                    <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider", 
+                      asset.status === 'Stock' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'
                     )}>
                       {asset.status}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                    <span className="uppercase">{asset.type}</span>
-                    {asset.serial && <span>• {asset.serial}</span>}
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                     {assignedUser ? (
-                       <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[8px] font-black border border-blue-100">
-                            {assignedUser.name.charAt(0)}
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-600">{assignedUser.name}</span>
-                       </div>
-                     ) : (
-                       <span className="text-[10px] italic text-slate-300">Non affecté</span>
-                     )}
-                     <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                           {asset.contract_count ? asset.contract_count > 0 && <FileText className="w-3 h-3 text-blue-400" /> : null}
-                           {asset.software_count ? asset.software_count > 0 && <Box className="w-3 h-3 text-emerald-400" /> : null}
-                        </div>
-                     </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                  </td>
+                  <td className="px-6 py-3 text-right">
+                      <button 
+                        disabled={!canDelete}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(asset.id); }}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                  </td>
+                </motion.tr>
+              );
+            })}
 
-          {filteredPhoneLines.map((line) => {
-            const assignedUser = users.find(u => String(u.id) === String(line.assigned_user_id));
-            
-            return (
-              <div 
-                key={`phone-card-${line.id}`}
-                onClick={() => handleEditPhone(line)}
-                className="p-4 active:bg-slate-50 transition-colors flex gap-4 border-l-4 border-l-indigo-400"
-              >
-                <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-slate-900 truncate pr-2">{line.label}</h3>
-                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter bg-emerald-100 text-emerald-700">
+
+              {/* Display Phone Lines in the same list when applicable */}
+              {filteredPhoneLines.map((line, idx) => {
+                const assignedUser = users.find(u => String(u.id) === String(line.assigned_user_id));
+                const location = locations.find(l => String(l.id) === String(line.location_id));
+                
+                return (
+                  <motion.tr 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (filtered.length + idx) * 0.05 }}
+                    key={`phone-${line.id}`} 
+                    className="hover:bg-slate-50 transition-colors group cursor-pointer border-l-4 border-l-indigo-400"
+                    onClick={() => handleEditPhone(line)}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{line.label}</span>
+                        <span className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Ligne Téléphonique</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-sm font-bold text-slate-600">
+                      {line.number}
+                    </td>
+                    <td className="px-6 py-4">
+                      {assignedUser ? (
+                        <div className="flex items-center gap-2">
+                           <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-bold">
+                             {assignedUser.name.charAt(0)}
+                           </div>
+                           <span className="font-bold text-slate-900 text-xs">{assignedUser.name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs font-medium">Non affecté</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-slate-500 font-medium text-xs">
+                      {location?.name || <span className="opacity-40">---</span>}
+                    </td>
+                    <td className="px-6 py-4" colSpan={1}></td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider",
+                      line.status === 'Actif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'
+                    )}>
                       {line.status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleEditPhone(line); }}
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        title="Modifier"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                  </td>
+                </motion.tr>
+              );
+            })}
+
+              {displayedAssets.length === 0 && filteredPhoneLines.length === 0 && !loading && (
+                 <tr>
+                   <td colSpan={7} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                     Aucun matériel ou ligne ne correspond à votre recherche.
+                   </td>
+                 </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Mobile Card List - Mobile Only */}
+          <div className="md:hidden divide-y divide-slate-100 h-full">
+            {displayedAssets.map((asset) => {
+              const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
+              
+              return (
+                <div 
+                  key={`asset-card-${asset.id}`}
+                  onClick={() => navigate('/assets/' + asset.id)}
+                  className="p-4 active:bg-slate-50 transition-colors flex gap-4"
+                >
+                  <div className="w-10 h-10 bg-slate-50 text-slate-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                    {getTypeIcon(asset.type)}
                   </div>
-                  <div className="text-[10px] text-indigo-500 font-mono font-bold tracking-tight">
-                    {line.number}
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                     {assignedUser ? (
-                       <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[8px] font-black border border-indigo-100">
-                            {assignedUser.name.charAt(0)}
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-600">{assignedUser.name}</span>
-                       </div>
-                     ) : (
-                       <span className="text-[10px] italic text-slate-300">Non affecté</span>
-                     )}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{asset.label}</h3>
+                      <span className={cn(
+                        "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+                        asset.status === 'Stock' ? 'bg-indigo-100 text-indigo-700' : 
+                        asset.status === 'Panne' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                      )}>
+                        {asset.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                      <span className="uppercase">{asset.type}</span>
+                      {asset.serial && <span>• {asset.serial}</span>}
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                       {assignedUser ? (
+                         <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[8px] font-black border border-indigo-100">
+                              {assignedUser.name.charAt(0)}
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-600">{assignedUser.name}</span>
+                         </div>
+                       ) : (
+                         <span className="text-[10px] italic text-slate-300">Non affecté</span>
+                       )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {filtered.length === 0 && filteredPhoneLines.length === 0 && !loading && (
-             <div className="p-12 text-center text-slate-400 italic text-xs">
-               Aucun résultat trouvé.
-             </div>
-          )}
-        </div>
-        
-        {/* Pagination Controls */}
-        <div className="bg-slate-50 border-t border-slate-100 p-4 md:px-8 py-4 flex items-center justify-between mt-auto">
-          <span className="text-xs font-bold text-slate-400">
-            Page {currentPage}
-          </span>
-          <div className="flex gap-2">
-            <button 
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-            >
-              Précédent
-            </button>
-            <button 
-              onClick={handleNextPage}
-              disabled={!finalHasMore}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-            >
-              Suivant
-            </button>
+            {filteredPhoneLines.map((line) => {
+              const assignedUser = users.find(u => String(u.id) === String(line.assigned_user_id));
+              
+              return (
+                <div 
+                  key={`phone-card-${line.id}`}
+                  onClick={() => handleEditPhone(line)}
+                  className="p-4 active:bg-slate-50 transition-colors flex gap-4 border-l-4 border-l-indigo-400"
+                >
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-slate-900 truncate pr-2 text-sm">{line.label}</h3>
+                      <span className={cn(
+                        "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+                        line.status === 'Actif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                      )}>
+                        {line.status}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-indigo-500 font-mono font-bold tracking-tight">
+                      {line.number}
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                       {assignedUser ? (
+                         <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[8px] font-black border border-indigo-100">
+                              {assignedUser.name.charAt(0)}
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-600">{assignedUser.name}</span>
+                         </div>
+                       ) : (
+                         <span className="text-[10px] italic text-slate-300">Non affecté</span>
+                       )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filtered.length === 0 && filteredPhoneLines.length === 0 && !loading && (
+               <div className="p-8 text-center text-slate-400 italic text-xs">
+                 Aucun résultat trouvé.
+               </div>
+            )}
+          </div>
+          
+          {/* Pagination Controls */}
+          <div className="bg-slate-50 border-t border-slate-100 p-4 shrink-0 flex items-center justify-between mt-auto">
+            <span className="text-xs font-bold text-slate-400">
+              Page {currentPage}
+            </span>
+            <div className="flex gap-2">
+              <button 
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 md:px-4 md:py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={handleNextPage}
+                disabled={!finalHasMore}
+                className="px-3 py-1.5 md:px-4 md:py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                Suivant
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
