@@ -10,6 +10,7 @@ import { motion } from 'motion/react';
 import { theme } from '../lib/theme';
 import { useToast } from '../services/toastContext';
 import { RelationViewer } from './RelationViewer';
+import { ContractForm } from './forms/ContractForm';
 
 interface ContractDetailViewProps {
   contractId: string;
