@@ -127,7 +127,7 @@ export const GlobalCreateHub: React.FC<GlobalCreateHubProps> = ({ isOpen, onClos
 
       {/* Rendu conditionnel des vues de création */}
       {activeType === 'asset' && (
-        <div className="fixed inset-0 z-[200] overflow-hidden bg-white">
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-50">
           <AssetCreateView 
             onClose={closeInner} 
             onRefresh={() => { /* Les listes se mettent à jour unmount/mount */ }} 
