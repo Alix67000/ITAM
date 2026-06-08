@@ -10,9 +10,16 @@ interface UserModalProps {
   onClose: () => void;
   onRefresh: () => void;
   user?: User | null;
+  onCreated?: (userId: string) => void;
 }
 
-export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh, user }) => {
+export const UserModal: React.FC<UserModalProps> = ({
+  isOpen,
+  onClose,
+  onRefresh,
+  user,
+  onCreated
+}) => {
   const { showToast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,13 +56,18 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onRefresh
         await api.updateUser(user.id, formData);
         showToast('Collaborateur mis à jour avec succès', 'success');
       } else {
-        await api.createUser(formData);
+        const created = await api.createUser(formData);
         showToast('Collaborateur créé avec succès', 'success');
+
+        if (created?.id && onCreated) {
+          onCreated(created.id);
+        }
       }
+
       onRefresh();
       onClose();
     } catch (err) {
-      showToast('Une erreur est survenue lors de l\'enregistrement', 'error');
+      showToast("Une erreur est survenue lors de l'enregistrement", 'error');
     } finally {
       setLoading(false);
     }

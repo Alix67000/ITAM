@@ -41,6 +41,19 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
   const [showPassword, setShowPassword] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 
+  const refreshUsers = async () => {
+    const usrs = await api.getUsers();
+    setUsers(usrs);
+  };
+
+  const handleUserCreated = async (newUserId: string) => {
+    await refreshUsers();
+    setSelectedUserIds(prev =>
+      prev.includes(newUserId) ? prev : [...prev, newUserId]
+    );
+    setIsUserModalOpen(false);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const [s, pLines, usrs, assetsData] = await Promise.all([
@@ -238,12 +251,38 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><UsersIcon className="w-3.5 h-3.5"/> Utilisateurs</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5">
+                  <UsersIcon className="w-3.5 h-3.5" />
+                  Utilisateurs
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsUserModalOpen(true)}
+                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  + Ajouter
+                </button>
+              </div>
+
               <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
                 {users.map(u => (
-                  <label key={u.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer text-xs">
-                    <input type="checkbox" className="rounded text-indigo-600 border-slate-300" checked={selectedUserIds.includes(u.id)} onChange={() => toggleSelection(u.id, selectedUserIds, setSelectedUserIds)} />
-                    {u.name}
+                  <label
+                    key={u.id}
+                    className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer text-xs"
+                  >
+                    <input
+                      type="checkbox"
+                      className="rounded text-indigo-600 border-slate-300"
+                      checked={selectedUserIds.includes(u.id)}
+                      onChange={() => toggleSelection(u.id, selectedUserIds, setSelectedUserIds)}
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11px] font-medium text-slate-700 truncate">{u.name}</span>
+                      {u.email && (
+                        <span className="text-[10px] text-slate-400 truncate">{u.email}</span>
+                      )}
+                    </div>
                   </label>
                 ))}
               </div>
@@ -285,7 +324,12 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
         </div>
       </div>
       
-      <UserModal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} onRefresh={() => api.getUsers().then(setUsers)} />
+      <UserModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        onRefresh={refreshUsers}
+        onCreated={handleUserCreated}
+      />
     </div>
   );
 };
