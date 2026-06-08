@@ -80,10 +80,10 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
       subtitle={phoneLine ? `Édition de ${phoneLine.label}` : 'Gestion des abonnements et attributions'}
       maxWidth="2xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className={theme.formGrid}>
           {/* Basic Info */}
-          <div className="space-y-6">
+          <div className="space-y-4">
              <div className={theme.formSectionTitle}>Informations de base</div>
              <div>
                 <label className={theme.formLabel}>Nom de la ligne</label>
@@ -125,7 +125,7 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
           </div>
 
           {/* Attribution & Links */}
-          <div className="space-y-6">
+          <div className="space-y-4">
              <div className={theme.formSectionTitle}>Attribution & Liens</div>
              <div>
                 <label className={theme.formLabel}>Utilisateur</label>
@@ -185,18 +185,18 @@ export const PhoneLineModal: React.FC<PhoneLineModalProps> = ({ isOpen, onClose,
           </div>
         </div>
 
-        <div>
+        <div className="mt-4">
           <label className={theme.formLabel}>Commentaires libres</label>
           <textarea 
             value={formData.comments || ''}
             onChange={e => setFormData({ ...formData, comments: e.target.value })}
-            rows={3}
-            className={cn(theme.inputBase, "resize-none")}
+            rows={2}
+            className={cn(theme.inputBase, "resize-none min-h-[80px]")}
             placeholder="Détails du forfait, options (5G, International...)"
           />
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+        <div className="pt-4 mt-6 border-t border-slate-100 flex justify-end gap-2 -mx-5 -mb-5 px-5 py-3 bg-slate-50">
           <button 
             type="button" 
             onClick={onClose}

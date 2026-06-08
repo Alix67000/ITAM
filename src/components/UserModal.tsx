@@ -81,8 +81,8 @@ export const UserModal: React.FC<UserModalProps> = ({
       subtitle={user ? `Édition de ${user.name}` : 'Création d\'une fiche utilisateur'}
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="space-y-4">
           <div>
             <label className={theme.formLabel}>Nom complet</label>
             <input 
@@ -148,7 +148,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+        <div className="pt-4 mt-6 border-t border-slate-100 flex justify-end gap-2 -mx-5 -mb-5 px-5 py-3 bg-slate-50">
           <button 
             type="button" 
             onClick={onClose}

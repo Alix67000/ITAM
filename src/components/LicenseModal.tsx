@@ -63,7 +63,7 @@ export const LicenseModal: React.FC<LicenseModalProps> = ({ isOpen, onClose, onR
       onClose={onClose}
       title={license ? 'Modifier la licence' : 'Nouvelle licence'}
       subtitle={license ? `Clé: ${license.license_key || 'N/A'}` : 'Vérification de la conformité et des usages'}
-      maxWidth="5xl"
+      maxWidth="4xl"
     >
       <LicenseForm 
         initialData={license}

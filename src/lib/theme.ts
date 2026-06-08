@@ -13,16 +13,16 @@ export const theme = {
   cardTitle: "text-lg font-bold text-slate-800",
   
   // Boutons
-  btnPrimary: "flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm shadow-indigo-200 hover:shadow-md disabled:opacity-50 disabled:grayscale whitespace-nowrap",
-  btnSecondary: "flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:grayscale whitespace-nowrap",
-  btnDanger: "flex items-center justify-center gap-2 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:grayscale whitespace-nowrap",
-  btnIconGhost: "p-1.5 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-0",
-  btnIconDanger: "p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-0",
+  btnPrimary: "flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm shadow-indigo-200 hover:shadow-md disabled:opacity-50 disabled:grayscale whitespace-nowrap",
+  btnSecondary: "flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50 disabled:grayscale whitespace-nowrap",
+  btnDanger: "flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50 disabled:grayscale whitespace-nowrap",
+  btnIconGhost: "p-1.5 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-0",
+  btnIconDanger: "p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-0",
   
   // Inputs & Recherche
-  inputBase: "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400",
-  searchInput: "w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400",
-  searchIcon: "absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors",
+  inputBase: "w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400",
+  searchInput: "w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-xs font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400",
+  searchIcon: "absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-indigo-600 transition-colors",
 
   // Badges (base)
   badge: "px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest w-max border",
@@ -57,20 +57,20 @@ export const theme = {
   detailMetaLabel: "text-[9px] font-black text-slate-400 uppercase tracking-[0.1em] block",
   detailMetaValue: "font-bold text-slate-900 text-sm",
   // Formulaires
-  formLabel: "text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1 block",
-  formSection: "bg-slate-50/50 p-6 rounded-2xl border border-slate-100/60 space-y-5",
-  formSectionTitle: "text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2 mb-4",
-  formGrid: "grid grid-cols-1 md:grid-cols-2 gap-5",
+  formLabel: "text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1 block",
+  formSection: "bg-slate-50/50 p-4 rounded-xl border border-slate-100/60 space-y-4",
+  formSectionTitle: "text-xs font-bold text-slate-800 tracking-tight flex items-center gap-1.5 mb-3",
+  formGrid: "grid grid-cols-1 md:grid-cols-2 gap-4",
   
   // Modales
-  modalBackdrop: "fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-6",
+  modalBackdrop: "fixed inset-0 z-[300] flex items-center justify-center p-4",
   modalOverlay: "absolute inset-0 bg-slate-900/40 backdrop-blur-sm",
-  modalPanel: "relative bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200",
-  modalHeader: "flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-white shadow-sm z-10",
+  modalPanel: "relative bg-white w-full max-w-2xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200",
+  modalHeader: "flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-white shadow-sm z-10",
   modalTitleBox: "flex flex-col",
-  modalTitle: "text-xl font-black text-slate-900 tracking-tight flex items-center gap-3",
-  modalSubtitle: "text-xs font-semibold text-slate-500 tracking-wider uppercase mt-1",
-  modalCloseBtn: "p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-colors",
-  modalBody: "p-6 overflow-y-auto space-y-6 bg-white",
-  modalFooter: "px-6 py-4 border-t border-slate-100 bg-slate-50/80 flex gap-3 justify-end z-10",
+  modalTitle: "text-lg font-black text-slate-900 tracking-tight flex items-center gap-2",
+  modalSubtitle: "text-[9px] font-bold text-slate-500 tracking-widest uppercase mt-0.5",
+  modalCloseBtn: "p-1.5 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-900 transition-colors",
+  modalBody: "p-5 overflow-y-auto space-y-5 bg-white",
+  modalFooter: "px-5 py-3 border-t border-slate-100 bg-slate-50 flex gap-2 justify-end z-10",
 };

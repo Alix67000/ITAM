@@ -24,7 +24,7 @@ L'application a bénéficié d'une **refonte harmonisée UX/UI complète** et d'
 
 - ✅ **Création de la base UI** : Typographie, couleurs, radius centralisés.
 - ✅ **Migration des Listes Métier** : Toutes les listes (`AssetList`, `UserList`, etc.) utilisent `theme.card` et `theme.pageHeader` ainsi que le format responsif (Grilles desktop, Cartes mobiles) avec un design compact (`UserList` comme référence).
-- ✅ **Modales & Formulaires** : 100% des modales (ex: `PhoneLineModal`, `UserModal`, `SupplierModal`) utilisent les sous-composants centralisés (Header, labels "uppercase").
+- ✅ **Modales & Formulaires Compacts** : 100% des modales (ex: `PhoneLineModal`, `UserModal`, `SupplierModal`, `ContractModal`, `LicenseModal`, `SoftwareModal`) et des formulaires de création (`AssetForm`, `ContractForm`, `LicenseForm`, `SoftwareForm`, `AssetCreateView`, `SoftwareCreateView`) utilisent les sous-composants centralisés (Header, labels "uppercase"). Ils ont fait l'objet d'une densification massive pour supprimer les padding/marge inutiles, proposer une vraie expérience "desktop métier" (diminution des polices, diminution des `gap` et `space-y`, pied de page aligné en base).
 - ✅ **Vue Détail Compacte** : Layout scindé (Header Sticky, Sidebar latérale, Sections "Cards") pour `AssetDetailView`, `ContractDetailView`, `LicenseDetailView` et `RelationViewer`. Le design global a été compacté au maximum (espacements réduits, headers plus denses) pour se rapprocher d'un outil métier performant et limiter le scroll.
 - ✅ **Polish Final Global** :
   - **Layout (Sidebar & Mobile Nav)** : Les marqueurs actifs (`bg-indigo-50 text-indigo-700 font-bold`), l'UI utilisateur (initiales logo, ombres) et la safe-area sur mobile ont été harmonisées.
@@ -32,9 +32,8 @@ L'application a bénéficié d'une **refonte harmonisée UX/UI complète** et d'
   - **États Vides / Loading** : Ajustements des bordures et placeholders pour minimiser la fracture visuelle.
 
 ## 4. Prochaines étapes de polish
-- **Formulaires** : Compacter et densifier les formulaires d'édition (`AssetForm`, `ContractForm`, `LicenseForm`) pour qu'ils soient moins massifs.
-- **Modales de création** : Continuer la densification sur les modales plus complexes.
 - **Dashboard** : Rendre les cartes de métriques et listes d'alerte plus compactes.
+- **Paramètres Locaux** : Éventuellement proposer un toggle global pour basculer la densité d'UI globale si le besoin s'en fait sentir.
 
 ## 5. Garde-fous préservés
 - Le routage et la logique Firestore ont été préservés as-is.

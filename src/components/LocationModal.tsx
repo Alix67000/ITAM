@@ -70,8 +70,8 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
       subtitle={location ? `Édition de ${location.name}` : 'Hiérarchie et organisation des sites'}
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="space-y-4">
           <div>
             <label className={theme.formLabel}>Nom de l'entité</label>
             <input 
@@ -107,14 +107,14 @@ export const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, o
             <textarea 
               value={formData.address || ''} 
               onChange={e => setFormData({...formData, address: e.target.value})} 
-              className={cn(theme.inputBase, "resize-none")} 
+              className={cn(theme.inputBase, "resize-none min-h-[80px]")} 
               placeholder="Adresse physique, étage..."
-              rows={3}
+              rows={2}
             />
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+        <div className="pt-4 mt-6 border-t border-slate-100 flex justify-end gap-2 -mx-5 -mb-5 px-5 py-3 bg-slate-50">
           <button type="button" onClick={onClose} className={theme.btnSecondary}>
             Annuler
           </button>

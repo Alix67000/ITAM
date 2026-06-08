@@ -95,8 +95,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
   const statuses = ['Stock', 'En service', 'En réparation', 'Panne', 'Disparu', 'Réformé'];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-20">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-20">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Identité Section */}
         <div className={theme.formSection}>
           <div className={theme.formSectionTitle}>

@@ -47,7 +47,7 @@ export const Modal: React.FC<ModalProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              "relative bg-white w-full rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]",
+              theme.modalPanel,
               maxWidthClass
             )}
           >

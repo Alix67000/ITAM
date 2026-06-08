@@ -66,7 +66,7 @@ export const SoftwareModal: React.FC<SoftwareModalProps> = ({ isOpen, onClose, o
       onClose={onClose}
       title={software ? 'Modifier le logiciel' : 'Nouveau Logiciel'}
       subtitle={software ? `Édition de ${software.name}` : 'Gestion du catalogue logiciel'}
-      maxWidth="5xl"
+      maxWidth="4xl"
     >
       <SoftwareForm 
         initialData={software}

@@ -60,8 +60,8 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
       subtitle={supplier ? `Édition de ${supplier.name}` : 'Gestion des partenaires et prestataires'}
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="space-y-4">
           <div>
             <label className={theme.formLabel}>Nom de l'entreprise</label>
             <div className="relative">
@@ -71,7 +71,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
                 type="text" 
                 value={formData.name || ''} 
                 onChange={e => setFormData({ ...formData, name: e.target.value })} 
-                className={cn(theme.inputBase, "pl-10")} 
+                className={cn(theme.inputBase, "pl-9")} 
                 placeholder="ex: Dell France" 
               />
             </div>
@@ -85,7 +85,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
                 type="text" 
                 value={formData.contact || ''} 
                 onChange={e => setFormData({ ...formData, contact: e.target.value })} 
-                className={cn(theme.inputBase, "pl-10")} 
+                className={cn(theme.inputBase, "pl-9")} 
                 placeholder="ex: Jean Dupont" 
               />
             </div>
@@ -99,14 +99,14 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({ isOpen, onClose, o
                 type="tel" 
                 value={formData.phone || ''} 
                 onChange={e => setFormData({ ...formData, phone: e.target.value })} 
-                className={cn(theme.inputBase, "pl-10")} 
+                className={cn(theme.inputBase, "pl-9")} 
                 placeholder="ex: 01 23 45 67 89" 
               />
             </div>
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 mt-6 pb-2">
+        <div className="pt-4 mt-6 border-t border-slate-100 flex justify-end gap-2 -mx-5 -mb-5 px-5 py-3 bg-slate-50">
           <button type="button" onClick={onClose} className={theme.btnSecondary}>
             Annuler
           </button>

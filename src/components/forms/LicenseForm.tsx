@@ -120,9 +120,9 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className={theme.formGrid}>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className={theme.formSection}>
             <div className={theme.formSectionTitle}>Identification</div>
             
@@ -157,7 +157,7 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
                 value={formData.license_key || ''}
                 onChange={e => setFormData({ ...formData, license_key: e.target.value })}
                 placeholder="XXXXX-XXXXX..."
-                className={cn(theme.inputBase, "font-mono")}
+                className={cn(theme.inputBase, "font-mono text-xs")}
               />
             </div>
 
@@ -211,7 +211,7 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className={theme.formSection}>
             <div className={theme.formSectionTitle}>Affectations</div>
             
@@ -229,20 +229,20 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
                 />
                 <AnimatePresence>
                   {isUserListOpen && searchUser && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-40 overflow-y-auto">
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
                       {filteredUsers.map(user => (
-                        <button key={user.id} type="button" onClick={() => { toggleUser(user); setSearchUser(''); setIsUserListOpen(false); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center justify-between">
-                          <span className="text-sm font-medium">{user.name}</span>
-                          {linkedUsers.some(u => u.id === user.id) && <Check className="w-4 h-4 text-emerald-600" />}
+                        <button key={user.id} type="button" onClick={() => { toggleUser(user); setSearchUser(''); setIsUserListOpen(false); }} className="w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center justify-between text-xs">
+                          <span className="font-medium">{user.name}</span>
+                          {linkedUsers.some(u => u.id === user.id) && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                         </button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2">
+              <div className="flex flex-wrap gap-1.5 pt-2">
                 {linkedUsers.map(u => (
-                  <div key={u.id} className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-xl text-xs font-bold border border-emerald-100 flex items-center gap-2 transition-all">
+                  <div key={u.id} className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-[10px] font-bold border border-emerald-100 flex items-center gap-1.5 transition-all">
                     {u.name} <button type="button" onClick={() => toggleUser(u)} className="hover:text-emerald-900"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
@@ -263,20 +263,20 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
                 />
                 <AnimatePresence>
                   {isAssetListOpen && searchAsset && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-40 overflow-y-auto">
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
                       {filteredAssets.map(asset => (
-                        <button key={asset.id} type="button" onClick={() => { toggleAsset(asset); setSearchAsset(''); setIsAssetListOpen(false); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center justify-between">
-                          <span className="text-sm font-medium">{asset.label}</span>
-                          {linkedAssets.some(a => a.id === asset.id) && <Check className="w-4 h-4 text-indigo-600" />}
+                        <button key={asset.id} type="button" onClick={() => { toggleAsset(asset); setSearchAsset(''); setIsAssetListOpen(false); }} className="w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center justify-between text-xs">
+                          <span className="font-medium">{asset.label}</span>
+                          {linkedAssets.some(a => a.id === asset.id) && <Check className="w-3.5 h-3.5 text-indigo-600" />}
                         </button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2">
+              <div className="flex flex-wrap gap-1.5 pt-2">
                 {linkedAssets.map(a => (
-                  <div key={a.id} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-xl text-xs font-bold border border-indigo-100 flex items-center gap-2 transition-all">
+                  <div key={a.id} className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md text-[10px] font-bold border border-indigo-100 flex items-center gap-1.5 transition-all">
                     {getAssetIcon(a.type)} {a.label} <button type="button" onClick={() => toggleAsset(a)} className="hover:text-indigo-900"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
@@ -286,7 +286,7 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({ initialData, onSubmit,
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 pb-2">
+      <div className="pt-4 mt-6 border-t border-slate-100 flex justify-end gap-2 -mx-5 -mb-5 px-5 py-3 bg-slate-50">
         <button type="button" onClick={onCancel} className={theme.btnSecondary}>
           Annuler
         </button>

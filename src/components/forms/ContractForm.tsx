@@ -91,9 +91,9 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
   const showAccountBox = showAdvanced || isMobilePlan || !!formData.account_login || !!formData.account_email;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className={theme.formGrid}>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className={theme.formSectionTitle}>Identification</div>
           <div>
             <label className={theme.formLabel}>Libellé du contrat</label>
@@ -152,7 +152,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className={theme.formSectionTitle}>Engagement & Coût</div>
           <div>
             <label className={theme.formLabel}>Fournisseur</label>
@@ -201,7 +201,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
       </div>
 
       {showAccountBox && (
-        <div className="space-y-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+        <div className="space-y-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
           <div className={theme.formSectionTitle}>Compte de gestion</div>
           <div className={theme.formGrid}>
             <div>
@@ -227,7 +227,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
@@ -236,40 +236,40 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
       )}
 
       {showAssociations && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
+        <div className="space-y-3 pt-3 border-t border-slate-100">
           <div className={theme.formSectionTitle}>Associations</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><Phone className="w-3.5 h-3.5"/> Lignes</label>
-              <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><Phone className="w-3 h-3"/> Lignes</label>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-1.5 max-h-40 overflow-y-auto space-y-0.5">
                 {phoneLines.map(l => (
-                  <label key={l.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer text-xs">
+                  <label key={l.id} className="flex items-center gap-2 p-1 hover:bg-white rounded cursor-pointer text-xs">
                     <input type="checkbox" className="rounded text-indigo-600 border-slate-300" checked={selectedPhoneLineIds.includes(l.id)} onChange={() => toggleSelection(l.id, selectedPhoneLineIds, setSelectedPhoneLineIds)} />
                     {l.number} ({l.label})
                   </label>
                 ))}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5">
-                  <UsersIcon className="w-3.5 h-3.5" />
+                <label className="text-[9px] font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5">
+                  <UsersIcon className="w-3 h-3" />
                   Utilisateurs
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsUserModalOpen(true)}
-                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                  className="text-[9px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
                 >
                   + Ajouter
                 </button>
               </div>
 
-              <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-1.5 max-h-40 overflow-y-auto space-y-0.5">
                 {users.map(u => (
                   <label
                     key={u.id}
-                    className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer text-xs"
+                    className="flex items-center gap-2 p-1 hover:bg-white rounded cursor-pointer text-xs"
                   >
                     <input
                       type="checkbox"
@@ -278,20 +278,20 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
                       onChange={() => toggleSelection(u.id, selectedUserIds, setSelectedUserIds)}
                     />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[11px] font-medium text-slate-700 truncate">{u.name}</span>
+                      <span className="text-[10px] font-medium text-slate-700 truncate">{u.name}</span>
                       {u.email && (
-                        <span className="text-[10px] text-slate-400 truncate">{u.email}</span>
+                        <span className="text-[9px] text-slate-400 truncate">{u.email}</span>
                       )}
                     </div>
                   </label>
                 ))}
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><Printer className="w-3.5 h-3.5"/> Imprimantes</label>
-              <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><Printer className="w-3 h-3"/> Imprimantes</label>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-1.5 max-h-40 overflow-y-auto space-y-0.5">
                 {printers.map(p => (
-                  <label key={p.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer text-xs">
+                  <label key={p.id} className="flex items-center gap-2 p-1 hover:bg-white rounded cursor-pointer text-xs">
                     <input type="checkbox" className="rounded text-indigo-600 border-slate-300" checked={selectedPrinterIds.includes(p.id)} onChange={() => toggleSelection(p.id, selectedPrinterIds, setSelectedPrinterIds)} />
                     {p.label}
                   </label>
@@ -308,11 +308,11 @@ export const ContractForm: React.FC<ContractFormProps> = ({ initialData, onSubmi
           value={formData.description || ''}
           onChange={e => setFormData({ ...formData, description: e.target.value })}
           rows={2}
-          className={theme.inputBase}
+          className={cn(theme.inputBase, "resize-none")}
         />
       </div>
 
-      <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+      <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
         <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
           <Settings2 className="w-3.5 h-3.5" /> {showAdvanced ? "Masquer options" : "Afficher associations"}
         </button>
