@@ -108,10 +108,10 @@ export const SupplierList: React.FC = () => {
         <table className="w-full text-left border-collapse hidden md:table">
           <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
             <tr>
-              <th className="px-6 lg:px-8 py-5">Entreprise</th>
-              <th className="px-6 lg:px-8 py-5">Contact</th>
-              <th className="px-6 lg:px-8 py-5">Téléphone</th>
-              <th className="px-6 lg:px-8 py-5 text-right">Actions</th>
+              <th className="px-6 py-4">Entreprise</th>
+              <th className="px-6 py-4">Contact</th>
+              <th className="px-6 py-4">Téléphone</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
@@ -122,41 +122,41 @@ export const SupplierList: React.FC = () => {
             ) : filtered.map((s, idx) => (
               <motion.tr 
                 key={s.id}
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: idx * 0.05 }} 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                transition={{ delay: idx * 0.02 }} 
                 onClick={() => handleEdit(s)}
                 className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
               >
-                <td className="px-6 lg:px-8 py-4 lg:py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black text-lg">
+                <td className="px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-xs">
                       {s.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-base">{s.name}</div>
+                    <div className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-sm">{s.name}</div>
                   </div>
                 </td>
-                <td className="px-6 lg:px-8 py-4 lg:py-6 text-slate-600">
-                   <div className="flex items-center gap-2 font-medium">
-                     <User className="w-4 h-4 text-slate-400" />
+                <td className="px-6 py-3 text-slate-600">
+                   <div className="flex items-center gap-2 text-xs">
+                     <User className="w-3.5 h-3.5 text-slate-400" />
                      {s.contact || <span className="text-slate-400 italic font-normal">Non renseigné</span>}
                    </div>
                 </td>
-                <td className="px-6 lg:px-8 py-4 lg:py-6 text-slate-600">
-                   <div className="flex items-center gap-2">
-                     <Phone className="w-4 h-4 text-slate-400" />
-                     {s.phone ? <span className="font-mono text-xs">{s.phone}</span> : <span className="text-slate-400 italic">Non renseigné</span>}
+                <td className="px-6 py-3 text-slate-600">
+                   <div className="flex items-center gap-2 text-xs">
+                     <Phone className="w-3.5 h-3.5 text-slate-400" />
+                     {s.phone ? <span className="font-mono">{s.phone}</span> : <span className="text-slate-400 italic">Non renseigné</span>}
                    </div>
                 </td>
-                <td className="px-6 lg:px-8 py-4 lg:py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <td className="px-6 py-3 text-right">
+                    <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                        <button 
                          disabled={!canEdit}
                          onClick={(e) => { e.stopPropagation(); handleEdit(s); }} 
                          className={theme.btnIconGhost}
                          title="Modifier"
                        >
-                         <Edit2 className="w-4 h-4" />
+                         <Edit2 className="w-3.5 h-3.5" />
                        </button>
                        <button 
                          disabled={!canDelete}
@@ -164,7 +164,7 @@ export const SupplierList: React.FC = () => {
                          className={theme.btnIconDanger}
                          title="Supprimer"
                        >
-                         <Trash2 className="w-4 h-4" />
+                         <Trash2 className="w-3.5 h-3.5" />
                        </button>
                     </div>
                 </td>

@@ -174,12 +174,12 @@ export const LicenseList: React.FC<LicenseListProps> = ({ mode: initialMode = 'l
           <table className="w-full text-left border-collapse hidden md:table">
             <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
               <tr>
-                <th className="px-6 lg:px-8 py-5">ID</th>
-                <th className="px-6 lg:px-8 py-5">Logiciel / Éditeur</th>
-                <th className="px-6 lg:px-8 py-5 text-center">Type</th>
-                <th className="px-6 lg:px-8 py-5">Statut</th>
-                <th className="px-6 lg:px-8 py-5">Fournisseur</th>
-                <th className="px-6 lg:px-8 py-5 text-right">Actions</th>
+                <th className="px-6 py-4">ID</th>
+                <th className="px-6 py-4">Logiciel / Éditeur</th>
+                <th className="px-6 py-4 text-center">Type</th>
+                <th className="px-6 py-4">Statut</th>
+                <th className="px-6 py-4">Fournisseur</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">

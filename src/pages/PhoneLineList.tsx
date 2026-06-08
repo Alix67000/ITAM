@@ -179,11 +179,11 @@ export const PhoneLineList: React.FC = () => {
           <table className="w-full text-left border-collapse hidden md:table">
             <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
               <tr>
-                <th className="px-6 lg:px-8 py-5">Ligne & Numéro</th>
-                <th className="px-6 lg:px-8 py-5">Utilisateur & Site</th>
-                <th className="px-6 lg:px-8 py-5">Contrat & Fournisseur</th>
-                <th className="px-6 lg:px-8 py-5 text-center">Statut</th>
-                <th className="px-6 lg:px-8 py-5 text-right">Actions</th>
+                <th className="px-6 py-4">Ligne & Numéro</th>
+                <th className="px-6 py-4">Utilisateur & Site</th>
+                <th className="px-6 py-4">Contrat & Fournisseur</th>
+                <th className="px-6 py-4 text-center">Statut</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
@@ -199,82 +199,80 @@ export const PhoneLineList: React.FC = () => {
 
                 return (
                   <motion.tr 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ delay: idx * 0.02 }}
                     key={line.id} 
                     onClick={() => handleEdit(line)}
                     className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
                   >
-                    <td className="px-6 lg:px-8 py-4 lg:py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
-                          <Phone className="w-5 h-5" />
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+                          <Phone className="w-4 h-4" />
                         </div>
-                        <div className="space-y-0.5">
-                          <div className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-base">{line.number}</div>
-                          <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.1em]">{line.label}</div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{line.number}</div>
+                          <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{line.label}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 lg:px-8 py-4 lg:py-6">
-                      <div className="space-y-2">
+                    <td className="px-6 py-3 text-slate-600">
+                      <div className="space-y-1">
                         {assignedUser ? (
                           <div className="flex items-center gap-2">
                             <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-                            <span className="text-sm font-bold text-slate-700">{assignedUser.name}</span>
+                            <span className="text-xs font-bold text-slate-700">{assignedUser.name}</span>
                           </div>
                         ) : (
-                          <span className={theme.badgeNeutral}>Non assigné</span>
+                          <span className={cn(theme.badge, "text-[9px] bg-slate-50")}>Non assigné</span>
                         )}
                         {location ? (
                           <div className="flex items-center gap-2">
                             <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            <span className="text-[11px] font-medium text-slate-500 truncate max-w-[150px]">{location.name}</span>
+                            <span className="text-[10px] font-medium text-slate-500 truncate">{location.name}</span>
                           </div>
                         ) : null}
                       </div>
                     </td>
-                    <td className="px-6 lg:px-8 py-4 lg:py-6">
-                      <div className="space-y-2">
+                    <td className="px-6 py-3 text-slate-600">
+                      <div className="space-y-1">
                         {contract ? (
                            <div className="flex items-center gap-2">
                              <FileText className="w-3.5 h-3.5 text-slate-400" />
-                             <span className="text-sm text-slate-600 font-bold truncate max-w-[150px]">{contract.label}</span>
+                             <span className="text-xs text-slate-600 font-bold truncate max-w-[150px]">{contract.label}</span>
                            </div>
                          ) : (
-                           <span className={theme.badgeNeutral}>Aucun contrat</span>
+                           <span className={cn(theme.badge, "text-[9px] bg-slate-50")}>Aucun contrat</span>
                          )}
                          {supplier ? (
                            <div className="flex items-center gap-2">
                              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                             <span className="text-[11px] font-medium text-slate-500 truncate max-w-[150px]">{supplier.name}</span>
+                             <span className="text-[10px] font-medium text-slate-500 truncate max-w-[150px]">{supplier.name}</span>
                            </div>
                          ) : null}
                       </div>
                     </td>
-                    <td className="px-6 lg:px-8 py-4 lg:py-6">
-                      <div className="flex justify-center">
+                    <td className="px-6 py-3 text-center">
                          <span className={line.status === 'Actif' ? theme.badgeSuccess : theme.badgeNeutral}>
                           {line.status}
                         </span>
-                      </div>
                     </td>
-                    <td className="px-6 lg:px-8 py-4 lg:py-6 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <td className="px-6 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleEdit(line); }}
                           className={theme.btnIconGhost}
                           title="Modifier"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleDelete(line.id); }}
                           className={theme.btnIconDanger}
                           title="Supprimer"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -283,6 +281,7 @@ export const PhoneLineList: React.FC = () => {
               })}
             </tbody>
           </table>
+
           
           {/* Mobile View */}
           <div className="md:hidden divide-y divide-slate-100">

@@ -459,127 +459,106 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         <table className="w-full text-left border-collapse hidden md:table">
           <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
             <tr>
-              <th className="px-8 py-5 text-left">N° Inventaire</th>
-              <th className="px-8 py-5">Asset / Cycle de vie</th>
-              <th className="px-8 py-5">Affectation</th>
-              <th className="px-8 py-5">Acquisition</th>
-              <th className="px-8 py-5">Finance & Garantie</th>
-              <th className="px-8 py-5 text-center">État</th>
-              <th className="px-8 py-5 text-right">Actions</th>
+              <th className="px-6 py-4 text-left">N° Inventaire</th>
+              <th className="px-6 py-4">Asset</th>
+              <th className="px-6 py-4">Affectation</th>
+              <th className="px-6 py-4">Acquisition</th>
+              <th className="px-6 py-4">Finance & Garantie</th>
+              <th className="px-6 py-4 text-center">État</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50/50 text-sm">
+          <tbody className="divide-y divide-slate-100 text-sm">
             {[...displayedAssets].sort((a, b) => (b.inventory_number || '').localeCompare(a.inventory_number || '')).map((asset, idx) => {
               const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
               const location = locations.find(l => String(l.id) === String(asset.location_id));
               
               return (
                 <motion.tr 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: idx * 0.02 }}
                   key={`asset-${asset.id}`} 
                   onClick={(e) => {
                     const target = e.target as HTMLElement;
                     if (target.closest('button')) return;
                     navigate('/assets/' + asset.id);
                   }}
-                  className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                  className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
                 >
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     <div className="flex flex-col">
-                      <span className="font-mono font-black text-blue-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
-                      <span className="text-[9px] text-slate-400 uppercase font-bold tracking-[0.2em] mt-1">{asset.type}</span>
+                      <span className="font-mono font-bold text-indigo-600 text-xs tracking-tight">{asset.inventory_number || '---'}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold">{asset.type}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-slate-50 text-slate-500 rounded-xl flex items-center justify-center font-bold">
+                  <td className="px-6 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
                         {getTypeIcon(asset.type)}
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-base">{asset.label}</div>
-                        <div className="flex flex-col gap-1 mt-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{asset.subtype}</span>
-                          </div>
-                          {asset.manufacture_date && (
-                            <div className="text-[10px] font-medium text-slate-400 flex items-center gap-2">
-                               Fab: {new Date(asset.manufacture_date).toLocaleDateString('fr-FR')} 
-                               {asset.commissioning_date && <><span className="w-1 h-1 rounded-full bg-slate-300"></span> MES: {new Date(asset.commissioning_date).toLocaleDateString('fr-FR')}</>}
-                            </div>
-                          )}
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{asset.label}</div>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                          <span className="font-mono uppercase">{asset.subtype}</span>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     {assignedUser ? (
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                      <div className="flex items-center gap-2">
+                         <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
                            {assignedUser.name.charAt(0)}
                          </div>
                          <div className="flex flex-col">
-                           <span className="font-bold text-slate-900 text-sm">{assignedUser.name}</span>
-                           <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 mt-0.5">
-                             <MapPin className="w-3 h-3 text-slate-400" /> {location ? location.name : 'Stock'}
-                           </span>
+                           <span className="font-bold text-slate-900 text-xs">{assignedUser.name}</span>
                          </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col">
-                         <span className="text-slate-400 italic text-xs font-medium">Non affecté</span>
-                         <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 mt-0.5">
-                           <MapPin className="w-3 h-3 text-slate-400" /> {location ? location.name : 'Stock'}
-                         </span>
-                      </div>
+                      <span className="text-slate-400 italic text-xs">Non affecté</span>
                     )}
                   </td>
-                <td className="px-8 py-6">
-                  <div className="flex flex-col items-start gap-1.5">
+                <td className="px-6 py-3">
+                  <div className="flex flex-col gap-0.5">
                     <span className={cn(
-                      "px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest",
-                      asset.condition === 'neuf' ? 'bg-emerald-50 text-emerald-600' :
-                      asset.condition === 'occasion' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                      "text-[10px] font-bold uppercase",
+                      asset.condition === 'neuf' ? 'text-emerald-600' : 'text-slate-600'
                     )}>
                       {asset.condition || 'neuf'}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono font-medium">{asset.serial || 'S/N: ---'}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{asset.serial || '---'}</span>
                   </div>
                 </td>
-                <td className="px-8 py-6">
+                <td className="px-6 py-3">
                   <div className="flex flex-col">
-                    <span className="font-mono font-black text-slate-900 text-sm">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-                    {asset.has_warranty ? (
-                       <span className="text-[10px] text-emerald-600 font-bold mt-0.5">Garantie au {new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}</span>
-                    ) : (
-                       <span className="text-[10px] text-slate-400 font-medium mt-0.5">Sans garantie</span>
-                    )}
+                    <span className="font-bold text-slate-900 text-xs">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+                    <span className={cn("text-[10px] font-bold", asset.has_warranty ? "text-emerald-600" : "text-slate-400")}>
+                      {asset.has_warranty ? 'Sous garantie' : 'Sans garantie'}
+                    </span>
                   </div>
                 </td>
-                <td className="px-8 py-6 text-center">
-                  <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block min-w-[90px] ${
-                    asset.status === 'Stock' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 
-                    asset.status === 'Panne' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                  }`}>
+                <td className="px-6 py-3 text-center">
+                  <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider", 
+                    asset.status === 'Stock' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'
+                  )}>
                     {asset.status}
                   </span>
                 </td>
-                <td className="px-8 py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                       <button 
-                         disabled={!canDelete}
-                         onClick={() => handleDelete(asset.id)}
-                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                         title="Supprimer"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                    </div>
+                <td className="px-6 py-3 text-right">
+                    <button 
+                      disabled={!canDelete}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(asset.id); }}
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                 </td>
               </motion.tr>
             );
           })}
+
 
             {/* Display Phone Lines in the same list when applicable */}
             {filteredPhoneLines.map((line, idx) => {

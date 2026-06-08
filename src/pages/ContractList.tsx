@@ -140,16 +140,15 @@ export const ContractList: React.FC = () => {
       </div>
 
       <div className={cn(theme.card, "flex flex-col min-h-[400px]")}>
-        {/* Table View - Desktop Only */}
         <table className="hidden md:table w-full text-left border-collapse">
           <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400 tracking-widest border-b border-slate-200">
             <tr>
-              <th className="px-6 lg:px-8 py-5">Libellé / Type</th>
-              <th className="px-6 lg:px-8 py-5">Fournisseur</th>
-              <th className="px-6 lg:px-8 py-5">Période</th>
-              <th className="px-6 lg:px-8 py-5 text-center">Assets liés</th>
-              <th className="px-6 lg:px-8 py-5">Statut</th>
-              <th className="px-6 lg:px-8 py-5 text-right">Actions</th>
+              <th className="px-6 py-4">Libellé / Type</th>
+              <th className="px-6 py-4">Fournisseur</th>
+              <th className="px-6 py-4">Période</th>
+              <th className="px-6 py-4 text-center">Assets liés</th>
+              <th className="px-6 py-4">Statut</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
@@ -162,51 +161,49 @@ export const ContractList: React.FC = () => {
               
               return (
                 <motion.tr 
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} 
                   key={c.id} onClick={() => handleShowContractDetails(c)}
                   className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
                 >
-                  <td className="px-6 lg:px-8 py-4 lg:py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
-                        <FileText className="w-5 h-5" />
+                  <td className="px-6 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4" />
                       </div>
-                      <div className="space-y-0.5">
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-base">{c.label}</div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{c.label}</div>
                         <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400">{c.type}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6 text-slate-600 font-medium text-sm tracking-tight">{supplier ? supplier.name : '---'}</td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6">
-                    <div className="flex flex-col text-sm space-y-0.5">
-                      <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-slate-400" /><span className="text-slate-500 font-medium">Début: {c.start_date || 'N/A'}</span></div>
-                      <div className={`flex items-center gap-1.5 font-medium ${isExpiringSoon(c.end_date) ? 'text-orange-600 blur-[0.3px] brightness-150 animate-pulse' : 'text-slate-500'}`}>
-                        <Calendar className="w-3.5 h-3.5" />Fin: {c.end_date || 'N/A'}
+                  <td className="px-6 py-3 text-slate-600 font-medium text-xs">{supplier ? supplier.name : '---'}</td>
+                  <td className="px-6 py-3">
+                    <div className="flex flex-col text-xs space-y-0.5">
+                      <div className="text-slate-500">Début: {c.start_date || 'N/A'}</div>
+                      <div className={isExpiringSoon(c.end_date) ? 'text-orange-600 font-bold' : 'text-slate-500'}>
+                        Fin: {c.end_date || 'N/A'}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6 text-center">
-                    <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-slate-50 border border-slate-200/60 rounded-lg text-xs font-bold text-slate-600">{c.assets_count || 0}</span>
+                  <td className="px-6 py-3 text-center">
+                    <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 bg-slate-100 rounded-md text-[10px] font-bold text-slate-600">{c.assets_count || 0}</span>
                   </td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6">
-                    <div className="flex items-center justify-start">
+                  <td className="px-6 py-3">
                        <span className={cn(
                          theme.badge,
                          c.status === 'Actif' ? theme.badgeSuccess : theme.badgeNeutral
                        )}>
                          {c.status}
                        </span>
-                    </div>
                   </td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                  <td className="px-6 py-3 text-right">
+                    <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleEditContract(c); }} 
                         className={theme.btnIconGhost}
                         title="Modifier"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button 
                         disabled={!canDelete}
@@ -214,7 +211,7 @@ export const ContractList: React.FC = () => {
                         className={theme.btnIconDanger}
                         title="Supprimer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
