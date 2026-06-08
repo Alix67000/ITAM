@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, Contract, Supplier, PhoneLine, User, Asset } from '../services/api';
 import { Save, Eye, EyeOff, Settings2, Users as UsersIcon, Printer, Phone } from 'lucide-react';
 import { Modal } from './ui/Modal';
+import { UserModal } from './UserModal';
 import { theme } from '../lib/theme';
 import { cn } from '../lib/utils';
 
@@ -25,6 +26,17 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+
+  const refreshUsers = async () => {
+    const usrs = await api.getUsers();
+    setUsers(usrs);
+  };
+
+  const handleUserCreated = async (newUserId: string) => {
+    await refreshUsers();
+    setSelectedUserIds(prev => [...prev, newUserId]);
+  };
 
   const [formData, setFormData] = useState<Partial<Contract>>({
     label: '',
@@ -315,7 +327,10 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
               {/* Utilisateurs */}
               {(isMobilePlan || isPrinterLease || showAdvanced) && (
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><UsersIcon className="w-3.5 h-3.5"/> Utilisateurs</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center gap-1.5"><UsersIcon className="w-3.5 h-3.5"/> Utilisateurs</label>
+                    <button type="button" onClick={() => setIsUserModalOpen(true)} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors">+ Ajouter</button>
+                  </div>
                   <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
                     {users.map(u => (
                       <label key={u.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer group transition-colors">
@@ -334,7 +349,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
                     {printers.map(p => (
                       <label key={p.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg cursor-pointer group transition-colors">
                         <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-600 border-slate-300" checked={selectedPrinterIds.includes(p.id)} onChange={() => toggleSelection(p.id, selectedPrinterIds, setSelectedPrinterIds)} />
-                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{p.brand} {p.model}</span>
+                        <span className="text-[11px] font-medium text-slate-700 group-hover:text-indigo-700 truncate">{p.label} - {p.inventory_number || p.serial || p.subtype}</span>
                       </label>
                     ))}
                   </div>
@@ -343,6 +358,12 @@ export const ContractModal: React.FC<ContractModalProps> = ({ isOpen, onClose, o
             </div>
           </div>
         )}
+
+        <UserModal 
+          isOpen={isUserModalOpen} 
+          onClose={() => setIsUserModalOpen(false)} 
+          onRefresh={refreshUsers}
+        />
 
         <div>
           <label className={theme.formLabel}>Notes / Conditions particulières</label>
