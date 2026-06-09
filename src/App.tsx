@@ -50,6 +50,7 @@ const AppContent: React.FC = () => {
     } else if (tab.startsWith('gestion:')) {
       const sub = tab.split(':')[1];
       if (sub === 'phone-lines') navigate('/phone-lines');
+      else if (sub === 'consumables') navigate('/assets?type=consumables');
       else navigate(`/licenses?mode=${sub}`);
     } else {
       navigate(`/${tab === 'dashboard' ? '' : tab}`);

@@ -20,6 +20,9 @@ export interface Asset {
   supplier_id: string | null;
   assigned_user_id: string | null;
   parent_asset_id?: string | null;
+  printer_asset_id?: string | null;
+  account_login?: string | null;
+  account_password?: string | null;
   linkedAssets?: string[];
   specs: string;
   condition: string;
@@ -478,7 +481,8 @@ export const api = {
       'Périphérique': 'PER',
       'Souris': 'PER',
       'Clavier': 'PER',
-      'Casque': 'PER'
+      'Casque': 'PER',
+      'Consommable': 'CON'
     };
     const prefix = mapping[assetType] || 'ASSET';
     try {

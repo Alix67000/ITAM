@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, Asset, PhoneLine, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
 import { theme } from '../lib/theme';
-import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin, Package, Download } from 'lucide-react';
+import { Plus, Search, Filter, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, Trash2, FileText, X, Key, Phone, Box, MapPin, Package, Download, Droplet } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhoneLineModal } from '../components/PhoneLineModal';
 import { AssetDetailView } from '../components/AssetDetailView';
@@ -160,6 +160,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
       case 'téléphone': return <Smartphone className="w-4 h-4" />;
       case 'écran': return <Monitor className="w-4 h-4" />;
       case 'imprimante': return <Printer className="w-4 h-4" />;
+      case 'consommable': return <Droplet className="w-4 h-4" />;
       case 'autre':
       case 'autres': return <Package className="w-4 h-4" />;
       default: return <HardDrive className="w-4 h-4" />;
@@ -213,6 +214,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
         'périphériques': ['périphérique', 'accessoire', 'souris', 'clavier', 'casque', 'webcam', 'dock'],
         'imprimantes': ['imprimante', 'printer', 'scanner', 'copieur'],
         'téléphones': ['téléphone', 'mobile', 'smartphone', 'fixe'],
+        'consumables': ['consommable', 'consumable', 'toner', 'cartouche', 'encre'],
         'autres': ['autre', 'autres', 'divers', 'tpe', 'badgeur', 'caméra']
       };
 
@@ -502,8 +504,14 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                         </div>
                         <div className="min-w-0">
                           <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{asset.label}</div>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                            <span className="font-mono uppercase">{asset.subtype}</span>
+                          <div className="flex items-center flex-wrap gap-2 text-[10px] text-slate-500 mt-0.5">
+                            {asset.subtype && <span className="font-mono uppercase">{asset.subtype}</span>}
+                            {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
+                              <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <Printer className="w-3 h-3" />
+                                {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -578,9 +586,15 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                         {asset.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                    <div className="flex items-center flex-wrap gap-2 text-[10px] text-slate-400 font-medium mt-1">
                       <span className="uppercase">{asset.type}</span>
                       {asset.serial && <span>• {asset.serial}</span>}
+                      {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
+                         <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                           <Printer className="w-3 h-3" />
+                           {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                         </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -765,8 +779,14 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                         </div>
                         <div className="min-w-0">
                           <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm truncate">{asset.label}</div>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                            <span className="font-mono uppercase">{asset.subtype}</span>
+                          <div className="flex items-center flex-wrap gap-2 text-[10px] text-slate-500 mt-0.5">
+                            {asset.subtype && <span className="font-mono uppercase">{asset.subtype}</span>}
+                            {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
+                              <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <Printer className="w-3 h-3" />
+                                {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -920,9 +940,15 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                         {asset.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                    <div className="flex items-center flex-wrap gap-2 text-[10px] text-slate-400 font-medium mt-1">
                       <span className="uppercase">{asset.type}</span>
                       {asset.serial && <span>• {asset.serial}</span>}
+                      {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
+                         <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                           <Printer className="w-3 h-3" />
+                           {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                         </span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between pt-1">
                        {assignedUser ? (

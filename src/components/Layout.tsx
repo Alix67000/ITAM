@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2, Shield, ShieldCheck, ShieldAlert, Key, Phone, X, Plus, LogOut, Package } from 'lucide-react';
+import { LayoutDashboard, Laptop, Users, MapPin, FileText, Settings, Database, Activity, Building2, Network, ChevronDown, Monitor, Cpu, Smartphone, Printer, Box, Share2, MousePointer2, Shield, ShieldCheck, ShieldAlert, Key, Phone, X, Plus, LogOut, Package, Droplet } from 'lucide-react';
 import { FooterStatus } from './FooterStatus';
 import { cn } from '../lib/utils';
 import { api } from '../services/api';
@@ -59,6 +59,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         { id: 'softwares', label: 'Logiciels', icon: Box },
         { id: 'licenses', label: 'Licences', icon: Key },
         { id: 'phone-lines', label: 'Lignes', icon: Phone },
+        { id: 'consumables', label: 'Consommables', icon: Droplet },
       ]
     },
     { id: 'contracts', label: 'Contrats', icon: FileText },

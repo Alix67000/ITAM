@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, Asset, User, Location, Contract, License, Supplier } from '../../services/api';
 import { cn } from '../../lib/utils';
 import { theme } from '../../lib/theme';
-import { Save, Cpu, Smartphone, Monitor, Printer, HardDrive, MousePointer2, Network, Box, Key, FileText, Calendar, Package } from 'lucide-react';
+import { Save, Cpu, Smartphone, Monitor, Printer, HardDrive, MousePointer2, Network, Box, Key, FileText, Calendar, Package, Droplet, Eye, EyeOff } from 'lucide-react';
 
 interface AssetFormProps {
   initialData?: Partial<Asset>;
@@ -30,6 +30,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
     commissioning_date: '',
     has_warranty: false,
     warranty_end: '',
+    printer_asset_id: null,
+    account_login: '',
+    account_password: '',
     ...initialData
   });
 
@@ -43,21 +46,26 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
   const [licenses, setLicenses] = useState<License[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [printers, setPrinters] = useState<Asset[]>([]);
+  
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [u, l, lic, c, s] = await Promise.all([
+      const [u, l, lic, c, s, aRes] = await Promise.all([
         api.getUsers(), 
         api.getLocations(),
         api.getLicenses(),
         api.getContracts(),
-        api.getSuppliers()
+        api.getSuppliers(),
+        api.getAssets({ fetchAll: true })
       ]);
       setUsers(u);
       setLocations(l);
       setLicenses(lic);
       setContracts(c);
       setSuppliers(s);
+      setPrinters(aRes.assets.filter(a => a.type.toLowerCase() === 'imprimante'));
     };
     fetchData();
   }, []);
@@ -86,43 +94,66 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
       case 'Écran': return <Monitor className="w-4 h-4" />;
       case 'Périphérique': return <MousePointer2 className="w-4 h-4" />;
       case 'Réseau': return <Network className="w-4 h-4" />;
+      case 'Consommable': return <Droplet className="w-4 h-4" />;
       case 'Autre': return <Package className="w-4 h-4" />;
       default: return <Box className="w-4 h-4" />;
     }
   };
 
-  const types = ['PC', 'Téléphone', 'Imprimante', 'Écran', 'Périphérique', 'Réseau', 'Autre'];
+  const types = ['PC', 'Téléphone', 'Imprimante', 'Écran', 'Périphérique', 'Réseau', 'Consommable', 'Autre'];
   const statuses = ['Stock', 'En service', 'En réparation', 'Panne', 'Disparu', 'Réformé'];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-20">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Identité Section */}
-        <div className={theme.formSection}>
-          <div className={theme.formSectionTitle}>
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            Identité de l'Asset
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className={theme.formLabel}>Nom / Libellé</label>
-              <input 
-                className={theme.inputBase}
-                value={formData.label || ''}
-                onChange={e => setFormData({ ...formData, label: e.target.value })}
-                placeholder="Ex: PC-042"
-              />
-            </div>
+      {/* Classification at the top */}
+      <div className={theme.formSection}>
+        <label className={theme.formLabel}>Classification</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-2">
+           {types.map(t => (
+             <button
+               key={t}
+               type="button"
+               onClick={() => setFormData({ ...formData, type: t })}
+               className={cn(
+                 "flex items-center gap-2 px-3 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tight border transition-all",
+                 formData.type === t 
+                  ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100" 
+                  : "bg-white border-slate-100 text-slate-500 hover:border-slate-200"
+               )}
+             >
+               {getTypeIcon(t)}
+               {t}
+             </button>
+           ))}
+        </div>
+      </div>
 
-            <div className={theme.formGrid}>
+      {formData.type === 'Consommable' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              Détails du Consommable
+            </div>
+            <div className="space-y-4">
               <div>
-                <label className={theme.formLabel}>N° Série</label>
+                <label className={theme.formLabel}>Nom / Libellé</label>
                 <input 
+                  className={theme.inputBase}
+                  value={formData.label || ''}
+                  onChange={e => setFormData({ ...formData, label: e.target.value })}
+                  placeholder="Ex: Toner HP 305A Noir"
+                />
+              </div>
+              <div>
+                <label className={theme.formLabel}>Prix (€)</label>
+                <input 
+                  type="number"
+                  step="0.01"
                   className={cn(theme.inputBase, "font-mono")}
-                  value={formData.serial || ''}
-                  onChange={e => setFormData({ ...formData, serial: e.target.value })}
-                  placeholder="SN..."
+                  value={formData.value_euros || ''}
+                  onChange={e => setFormData({ ...formData, value_euros: Number(e.target.value) })}
+                  placeholder="0.00"
                 />
               </div>
               <div>
@@ -140,40 +171,146 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                 />
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className={theme.formLabel}>Classification</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                 {types.map(t => (
-                   <button
-                     key={t}
-                     type="button"
-                     onClick={() => setFormData({ ...formData, type: t })}
-                     className={cn(
-                       "flex items-center gap-2 px-3 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tight border transition-all",
-                       formData.type === t 
-                        ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100" 
-                        : "bg-white border-slate-100 text-slate-500 hover:border-slate-200"
-                     )}
-                   >
-                     {getTypeIcon(t)}
-                     {t}
-                   </button>
-                 ))}
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Imprimante & Affectation
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className={theme.formLabel}>Imprimante cible</label>
+                <select 
+                  className={theme.inputBase}
+                  value={formData.printer_asset_id || ''}
+                  onChange={e => setFormData({ ...formData, printer_asset_id: e.target.value || null })}
+                >
+                  <option value="">Aucune imprimante sélectionnée</option>
+                  {printers.map(p => <option key={p.id} value={p.id}>{p.label} {p.inventory_number ? `(${p.inventory_number})` : ''}</option>)}
+                </select>
+              </div>
+              <div className={theme.formGrid}>
+                <div>
+                  <label className={theme.formLabel}>Utilisateur</label>
+                  <select 
+                    className={theme.inputBase}
+                    value={formData.assigned_user_id || ''}
+                    onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value || null })}
+                  >
+                    <option value="">En stock</option>
+                    {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={theme.formLabel}>Lieu / Stockage</label>
+                  <select 
+                    className={theme.inputBase}
+                    value={formData.location_id || ''}
+                    onChange={e => setFormData({ ...formData, location_id: e.target.value || null })}
+                  >
+                    <option value="">Non assigné</option>
+                    {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="pt-2">
-              <label className={theme.formLabel}>Type précis / Modèle (Subtype)</label>
-              <input 
-                className={theme.inputBase}
-                value={formData.subtype || ''}
-                onChange={e => setFormData({ ...formData, subtype: e.target.value })}
-                placeholder="Ex: Latitude 5420, iPhone 13, HP LaserJet..."
-              />
+          <div className={cn(theme.formSection, "lg:col-span-2")}>
+            <div className={theme.formSectionTitle}>
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              Compte de Gestion (Optionnel)
+            </div>
+            <div className={theme.formGrid}>
+              <div>
+                <label className={theme.formLabel}>Identifiant</label>
+                <input 
+                  className={theme.inputBase}
+                  value={formData.account_login || ''}
+                  onChange={e => setFormData({ ...formData, account_login: e.target.value })}
+                  placeholder="Ex: admin / email@..."
+                />
+              </div>
+              <div>
+                <label className={theme.formLabel}>Mot de passe</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    className={theme.inputBase}
+                    value={formData.account_password || ''}
+                    onChange={e => setFormData({ ...formData, account_password: e.target.value })}
+                    placeholder="***"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-indigo-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Identité Section */}
+          <div className={theme.formSection}>
+            <div className={theme.formSectionTitle}>
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              Identité de l'Asset
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className={theme.formLabel}>Nom / Libellé</label>
+                <input 
+                  className={theme.inputBase}
+                  value={formData.label || ''}
+                  onChange={e => setFormData({ ...formData, label: e.target.value })}
+                  placeholder="Ex: PC-042"
+                />
+              </div>
+
+              <div className={theme.formGrid}>
+                <div>
+                  <label className={theme.formLabel}>N° Série</label>
+                  <input 
+                    className={cn(theme.inputBase, "font-mono")}
+                    value={formData.serial || ''}
+                    onChange={e => setFormData({ ...formData, serial: e.target.value })}
+                    placeholder="SN..."
+                  />
+                </div>
+                <div>
+                  <label className={theme.formLabel}>N° Inventaire</label>
+                  <input 
+                    readOnly={isCreate}
+                    className={cn(
+                      theme.inputBase,
+                      "font-mono",
+                      isCreate && "text-indigo-600 bg-indigo-50/50 border-indigo-100 cursor-not-allowed"
+                    )}
+                    value={formData.inventory_number || ''}
+                    onChange={e => !isCreate && setFormData({ ...formData, inventory_number: e.target.value })}
+                    placeholder="AUTO-GENERATED"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className={theme.formLabel}>Type précis / Modèle (Subtype)</label>
+                <input 
+                  className={theme.inputBase}
+                  value={formData.subtype || ''}
+                  onChange={e => setFormData({ ...formData, subtype: e.target.value })}
+                  placeholder="Ex: Latitude 5420, iPhone 13, HP LaserJet..."
+                />
+              </div>
+            </div>
+          </div>
 
         {/* Cycle de Vie Section */}
         <div className={theme.formSection}>
@@ -399,6 +536,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
           />
         </div>
       </div>
+      )}
 
       <div className={theme.modalFooter}>
         <button 

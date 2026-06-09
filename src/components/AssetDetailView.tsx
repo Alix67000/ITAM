@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { 
   X, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, 
   FileText, Key, MapPin, Calendar, Plus, 
-  MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2, Package
+  MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2, Package, Eye, EyeOff
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { theme } from '../lib/theme';
@@ -38,6 +38,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   
   const [users, setUsers] = useState<User[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const [showSoftwareAdd, setShowSoftwareAdd] = useState(false);
   const [showLicenseAdd, setShowLicenseAdd] = useState(false);
@@ -272,62 +274,117 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           {/* Main Column */}
           <div className={theme.detailContent}>
             
-             {/* Life Cycle & Finance Summary */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+             {asset.type?.toLowerCase() === 'consommable' ? (
                <div className={theme.detailSection}>
                  <div className={theme.detailSectionHeader}>
                    <h2 className={theme.detailSectionTitle}>
-                     Cycle de Vie
+                     Détails du Consommable
                    </h2>
                  </div>
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-2 gap-6">
                    <div className="space-y-0.5">
-                     <label className={theme.detailMetaLabel}>État</label>
-                     <p className={cn(theme.detailMetaValue, "capitalize")}>{asset.condition || 'neuf'}</p>
+                     <label className={theme.detailMetaLabel}>Imprimante Liée</label>
+                     {asset.printer_asset_id ? (
+                       <button 
+                         onClick={() => { onClose(); navigate('/assets/' + asset.printer_asset_id); }}
+                         className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors hover:underline text-xs block text-left"
+                       >
+                         {allAssets.find(a => a.id === asset.printer_asset_id)?.label || 'Imprimante'}
+                       </button>
+                     ) : (
+                       <p className={theme.detailMetaValue}>Non définie</p>
+                     )}
                    </div>
                    <div className="space-y-0.5">
-                     <label className={theme.detailMetaLabel}>Âge estimé</label>
-                     <p className={theme.detailMetaValue}>
-                       {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
-                     </p>
+                     <label className={theme.detailMetaLabel}>Prix</label>
+                     <p className={cn(theme.detailMetaValue, "font-mono font-bold")}>{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
                    </div>
                    <div className="space-y-0.5">
-                     <label className={theme.detailMetaLabel}>Fabrication</label>
-                     <p className={theme.detailMetaValue}>{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
+                     <label className={theme.detailMetaLabel}>Identifiant</label>
+                     <p className={theme.detailMetaValue}>{asset.account_login || '---'}</p>
                    </div>
                    <div className="space-y-0.5">
-                     <label className={theme.detailMetaLabel}>Mise en service</label>
-                     <p className={theme.detailMetaValue}>{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
+                     <label className={theme.detailMetaLabel}>Mot de passe</label>
+                     {asset.account_password ? (
+                       <div className="flex items-center gap-2">
+                         <p className={cn(theme.detailMetaValue, "font-mono")}>
+                           {showPassword ? asset.account_password : '••••••••'}
+                         </p>
+                         <button onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-indigo-600 transition-colors">
+                           {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                         </button>
+                       </div>
+                     ) : (
+                       <p className={theme.detailMetaValue}>---</p>
+                     )}
+                   </div>
+                   <div className="space-y-0.5 max-w-full">
+                     <label className={theme.detailMetaLabel}>Utilisateur Assigné</label>
+                     <p className={cn(theme.detailMetaValue, "truncate")}>{assignedUser ? assignedUser.name : 'En stock'}</p>
+                   </div>
+                   <div className="space-y-0.5 max-w-full">
+                     <label className={theme.detailMetaLabel}>Lieu / Stockage</label>
+                     <p className={theme.detailMetaValue}>{location ? location.name : 'Non assigné'}</p>
                    </div>
                  </div>
                </div>
-
-               <div className={theme.detailSection}>
-                 <div className={theme.detailSectionHeader}>
-                   <h2 className={theme.detailSectionTitle}>
-                     Finance & Garantie
-                   </h2>
-                 </div>
-                 <div className="space-y-3">
-                   <div className="flex justify-between items-end border-b border-slate-50 pb-3">
+             ) : (
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                 <div className={theme.detailSection}>
+                   <div className={theme.detailSectionHeader}>
+                     <h2 className={theme.detailSectionTitle}>
+                       Cycle de Vie
+                     </h2>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-0.5">
-                       <label className={theme.detailMetaLabel}>Valeur d'acquisition</label>
-                       <p className="text-2xl font-black text-slate-900 font-mono tracking-tight">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                       <label className={theme.detailMetaLabel}>État</label>
+                       <p className={cn(theme.detailMetaValue, "capitalize")}>{asset.condition || 'neuf'}</p>
+                     </div>
+                     <div className="space-y-0.5">
+                       <label className={theme.detailMetaLabel}>Âge estimé</label>
+                       <p className={theme.detailMetaValue}>
+                         {asset.manufacture_date ? `${Math.floor((new Date().getTime() - new Date(asset.manufacture_date).getTime()) / (1000 * 60 * 60 * 24 * 365.25 * 10) / 0.1)} ans` : '---'}
+                       </p>
+                     </div>
+                     <div className="space-y-0.5">
+                       <label className={theme.detailMetaLabel}>Fabrication</label>
+                       <p className={theme.detailMetaValue}>{asset.manufacture_date ? new Date(asset.manufacture_date).toLocaleDateString('fr-FR') : '---'}</p>
+                     </div>
+                     <div className="space-y-0.5">
+                       <label className={theme.detailMetaLabel}>Mise en service</label>
+                       <p className={theme.detailMetaValue}>{asset.commissioning_date ? new Date(asset.commissioning_date).toLocaleDateString('fr-FR') : '---'}</p>
                      </div>
                    </div>
-                   <div className={cn(
-                     "p-3 rounded-lg flex items-center justify-between border",
-                     asset.has_warranty ? "bg-emerald-50/50 text-emerald-700 border-emerald-100" : "bg-slate-50/50 text-slate-500 border-slate-100"
-                   )}>
-                     <div className="space-y-0.5">
-                       <p className="text-[9px] font-black uppercase tracking-[0.1em]">Couverture Garantie</p>
-                       <p className="text-xs font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
+                 </div>
+  
+                 <div className={theme.detailSection}>
+                   <div className={theme.detailSectionHeader}>
+                     <h2 className={theme.detailSectionTitle}>
+                       Finance & Garantie
+                     </h2>
+                   </div>
+                   <div className="space-y-3">
+                     <div className="flex justify-between items-end border-b border-slate-50 pb-3">
+                       <div className="space-y-0.5">
+                         <label className={theme.detailMetaLabel}>Valeur d'acquisition</label>
+                         <p className="text-2xl font-black text-slate-900 font-mono tracking-tight">{asset.value_euros?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                       </div>
                      </div>
-                     <Key className={cn("w-4 h-4", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
+                     <div className={cn(
+                       "p-3 rounded-lg flex items-center justify-between border",
+                       asset.has_warranty ? "bg-emerald-50/50 text-emerald-700 border-emerald-100" : "bg-slate-50/50 text-slate-500 border-slate-100"
+                     )}>
+                       <div className="space-y-0.5">
+                         <p className="text-[9px] font-black uppercase tracking-[0.1em]">Couverture Garantie</p>
+                         <p className="text-xs font-bold">{asset.has_warranty ? `Active jusqu'au ${new Date(asset.warranty_end || '').toLocaleDateString('fr-FR')}` : 'Aucune garantie active'}</p>
+                       </div>
+                       <Key className={cn("w-4 h-4", asset.has_warranty ? "opacity-100 text-emerald-600" : "opacity-30")} />
+                     </div>
                    </div>
                  </div>
                </div>
-             </div>
+             )}
 
             {/* Tech Specs Summary */}
             <div className={theme.detailSection}>

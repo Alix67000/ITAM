@@ -60,7 +60,10 @@ function isValidAsset(d) {
     && (!('specs' in d) || isLongText(d.specs))
     && (!('condition' in d) || d.condition is string)
     && (!('value_euros' in d) || d.value_euros is number)
-    && (!('has_warranty' in d) || d.has_warranty is bool);
+    && (!('has_warranty' in d) || d.has_warranty is bool)
+    && (!('printer_asset_id' in d) || d.printer_asset_id == null || isShortText(d.printer_asset_id))
+    && (!('account_login' in d) || d.account_login == null || isShortText(d.account_login))
+    && (!('account_password' in d) || d.account_password == null || isShortText(d.account_password));
 }
 
 function isValidUser(d) {
