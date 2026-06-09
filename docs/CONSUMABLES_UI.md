@@ -6,7 +6,8 @@ Afin de gérer les consommables (ex: Toners, Cartouches) comme des entités part
 
 1. `src/components/forms/AssetForm.tsx` :
    - Refonte de la structure du formulaire pour extraire la "Classification" (Type et Sous-Type) en première position, ce qui permet des rendus conditionnels plus lisibles.
-   - Si le type d'asset est `Consommable`, nous affichons un nouveau bloc dédié incluant un sélecteur pour relier une imprimante existante (`printer_asset_id`), la saisie du compte métier de gestion de l'imprimante (`account_login` et `account_password`), et le prix d'achat.
+   - Si le type d'asset est `Consommable`, l'interface supprime les champs inutiles et redondants avec l'imprimante (`Utilisateur`, `Lieu`), pour éviter toute incohérence métier.
+   - Un bloc dédié s'affiche incluant un sélecteur vers l'imprimante cible (`printer_asset_id`), le `Fournisseur` d'achat associé (`supplier_id`), la saisie du compte métier de gestion de l'imprimante (`account_login` et `account_password`), et le prix d'achat.
    - Ajout d'une visibilité de mot de passe à l'aide d'un toggle.
 
 2. `src/pages/AssetList.tsx` :

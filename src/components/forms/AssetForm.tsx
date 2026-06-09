@@ -176,7 +176,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
           <div className={theme.formSection}>
             <div className={theme.formSectionTitle}>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Imprimante & Affectation
+              Imprimante & Achat
             </div>
             <div className="space-y-4">
               <div>
@@ -190,29 +190,16 @@ export const AssetForm: React.FC<AssetFormProps> = ({ initialData, onSubmit, onC
                   {printers.map(p => <option key={p.id} value={p.id}>{p.label} {p.inventory_number ? `(${p.inventory_number})` : ''}</option>)}
                 </select>
               </div>
-              <div className={theme.formGrid}>
-                <div>
-                  <label className={theme.formLabel}>Utilisateur</label>
-                  <select 
-                    className={theme.inputBase}
-                    value={formData.assigned_user_id || ''}
-                    onChange={e => setFormData({ ...formData, assigned_user_id: e.target.value || null })}
-                  >
-                    <option value="">En stock</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={theme.formLabel}>Lieu / Stockage</label>
-                  <select 
-                    className={theme.inputBase}
-                    value={formData.location_id || ''}
-                    onChange={e => setFormData({ ...formData, location_id: e.target.value || null })}
-                  >
-                    <option value="">Non assigné</option>
-                    {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
-                </div>
+              <div>
+                <label className={theme.formLabel}>Fournisseur</label>
+                <select 
+                  className={theme.inputBase}
+                  value={formData.supplier_id || ''}
+                  onChange={e => setFormData({ ...formData, supplier_id: e.target.value || null })}
+                >
+                  <option value="">Non défini</option>
+                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
               </div>
             </div>
           </div>
