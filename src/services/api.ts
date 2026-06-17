@@ -2,7 +2,7 @@ export const API_URL = '/api';
 
 export interface AssetEvent {
   id: string;
-  type: string;
+  action: string;
   date: string;
   author: string;
   description: string;

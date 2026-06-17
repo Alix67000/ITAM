@@ -595,7 +595,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                      onChange={(e) => setEventText(e.target.value)}
                      onKeyDown={async (e) => {
                        if (e.key === 'Enter' && eventText.trim()) {
-                         await api.addAssetEvent(assetId, { type: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
+                         await api.addAssetEvent(assetId, { action: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
                          const updated = await api.getAssetEvents(assetId);
                          setEvents(updated);
                          setEventText('');
@@ -610,7 +610,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                    <button
                      onClick={async () => {
                        if (!eventText.trim()) return;
-                       await api.addAssetEvent(assetId, { type: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
+                       await api.addAssetEvent(assetId, { action: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
                        const updated = await api.getAssetEvents(assetId);
                        setEvents(updated);
                        setEventText('');
