@@ -516,7 +516,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                             {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <Printer className="w-3 h-3" />
-                                {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                                {printerLookup[asset.printer_asset_id || '']?.label?.substring(0, 15) || 'Imprimante'}
                               </span>
                             )}
                           </div>
@@ -599,7 +599,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                       {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
                          <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
                            <Printer className="w-3 h-3" />
-                           {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                           {printerLookup[asset.printer_asset_id || '']?.label?.substring(0, 15) || 'Imprimante'}
                          </span>
                       )}
                     </div>
@@ -791,7 +791,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                             {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
                               <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <Printer className="w-3 h-3" />
-                                {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                                {printerLookup[asset.printer_asset_id || '']?.label?.substring(0, 15) || 'Imprimante'}
                               </span>
                             )}
                           </div>
@@ -953,7 +953,7 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
                       {asset.type.toLowerCase() === 'consommable' && asset.printer_asset_id && (
                          <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
                            <Printer className="w-3 h-3" />
-                           {assets.find(a => a.id === asset.printer_asset_id)?.label?.substring(0, 15) || 'Imprimante'}
+                           {printerLookup[asset.printer_asset_id || '']?.label?.substring(0, 15) || 'Imprimante'}
                          </span>
                       )}
                     </div>
