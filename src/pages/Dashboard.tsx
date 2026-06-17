@@ -213,8 +213,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                </div>
             </div>
           </div>
-          <div className="h-[250px] w-full relative mt-auto">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <div className="w-full min-w-0 mt-2">
+            <ResponsiveContainer width="100%" height={250}>
               <AreaChart data={stats.charts.trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
@@ -244,8 +244,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </h4>
             <p className="text-xs text-slate-500 font-medium">Répartition par typologie</p>
           </div>
-          <div className="h-[220px] w-full relative mt-auto">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <div className="w-full min-w-0 mt-2">
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={stats.charts.categories}
