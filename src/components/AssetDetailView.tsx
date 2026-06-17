@@ -174,6 +174,25 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const assignedUser = users.find(u => String(u.id) === String(asset.assigned_user_id));
   const location = locations.find(l => String(l.id) === String(asset.location_id));
 
+  const linkedPrinter =
+    asset.type?.toLowerCase() === 'consommable' && asset.printer_asset_id
+      ? allAssets.find(a => a.id === asset.printer_asset_id)
+      : null;
+
+  const printerAssignedUser = linkedPrinter
+    ? users.find(u => String(u.id) === String(linkedPrinter.assigned_user_id))
+    : null;
+
+  const printerLocation = linkedPrinter
+    ? locations.find(l => String(l.id) === String(linkedPrinter.location_id))
+    : null;
+
+  const effectiveAssignedUser =
+    assignedUser || (asset.type?.toLowerCase() === 'consommable' ? printerAssignedUser : null);
+
+  const effectiveLocation =
+    location || (asset.type?.toLowerCase() === 'consommable' ? printerLocation : null);
+
   // Auto-linking logic: assets with the same assigned user
   const combinedAssets = asset.assigned_user_id 
     ? allAssets.filter(a => a.id !== assetId && String(a.assigned_user_id) === String(asset.assigned_user_id))
@@ -320,11 +339,11 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                    </div>
                    <div className="space-y-0.5 max-w-full">
                      <label className={theme.detailMetaLabel}>Utilisateur Assigné</label>
-                     <p className={cn(theme.detailMetaValue, "truncate")}>{assignedUser ? assignedUser.name : 'En stock'}</p>
+                     <p className={cn(theme.detailMetaValue, "truncate")}>{effectiveAssignedUser ? effectiveAssignedUser.name : 'En stock'}</p>
                    </div>
                    <div className="space-y-0.5 max-w-full">
                      <label className={theme.detailMetaLabel}>Lieu / Stockage</label>
-                     <p className={theme.detailMetaValue}>{location ? location.name : 'Non assigné'}</p>
+                     <p className={theme.detailMetaValue}>{effectiveLocation ? effectiveLocation.name : 'Non assigné'}</p>
                    </div>
                  </div>
                </div>
@@ -659,11 +678,11 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
           <div className={theme.detailSidebar}>
             <div className={cn(theme.detailSection, "flex flex-col items-center gap-4 text-center")}>
               <div className="w-16 h-16 bg-indigo-50 rounded-[1.5rem] flex items-center justify-center text-indigo-600 text-2xl font-black shadow-inner border border-indigo-100">
-                {assignedUser ? assignedUser.name.charAt(0) : '?'}
+                {effectiveAssignedUser ? effectiveAssignedUser.name.charAt(0) : '?'}
               </div>
               <div className="space-y-1 w-full">
                 <p className={theme.detailMetaLabel}>Utilisateur Assigné</p>
-                <h4 className="text-sm font-bold text-slate-900 tracking-tight">{assignedUser ? assignedUser.name : 'Non assigné'}</h4>
+                <h4 className="text-sm font-bold text-slate-900 tracking-tight">{effectiveAssignedUser ? effectiveAssignedUser.name : 'Non assigné'}</h4>
               </div>
               
               <div className="w-full pt-3 mt-1 border-t border-slate-100">
@@ -671,7 +690,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                     <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center text-slate-400 shadow-sm"><MapPin className="w-4 h-4 text-slate-500" /></div>
                     <div className="text-left space-y-0.5">
                       <p className={theme.detailMetaLabel}>Emplacement</p>
-                      <p className="text-xs font-bold text-slate-900">{location ? location.name : 'Stock central'}</p>
+                      <p className="text-xs font-bold text-slate-900">{effectiveLocation ? effectiveLocation.name : 'Stock central'}</p>
                     </div>
                  </div>
               </div>
