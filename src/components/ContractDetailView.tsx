@@ -352,34 +352,32 @@ export const ContractDetailView: React.FC<ContractDetailViewProps> = ({ contract
             )}
 
             {/* Linked Assets Grid */}
-            <div className={theme.detailSection}>
-              <div className={theme.detailSectionHeader}>
-                <h3 className={theme.detailSectionTitle}>
-                   <Box className="w-4 h-4 text-orange-500" /> Matériel Couvert ({linkedAssets.length})
-                </h3>
-              </div>
+            {linkedAssets.length > 0 && (
+              <div className={theme.detailSection}>
+                <div className={theme.detailSectionHeader}>
+                  <h3 className={theme.detailSectionTitle}>
+                     <Box className="w-4 h-4 text-orange-500" /> Matériel Couvert ({linkedAssets.length})
+                  </h3>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {linkedAssets.length > 0 ? linkedAssets.map(asset => (
-                   <div key={asset.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all cursor-pointer">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 shadow-sm transition-colors">
-                           <Box className="w-5 h-5" />
-                         </div>
-                         <div className="min-w-0">
-                           <p className="text-sm font-black text-slate-900 truncate">{asset.label}</p>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase">{asset.serial}</p>
-                         </div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400 transition-transform group-hover:translate-x-1" />
-                   </div>
-                )) : (
-                  <div className="col-span-full py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                    <p className={theme.emptyText}>Aucun matériel n'est spécifiquement rattaché à ce contrat.</p>
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  {linkedAssets.map(asset => (
+                     <div key={asset.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all cursor-pointer">
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 shadow-sm transition-colors">
+                             <Box className="w-5 h-5" />
+                           </div>
+                           <div className="min-w-0">
+                             <p className="text-sm font-black text-slate-900 truncate">{asset.label}</p>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase">{asset.serial}</p>
+                           </div>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400 transition-transform group-hover:translate-x-1" />
+                     </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
 

@@ -229,67 +229,65 @@ export const LicenseDetailView: React.FC<LicenseDetailViewProps> = ({ licenseId,
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div className="space-y-4">
-                      <div className={theme.detailSectionHeader}>
-                        <h3 className={theme.detailSectionTitle}>
-                          <UserCheck className="w-3.5 h-3.5" /> Utilisateurs Assignés ({linkedUsers.length})
-                        </h3>
-                      </div>
-                      <div className="space-y-2">
-                        {linkedUsers.length > 0 ? linkedUsers.map(user => (
-                          <div key={user.id} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-xl transition-all group shadow-sm cursor-pointer">
-                            <div className="w-8 h-8 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center font-black group-hover:scale-110 transition-transform">{user.name.charAt(0)}</div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{user.name}</div>
-                              <div className="text-[9px] text-slate-500 font-medium">{user.email || 'Pas d\'email'}</div>
-                            </div>
+                  {(linkedUsers.length > 0 || linkedAssets.length > 0) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                      {linkedUsers.length > 0 && (
+                        <div className="space-y-4">
+                          <div className={theme.detailSectionHeader}>
+                            <h3 className={theme.detailSectionTitle}>
+                              <UserCheck className="w-3.5 h-3.5" /> Utilisateurs Assignés ({linkedUsers.length})
+                            </h3>
                           </div>
-                        )) : (
-                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                            <p className={theme.emptyText}>Aucun utilisateur lié</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className={theme.detailSectionHeader}>
-                        <h3 className={theme.detailSectionTitle}>
-                          <HardDrive className="w-3.5 h-3.5" /> Matériels Liés ({linkedAssets.length})
-                        </h3>
-                      </div>
-                      <div className="space-y-2">
-                        {linkedAssets.length > 0 ? linkedAssets.map(asset => {
-                          const assetUser = allUsers.find(u => String(u.id) === String(asset.assigned_user_id));
-                          
-                          return (
-                            <div key={asset.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-xl transition-all group shadow-sm cursor-pointer">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-white text-slate-500 rounded-lg flex items-center justify-center transition-all border border-slate-200 group-hover:border-indigo-200 group-hover:text-indigo-600 shadow-sm">
-                                  <Package className="w-4 h-4" />
-                                </div>
+                          <div className="space-y-2">
+                            {linkedUsers.map(user => (
+                              <div key={user.id} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-xl transition-all group shadow-sm cursor-pointer">
+                                <div className="w-8 h-8 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center font-black group-hover:scale-110 transition-transform">{user.name.charAt(0)}</div>
                                 <div>
-                                  <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{asset.label}</div>
-                                  <div className="text-[9px] text-slate-500 font-medium">{asset.serial || asset.inventory_number}</div>
+                                  <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{user.name}</div>
+                                  <div className="text-[9px] text-slate-500 font-medium">{user.email || 'Pas d\'email'}</div>
                                 </div>
                               </div>
-                              {assetUser && (
-                                <div className="text-right flex flex-col items-end gap-0.5">
-                                  <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Utilisateur</div>
-                                  <div className="text-[9px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">{assetUser.name}</div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }) : (
-                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                            <p className={theme.emptyText}>Aucun matériel lié</p>
+                            ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
+
+                      {linkedAssets.length > 0 && (
+                        <div className="space-y-4">
+                          <div className={theme.detailSectionHeader}>
+                            <h3 className={theme.detailSectionTitle}>
+                              <HardDrive className="w-3.5 h-3.5" /> Matériels Liés ({linkedAssets.length})
+                            </h3>
+                          </div>
+                          <div className="space-y-2">
+                            {linkedAssets.map(asset => {
+                              const assetUser = allUsers.find(u => String(u.id) === String(asset.assigned_user_id));
+                              
+                              return (
+                                <div key={asset.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white rounded-xl transition-all group shadow-sm cursor-pointer">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-white text-slate-500 rounded-lg flex items-center justify-center transition-all border border-slate-200 group-hover:border-indigo-200 group-hover:text-indigo-600 shadow-sm">
+                                      <Package className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{asset.label}</div>
+                                      <div className="text-[9px] text-slate-500 font-medium">{asset.serial || asset.inventory_number}</div>
+                                    </div>
+                                  </div>
+                                  {assetUser && (
+                                    <div className="text-right flex flex-col items-end gap-0.5">
+                                      <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Utilisateur</div>
+                                      <div className="text-[9px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">{assetUser.name}</div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

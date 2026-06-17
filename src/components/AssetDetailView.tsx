@@ -412,85 +412,85 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
             </div>
 
             {/* Software, Licenses, Contracts Sections (Simplified) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Licenses */}
-              <div className={theme.detailSection}>
-                <div className={theme.detailSectionHeader}>
-                  <h3 className={theme.detailSectionTitle}>
-                    <Key className="w-4 h-4" /> Licences ({licenses.length})
-                  </h3>
-                  <button onClick={() => setShowLicenseAdd(!showLicenseAdd)} className={theme.btnIconGhost}><Plus className="w-4 h-4" /></button>
-                </div>
-                {showLicenseAdd && (
-                  <select onChange={(e) => handleLinkLicense(e.target.value)} className={cn(theme.inputBase, "p-2 text-xs")}>
-                    <option value="">Lier une licence...</option>
-                    {allLicenses.map(l => <option key={l.id} value={l.id}>{l.label} ({l.software})</option>)}
-                  </select>
-                )}
-                <div className="space-y-1">
-                  {licenses.map(lic => (
-                    <div key={lic.id} className="p-2 bg-slate-50 rounded-lg text-xs font-bold text-slate-700 border border-slate-100 flex justify-between">
-                      <span>{lic.label}</span>
-                      <span className="text-[9px] opacity-60 font-black tracking-widest uppercase">{lic.software}</span>
+            {(licenses.length > 0 || contracts.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Licenses */}
+                {licenses.length > 0 && (
+                  <div className={theme.detailSection}>
+                    <div className={theme.detailSectionHeader}>
+                      <h3 className={theme.detailSectionTitle}>
+                        <Key className="w-4 h-4" /> Licences ({licenses.length})
+                      </h3>
+                      <button onClick={() => setShowLicenseAdd(!showLicenseAdd)} className={theme.btnIconGhost}><Plus className="w-4 h-4" /></button>
                     </div>
-                  ))}
-                  {licenses.length === 0 && !showLicenseAdd && (
-                     <div className="text-center py-2 text-xs font-medium text-slate-400 italic">Aucune licence</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Contracts */}
-              <div className={theme.detailSection}>
-                <div className={theme.detailSectionHeader}>
-                  <h3 className={theme.detailSectionTitle}>
-                    <FileText className="w-4 h-4" /> Contrats ({contracts.length})
-                  </h3>
-                  <button onClick={() => setShowContractAdd(!showContractAdd)} className={theme.btnIconGhost}><Plus className="w-4 h-4" /></button>
-                </div>
-                {showContractAdd && (
-                  <select onChange={(e) => handleLinkContract(e.target.value)} className={cn(theme.inputBase, "p-2 text-xs")}>
-                    <option value="">Lier un contrat...</option>
-                    {allContracts.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  </select>
+                    {showLicenseAdd && (
+                      <select onChange={(e) => handleLinkLicense(e.target.value)} className={cn(theme.inputBase, "p-2 text-xs")}>
+                        <option value="">Lier une licence...</option>
+                        {allLicenses.map(l => <option key={l.id} value={l.id}>{l.label} ({l.software})</option>)}
+                      </select>
+                    )}
+                    <div className="space-y-1">
+                      {licenses.map(lic => (
+                        <div key={lic.id} className="p-2 bg-slate-50 rounded-lg text-xs font-bold text-slate-700 border border-slate-100 flex justify-between">
+                          <span>{lic.label}</span>
+                          <span className="text-[9px] opacity-60 font-black tracking-widest uppercase">{lic.software}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
-                <div className="space-y-1">
-                  {contracts.map(c => {
-                    const diffDays = Math.ceil((new Date(c.end_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-                    const isExpiring = diffDays > 0 && diffDays <= 30;
-                    const isExpired = diffDays <= 0;
-                    
-                    return (
-                      <div key={c.id} className={cn(
-                        "p-2 rounded-lg border flex flex-col gap-1",
-                        isExpired ? "bg-red-50 border-red-200 text-red-900" : 
-                        isExpiring ? "bg-amber-50 border-amber-200 text-amber-900" : 
-                        "bg-slate-50 border-slate-200 text-slate-900"
-                      )}>
-                        <div className="flex justify-between items-start">
-                          <span className="text-xs font-bold">{c.label}</span>
-                          {(isExpiring || isExpired) && (
-                            <span className={cn(
-                               theme.badge,
-                               isExpired ? theme.badgeDanger : theme.badgeWarning
-                            )}>
-                              {isExpired ? 'Expiré' : `Expire dans ${diffDays}j`}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex justify-between text-[9px] font-medium opacity-60">
-                          <span>{c.reference || c.type}</span>
-                          <span>{new Date(c.end_date).toLocaleDateString('fr-FR')}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {contracts.length === 0 && !showContractAdd && (
-                     <div className="text-center py-2 text-xs font-medium text-slate-400 italic">Aucun contrat</div>
-                  )}
-                </div>
+
+                {/* Contracts */}
+                {contracts.length > 0 && (
+                  <div className={theme.detailSection}>
+                    <div className={theme.detailSectionHeader}>
+                      <h3 className={theme.detailSectionTitle}>
+                        <FileText className="w-4 h-4" /> Contrats ({contracts.length})
+                      </h3>
+                      <button onClick={() => setShowContractAdd(!showContractAdd)} className={theme.btnIconGhost}><Plus className="w-4 h-4" /></button>
+                    </div>
+                    {showContractAdd && (
+                      <select onChange={(e) => handleLinkContract(e.target.value)} className={cn(theme.inputBase, "p-2 text-xs")}>
+                        <option value="">Lier un contrat...</option>
+                        {allContracts.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      </select>
+                    )}
+                    <div className="space-y-1">
+                      {contracts.map(c => {
+                        const diffDays = Math.ceil((new Date(c.end_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                        const isExpiring = diffDays > 0 && diffDays <= 30;
+                        const isExpired = diffDays <= 0;
+                        
+                        return (
+                          <div key={c.id} className={cn(
+                            "p-2 rounded-lg border flex flex-col gap-1",
+                            isExpired ? "bg-red-50 border-red-200 text-red-900" : 
+                            isExpiring ? "bg-amber-50 border-amber-200 text-amber-900" : 
+                            "bg-slate-50 border-slate-200 text-slate-900"
+                          )}>
+                            <div className="flex justify-between items-start">
+                              <span className="text-xs font-bold">{c.label}</span>
+                              {(isExpiring || isExpired) && (
+                                <span className={cn(
+                                   theme.badge,
+                                   isExpired ? theme.badgeDanger : theme.badgeWarning
+                                )}>
+                                  {isExpired ? 'Expiré' : `Expire dans ${diffDays}j`}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex justify-between text-[9px] font-medium opacity-60">
+                              <span>{c.reference || c.type}</span>
+                              <span>{new Date(c.end_date).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
             {/* Peripherals */}
             <div className={theme.detailSection}>
