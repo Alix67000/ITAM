@@ -58,20 +58,27 @@ export const AssetList: React.FC<{ initialType?: string; initialUserId?: string 
   const [currentLastDoc, setCurrentLastDoc] = useState<any>(undefined);
   const [hasMore, setHasMore] = useState(false);
 
+  const [printerLookup, setPrinterLookup] = useState<Record<string, Asset>>({});
+  
   const fetchData = async (page = 1, lastVisible?: any) => {
     setLoading(true);
     try {
       const isFiltering = search || selectedTypeFilter || selectedUserFilter || selectedStatusFilter || selectedLocationFilter || dateFilter !== 'all';
 
       // Always load related data
-      const [phoneLinesData, usersData, locationsData] = await Promise.all([
+      const [phoneLinesData, usersData, locationsData, allAssetsForLookup] = await Promise.all([
         api.getPhoneLines(),
         api.getUsers(),
-        api.getLocations()
+        api.getLocations(),
+        api.getAssets({ fetchAll: true }).then(res => res.assets)
       ]);
       setPhoneLines(phoneLinesData);
       setUsers(usersData);
       setLocations(locationsData);
+
+      const printers = allAssetsForLookup.filter(a => a.type?.toLowerCase() === 'imprimante');
+      const printerMap = Object.fromEntries(printers.map(p => [p.id, p]));
+      setPrinterLookup(printerMap);
 
       // Load assets
       // If filtering, load all and paginate on client side
