@@ -3,7 +3,7 @@ import { api, Asset, License, Contract, User, Location } from '../services/api';
 import { cn } from '../lib/utils';
 import { 
   X, Cpu, Smartphone, Monitor, Printer, HardDrive, Edit2, 
-  FileText, Key, MapPin, Calendar, Plus, 
+  FileText, Key, MapPin, Plus, 
   MousePointer2, Keyboard, Headphones, Speaker, Settings, Network, Trash2, Package, Eye, EyeOff
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -31,7 +31,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
   const [allSoftwares, setAllSoftwares] = useState<any[]>([]);
   const [allLicenses, setAllLicenses] = useState<any[]>([]);
   const [allContracts, setAllContracts] = useState<any[]>([]);
@@ -45,20 +44,15 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [showLicenseAdd, setShowLicenseAdd] = useState(false);
   const [showContractAdd, setShowContractAdd] = useState(false);
 
-  const [events, setEvents] = useState<any[]>([]);
-  const [showEventAdd, setShowEventAdd] = useState(false);
-  const [eventText, setEventText] = useState('');
-
   const fetchData = async () => {
     setLoading(true);
     try {
       const foundAsset = await api.getAsset(assetId);
       if (foundAsset) {
-        const [assetContracts, assetSoftwares, assetLicenses, assetEvents, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
+        const [assetContracts, assetSoftwares, assetLicenses, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
           api.getAssetContracts(assetId),
           api.getAssetSoftwares(assetId),
           api.getAssetLicenses(assetId),
-          api.getAssetEvents(assetId),
           api.getSoftwares(),
           api.getLicenses(),
           api.getContracts(),
@@ -71,7 +65,6 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         setContracts(assetContracts);
         setSoftwares(assetSoftwares);
         setLicenses(assetLicenses);
-        setEvents(assetEvents);
         setAllSoftwares(softwaresList);
         setAllLicenses(licensesList);
         setAllContracts(contractsList);
@@ -562,99 +555,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                )}
             </div>
 
-            {/* Events Section */}
-            <div className={cn(theme.detailSection, "relative overflow-hidden group mt-5")}>
-               <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-10 transition-opacity">
-                 <Calendar className="w-32 h-32 text-indigo-500" />
-               </div>
-               
-               <div className="flex items-center justify-between mb-4 relative">
-                 <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500">
-                     <Calendar className="w-4 h-4" />
-                   </div>
-                   <div>
-                     <h2 className="text-sm font-bold text-slate-900 tracking-tight">Journal d'événements</h2>
-                   </div>
-                 </div>
-                 <button 
-                   onClick={() => setShowEventAdd(true)}
-                   className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-md text-xs font-bold hover:bg-slate-800 transition shadow-sm"
-                 >
-                   <Plus className="w-3 h-3" />
-                   Ajouter
-                 </button>
-               </div>
 
-               {showEventAdd && (
-                 <div className="flex gap-2 mb-4">
-                   <input
-                     autoFocus
-                     type="text"
-                     value={eventText}
-                     onChange={(e) => setEventText(e.target.value)}
-                     onKeyDown={async (e) => {
-                       if (e.key === 'Enter' && eventText.trim()) {
-                         await api.addAssetEvent(assetId, { action: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
-                         const updated = await api.getAssetEvents(assetId);
-                         setEvents(updated);
-                         setEventText('');
-                         setShowEventAdd(false);
-                         showToast('Événement ajouté', 'success');
-                       }
-                       if (e.key === 'Escape') { setShowEventAdd(false); setEventText(''); }
-                     }}
-                     placeholder="Décris l'événement... (Entrée pour enregistrer)"
-                     className="flex-1 h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                   />
-                   <button
-                     onClick={async () => {
-                       if (!eventText.trim()) return;
-                       await api.addAssetEvent(assetId, { action: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
-                       const updated = await api.getAssetEvents(assetId);
-                       setEvents(updated);
-                       setEventText('');
-                       setShowEventAdd(false);
-                       showToast('Événement ajouté', 'success');
-                     }}
-                     className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition"
-                   >
-                     Enregistrer
-                   </button>
-                   <button
-                     onClick={() => { setShowEventAdd(false); setEventText(''); }}
-                     className="px-3 py-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold transition"
-                   >
-                     Annuler
-                   </button>
-                 </div>
-               )}
-
-               {events.length > 0 ? (
-                 <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-                   {[...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((evt) => (
-                     <div key={evt.id} className="relative">
-                       <div className="absolute -left-[30px] w-4 h-4 bg-white border-2 border-indigo-200 rounded-full flex items-center justify-center top-1">
-                         <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                       </div>
-                       <div className="flex flex-col mb-1">
-                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                           {new Date(evt.date).toLocaleDateString('fr-FR', {
-                             day: 'numeric', month: 'long', year: 'numeric',
-                             hour: '2-digit', minute: '2-digit'
-                           })}
-                         </span>
-                       </div>
-                       <p className="text-sm font-medium text-slate-900">{evt.description}</p>
-                     </div>
-                   ))}
-                 </div>
-               ) : (
-                 <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                   <p className="text-sm font-bold text-slate-400">Aucun événement enregistré.</p>
-                 </div>
-               )}
-            </div>
           </div>
 
           {/* Sidebar Column */}
