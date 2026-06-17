@@ -47,6 +47,7 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
 
   const [events, setEvents] = useState<any[]>([]);
   const [showEventAdd, setShowEventAdd] = useState(false);
+  const [eventText, setEventText] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -586,83 +587,65 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                </div>
 
                {showEventAdd && (
-                 <motion.form 
-                   initial={{ opacity: 0, height: 0 }} 
-                   animate={{ opacity: 1, height: 'auto' }}
-                   className="mb-8 p-6 bg-slate-50 border border-slate-100 rounded-2xl relative"
-                   onSubmit={async (e) => {
-                     e.preventDefault();
-                     const formData = new FormData(e.currentTarget);
-                     const type = formData.get('type') as string;
-                     const author = formData.get('author') as string;
-                     const description = formData.get('description') as string;
-                     if (!type || !author || !description) return;
-                     
-                     try {
-                       await api.addAssetEvent(assetId, {
-                         type,
-                         author,
-                         description,
-                         date: new Date().toISOString()
-                       });
+                 <div className="flex gap-2 mb-4">
+                   <input
+                     autoFocus
+                     type="text"
+                     value={eventText}
+                     onChange={(e) => setEventText(e.target.value)}
+                     onKeyDown={async (e) => {
+                       if (e.key === 'Enter' && eventText.trim()) {
+                         await api.addAssetEvent(assetId, { type: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
+                         const updated = await api.getAssetEvents(assetId);
+                         setEvents(updated);
+                         setEventText('');
+                         setShowEventAdd(false);
+                         showToast('Événement ajouté', 'success');
+                       }
+                       if (e.key === 'Escape') { setShowEventAdd(false); setEventText(''); }
+                     }}
+                     placeholder="Décris l'événement... (Entrée pour enregistrer)"
+                     className="flex-1 h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                   />
+                   <button
+                     onClick={async () => {
+                       if (!eventText.trim()) return;
+                       await api.addAssetEvent(assetId, { type: 'Note', author: '', description: eventText.trim(), date: new Date().toISOString() });
                        const updated = await api.getAssetEvents(assetId);
                        setEvents(updated);
+                       setEventText('');
                        setShowEventAdd(false);
                        showToast('Événement ajouté', 'success');
-                     } catch (err) {
-                       showToast("Erreur lors de l'ajout", 'error');
-                     }
-                   }}
-                 >
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Opération</label>
-                       <select name="type" required className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
-                         <option value="">Sélectionner...</option>
-                         <option value="Affectation">Affectation</option>
-                         <option value="Modification">Modification</option>
-                         <option value="Déplacement">Déplacement</option>
-                         <option value="Retour">Retour</option>
-                         <option value="Mise en panne">Signalisation de panne</option>
-                         <option value="Mise au rebut">Mise au rebut</option>
-                       </select>
-                     </div>
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auteur</label>
-                       <input name="author" required placeholder="Votre nom" className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                     </div>
-                     <div className="space-y-2 sm:col-span-2">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</label>
-                       <input name="description" required placeholder="Description détaillée..." className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                     </div>
-                   </div>
-                   <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/60 mt-4">
-                     <button type="button" onClick={() => setShowEventAdd(false)} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-white rounded-lg transition-colors">Annuler</button>
-                     <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">Ajouter l'événement</button>
-                   </div>
-                 </motion.form>
+                     }}
+                     className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition"
+                   >
+                     Enregistrer
+                   </button>
+                   <button
+                     onClick={() => { setShowEventAdd(false); setEventText(''); }}
+                     className="px-3 py-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold transition"
+                   >
+                     Annuler
+                   </button>
+                 </div>
                )}
 
                {events.length > 0 ? (
                  <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-                   {events.map((evt) => (
+                   {[...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((evt) => (
                      <div key={evt.id} className="relative">
                        <div className="absolute -left-[30px] w-4 h-4 bg-white border-2 border-indigo-200 rounded-full flex items-center justify-center top-1">
                          <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
                        </div>
-                       <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-1">
-                         <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-600">
-                           {evt.type}
-                         </span>
+                       <div className="flex flex-col mb-1">
                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                            {new Date(evt.date).toLocaleDateString('fr-FR', {
-                             day: '2-digit', month: 'short', year: 'numeric',
+                             day: 'numeric', month: 'long', year: 'numeric',
                              hour: '2-digit', minute: '2-digit'
                            })}
                          </span>
                        </div>
-                       <p className="text-sm font-medium text-slate-700 mb-1">{evt.description}</p>
-                       <p className="text-[10px] font-black text-slate-400 tracking-wide uppercase">Par {evt.author}</p>
+                       <p className="text-sm font-medium text-slate-900">{evt.description}</p>
                      </div>
                    ))}
                  </div>
