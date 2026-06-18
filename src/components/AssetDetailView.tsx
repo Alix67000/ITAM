@@ -43,16 +43,20 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [showSoftwareAdd, setShowSoftwareAdd] = useState(false);
   const [showLicenseAdd, setShowLicenseAdd] = useState(false);
   const [showContractAdd, setShowContractAdd] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
+  const [eventText, setEventText] = useState('');
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const foundAsset = await api.getAsset(assetId);
       if (foundAsset) {
-        const [assetContracts, assetSoftwares, assetLicenses, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
+        const [assetContracts, assetSoftwares, assetLicenses, assetEvents, softwaresList, licensesList, contractsList, usersList, locationsList, allAssetsList] = await Promise.all([
           api.getAssetContracts(assetId),
           api.getAssetSoftwares(assetId),
           api.getAssetLicenses(assetId),
+          api.getAssetEvents(assetId),
           api.getSoftwares(),
           api.getLicenses(),
           api.getContracts(),
@@ -65,6 +69,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
         setContracts(assetContracts);
         setSoftwares(assetSoftwares);
         setLicenses(assetLicenses);
+        setEvents(assetEvents);
+        setAllSoftwares(softwaresList);
         setAllSoftwares(softwaresList);
         setAllLicenses(licensesList);
         setAllContracts(contractsList);
@@ -129,6 +135,27 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
       setContracts(updated);
       setShowContractAdd(false);
     } catch (e) { console.error(e); }
+  };
+
+  const handleAddEvent = async () => {
+    if (!eventText.trim()) return;
+    setIsSavingEvent(true);
+    try {
+      await api.addAssetEvent(assetId, {
+        action: 'Note',
+        author: '',
+        description: eventText.trim(),
+        date: new Date().toISOString()
+      });
+      const updated = await api.getAssetEvents(assetId);
+      setEvents(updated);
+      setEventText('');
+      showToast('Événement ajouté', 'success');
+    } catch (e) {
+      showToast("Erreur lors de l'ajout", 'error');
+    } finally {
+      setIsSavingEvent(false);
+    }
   };
 
   const getAssetIcon = (type: string, size = "w-8 h-8") => {
