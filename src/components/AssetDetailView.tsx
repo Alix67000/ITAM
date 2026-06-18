@@ -582,6 +582,50 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                )}
             </div>
 
+          {/* Journal d'événements */}
+          <div className={theme.detailSection}>
+            <div className={theme.detailSectionHeader}>
+              <h3 className={theme.detailSectionTitle}>Journal d'événements</h3>
+            </div>
+
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={eventText}
+                onChange={(e) => setEventText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddEvent(); }}
+                placeholder="Ajouter une note..."
+                className={cn(theme.inputBase, "flex-1 h-9 text-sm")}
+              />
+              <button
+                onClick={handleAddEvent}
+                disabled={isSavingEvent || !eventText.trim()}
+                className={cn(theme.btnPrimary, "px-4 py-2 text-xs")}
+              >
+                {isSavingEvent ? '...' : 'Enregistrer'}
+              </button>
+            </div>
+
+            {events.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">Aucun événement enregistré.</p>
+            ) : (
+              <div className="space-y-3">
+                {[...events]
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .map((evt) => (
+                    <div key={evt.id} className="border-l-2 border-slate-200 pl-3">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                        {new Date(evt.date).toLocaleDateString('fr-FR', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </p>
+                      <p className="text-sm text-slate-700 font-medium">{evt.description}</p>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
 
           </div>
 
