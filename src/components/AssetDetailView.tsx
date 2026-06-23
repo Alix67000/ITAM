@@ -46,6 +46,8 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
   const [events, setEvents] = useState<any[]>([]);
   const [eventText, setEventText] = useState('');
   const [isSavingEvent, setIsSavingEvent] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editingEventText, setEditingEventText] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -613,14 +615,74 @@ export const AssetDetailView: React.FC<AssetDetailViewProps> = ({ assetId, onClo
                 {[...events]
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((evt) => (
-                    <div key={evt.id} className="border-l-2 border-slate-200 pl-3">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
-                        {new Date(evt.date).toLocaleDateString('fr-FR', {
-                          day: '2-digit', month: 'short', year: 'numeric',
-                          hour: '2-digit', minute: '2-digit'
-                        })}
-                      </p>
-                      <p className="text-sm text-slate-700 font-medium">{evt.description}</p>
+                    <div key={evt.id} className="border-l-2 border-slate-200 pl-3 group flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        {editingEventId === evt.id ? (
+                          <div className="flex gap-2 mt-1">
+                            <input
+                              type="text"
+                              value={editingEventText}
+                              onChange={(e) => setEditingEventText(e.target.value)}
+                              onKeyDown={async (e) => {
+                                if (e.key === 'Enter' && editingEventText.trim()) {
+                                  await api.updateAssetEvent(assetId, evt.id, editingEventText.trim());
+                                  const updated = await api.getAssetEvents(assetId);
+                                  setEvents(updated);
+                                  setEditingEventId(null);
+                                  showToast('Note modifiée', 'success');
+                                }
+                                if (e.key === 'Escape') setEditingEventId(null);
+                              }}
+                              autoFocus
+                              className={cn(theme.inputBase, "flex-1 h-8 text-sm")}
+                            />
+                            <button
+                              onClick={async () => {
+                                if (!editingEventText.trim()) return;
+                                await api.updateAssetEvent(assetId, evt.id, editingEventText.trim());
+                                const updated = await api.getAssetEvents(assetId);
+                                setEvents(updated);
+                                setEditingEventId(null);
+                                showToast('Note modifiée', 'success');
+                              }}
+                              className="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold"
+                            >OK</button>
+                            <button
+                              onClick={() => setEditingEventId(null)}
+                              className="px-3 py-1 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                            >✕</button>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                              {new Date(evt.date).toLocaleDateString('fr-FR', {
+                                day: '2-digit', month: 'short', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit'
+                              })}
+                            </p>
+                            <p className="text-sm text-slate-700 font-medium">{evt.description}</p>
+                          </>
+                        )}
+                      </div>
+                      {editingEventId !== evt.id && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => { setEditingEventId(evt.id); setEditingEventText(evt.description); }}
+                            className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
+                            title="Modifier"
+                          >✏️</button>
+                          <button
+                            onClick={async () => {
+                              await api.deleteAssetEvent(assetId, evt.id);
+                              const updated = await api.getAssetEvents(assetId);
+                              setEvents(updated);
+                              showToast('Note supprimée', 'success');
+                            }}
+                            className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                            title="Supprimer"
+                          >🗑️</button>
+                        </div>
+                      )}
                     </div>
                   ))}
               </div>

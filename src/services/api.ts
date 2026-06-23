@@ -372,6 +372,25 @@ export const api = {
     }
   },
 
+  updateAssetEvent: async (assetId: string, eventId: string, description: string) => {
+    try {
+      const eventRef = doc(db, 'assets', assetId, 'events', eventId);
+      await updateDoc(eventRef, { description });
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `assets/${assetId}/events/${eventId}`);
+    }
+  },
+
+  deleteAssetEvent: async (assetId: string, eventId: string) => {
+    try {
+      await deleteDoc(doc(db, 'assets', assetId, 'events', eventId));
+      return { success: true };
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `assets/${assetId}/events/${eventId}`);
+    }
+  },
+
   getAssetEvents: async (assetId: string): Promise<AssetEvent[]> => {
     try {
       const parentRef = doc(db, 'assets', assetId);
